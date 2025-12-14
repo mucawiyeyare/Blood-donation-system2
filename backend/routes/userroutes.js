@@ -1,6 +1,6 @@
 import express from "express";
 import { registerDonor, loginUser, getAllUsers, getProfile, getDonors } from "../controllers/usercontrollers.js";
-import { adminOnly, protect, adminOrHospital } from "../middleware/authMiddleware.js";
+import { adminOnly, protect, adminOrHospital, adminOrHealthInstitution, adminOrHospitalOrHealthInstitution } from "../middleware/authMiddleware.js";
 import User from "../models/usermodel.js";
 import bcrypt from "bcryptjs";
 
@@ -13,7 +13,7 @@ router.post("/register", registerDonor);
 // User Login
 router.post("/login", loginUser);
 router.get("/all", protect, adminOnly, getAllUsers);
-router.get("/donors", protect, adminOrHospital, getDonors); //
+router.get("/donors", protect, adminOrHospitalOrHealthInstitution, getDonors); // Admin, Hospital, and Health Institution can view donors
 
 router.get("/profile", protect, getProfile);
 

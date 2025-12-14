@@ -106,6 +106,8 @@ function DashboardHome() {
             ? "Welcome to your Hospital Dashboard - Manage donor requests and view available donors" 
             : userRole === "admin"
             ? "Welcome to Blood Donation Management System"
+            : userRole === "health_institution"
+            ? "Welcome to Ministry of Health Dashboard - Federal Government of Somalia"
             : "Welcome to your Donor Dashboard"}
         </p>
       </div>

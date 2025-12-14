@@ -6,6 +6,7 @@ import connectDB from "./Db/db.js";
 // Routes
 import Userrouter from "./routes/userroutes.js";
 import Adminrouter from "./routes/Adminroutes.js"; 
+import DonorRequestRouter from "./routes/donorRequestRoutes.js"; 
 dotenv.config();
 
 const app = express();
@@ -25,6 +26,7 @@ app.get("/", (req, res) => {
 // API Routes
 app.use("/api/users", Userrouter);
 app.use("/api/admin", Adminrouter); // 
+app.use("/api/requests", DonorRequestRouter); 
 app.use((err, req, res, next) => {
   console.error(" Server Error:", err.message);
   res.status(500).json({ message: "Internal Server Error", error: err.message });

@@ -208,6 +208,7 @@ function RegisterUser() {
                   <option value="donor">Donor</option>
                   <option value="hospital">Hospital</option>
                   <option value="admin">Admin</option>
+                  <option value="health_institution">Health Institution (Ministry)</option>
                 </select>
               </div>
             </div>

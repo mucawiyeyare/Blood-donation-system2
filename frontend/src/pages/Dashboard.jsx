@@ -36,7 +36,7 @@ function Dashboard({ setUser }) {
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
-
+   
       {/* Main Content */}
       <div className="flex-1 bg-gradient-to-br from-red-50 via-white to-red-50 overflow-auto relative">
         {/* Top Bar with Menu Toggle and Logout - No Margin */}

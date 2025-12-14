@@ -92,7 +92,54 @@ export const getAllUsers = async (req, res) => {
 export const getDonors = async (req, res) => {
   try {
     const donors = await User.find({ role: "donor" }).select("-password");
-    res.json(donors);
+    
+    // Import DonorRequest model dynamically to avoid circular dependency
+    const DonorRequest = (await import("../models/donorRequestModel.js")).default;
+    
+    // Calculate status for each donor
+    const donorsWithStatus = await Promise.all(
+      donors.map(async (donor) => {
+        let status = "Available";
+        let cooldownEndsAt = null;
+
+        // Check if donor donated in last 6 months
+        if (donor.lastDonationDate) {
+          const sixMonthsAgo = new Date();
+          sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+          
+          if (donor.lastDonationDate > sixMonthsAgo) {
+            status = "Donated Recently";
+            cooldownEndsAt = new Date(donor.lastDonationDate);
+            cooldownEndsAt.setMonth(cooldownEndsAt.getMonth() + 6);
+          }
+        }
+
+        // Check if donor has pending requests
+        if (status === "Available") {
+          const pendingRequest = await DonorRequest.findOne({
+            donorId: donor._id,
+            status: "Pending"
+          });
+
+          if (pendingRequest) {
+            status = "Requested";
+          }
+        }
+
+        // Check manual availability flag
+        if (!donor.isAvailable) {
+          status = "Unavailable";
+        }
+
+        return {
+          ...donor.toObject(),
+          status,
+          cooldownEndsAt,
+        };
+      })
+    );
+
+    res.json(donorsWithStatus);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

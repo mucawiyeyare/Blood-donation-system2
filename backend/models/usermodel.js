@@ -27,8 +27,17 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["donor", "hospital", "admin"],
+      enum: ["donor", "hospital", "admin", "health_institution"],
       default: "donor",
+    },
+    // Donor-specific fields
+    lastDonationDate: {
+      type: Date,
+      required: false,
+    },
+    isAvailable: {
+      type: Boolean,
+      default: true,
     },
   },
   { timestamps: true }

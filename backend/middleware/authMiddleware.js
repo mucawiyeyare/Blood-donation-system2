@@ -42,3 +42,21 @@ export const adminOrHospital = (req, res, next) => {
     res.status(403).json({ message: "Access denied. Admins and Hospitals only." });
   }
 };
+
+//  Admin or Health Institution (Ministry)
+export const adminOrHealthInstitution = (req, res, next) => {
+  if (req.user && (req.user.role === "admin" || req.user.role === "health_institution")) {
+    next();
+  } else {
+    res.status(403).json({ message: "Access denied. Admins and Health Institutions only." });
+  }
+};
+
+//  Admin, Hospital, or Health Institution
+export const adminOrHospitalOrHealthInstitution = (req, res, next) => {
+  if (req.user && (req.user.role === "admin" || req.user.role === "hospital" || req.user.role === "health_institution")) {
+    next();
+  } else {
+    res.status(403).json({ message: "Access denied. Admins, Hospitals, and Health Institutions only." });
+  }
+};

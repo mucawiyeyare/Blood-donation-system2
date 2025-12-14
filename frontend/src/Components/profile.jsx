@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { User, Mail, Phone, MapPin, Droplet, Shield, Edit, Save, X, Lock, Eye, EyeOff, Camera, Upload } from "lucide-react";
+import { User, Mail, Phone, MapPin, Droplet, Shield, Edit, Save, X, Lock, Eye, EyeOff, Camera, Upload, Info, Heart, Users, BarChart3 } from "lucide-react";
 
 function Profile() {
   const [profile, setProfile] = useState(null);
@@ -254,6 +254,75 @@ function Profile() {
             }`}
           >
             {message.text}
+          </div>
+        )}
+
+        {/* System Information Card - Only for Donors */}
+        {profile.role === "donor" && (
+          <div className="bg-gradient-to-r from-red-600 to-red-700 rounded-xl shadow-lg p-8 mb-6 text-white">
+            <div className="flex items-center gap-3 mb-6">
+              <Info className="w-8 h-8" />
+              <h2 className="text-2xl font-bold">System Information</h2>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <Heart className="w-6 h-6 text-red-200" />
+                  <h3 className="font-semibold text-lg">Your Impact on Somalia</h3>
+                </div>
+                <p className="text-red-100 text-sm">
+                  As a registered donor in Somalia's National Blood Donation System, you're part of a life-saving community. 
+                  Your blood type <span className="font-bold">{profile.bloodType || "N/A"}</span> can help save Somali lives in emergencies 
+                  across all 18 regions.
+                </p>
+              </div>
+
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <Users className="w-6 h-6 text-red-200" />
+                  <h3 className="font-semibold text-lg">National Community</h3>
+                </div>
+                <p className="text-red-100 text-sm">
+                  Join over 10,000 Somali donors making a difference nationwide. Hospitals from Mogadishu to Hargeisa 
+                  can find you when there's an urgent need for blood in your region.
+                </p>
+              </div>
+
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <MapPin className="w-6 h-6 text-red-200" />
+                  <h3 className="font-semibold text-lg">Location Services</h3>
+                </div>
+                <p className="text-red-100 text-sm">
+                  Your location ({profile.location || "Not set"}) helps hospitals find the nearest donors across Somalia. 
+                  Keep your location updated for faster emergency response times in your city.
+                </p>
+              </div>
+
+              <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                <div className="flex items-center gap-3 mb-2">
+                  <BarChart3 className="w-6 h-6 text-red-200" />
+                  <h3 className="font-semibold text-lg">Government System</h3>
+                </div>
+                <p className="text-red-100 text-sm">
+                  This is an official Federal Government of Somalia initiative. Update your profile, set your location, 
+                  and contribute to building a healthier Somalia through our secure dashboard.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 bg-white/10 backdrop-blur-sm rounded-lg p-4">
+              <p className="text-sm text-red-100">
+                <strong className="text-white">Quick Tip:</strong> Keep your profile information up to date, especially your phone number and location, so hospitals can reach you quickly in case of emergency.
+              </p>
+            </div>
+            
+            <div className="mt-4 bg-blue-900/50 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+              <p className="text-sm text-white text-center">
+                🇸🇴 <strong>Official Government System</strong> - Federal Republic of Somalia | Ministry of Health & Human Services
+              </p>
+            </div>
           </div>
         )}
 

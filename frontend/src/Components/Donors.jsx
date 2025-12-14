@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Search, Filter, MapPin, Droplet, X } from "lucide-react";
+import { Search, Filter, MapPin, Droplet, X, Send, AlertCircle } from "lucide-react";
 
 function Donors() {
   const [donors, setDonors] = useState([]);
@@ -13,6 +13,15 @@ function Donors() {
   const [selectedLocation, setSelectedLocation] = useState("");
   const [selectedBloodType, setSelectedBloodType] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  
+  // Request modal states
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const [selectedDonor, setSelectedDonor] = useState(null);
+  const [requestForm, setRequestForm] = useState({
+    urgency: "Routine",
+    message: "",
+  });
+  const [userRole, setUserRole] = useState("");
   
   // Get unique locations and blood types
   const [locations, setLocations] = useState([]);
@@ -28,6 +37,10 @@ function Donors() {
           setLoading(false);
           return;
         }
+
+        // Decode token to get user role
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        setUserRole(payload.role);
 
         const res = await axios.get("http://localhost:3000/api/users/donors", {
           headers: { Authorization: `Bearer ${token}` },
@@ -79,6 +92,65 @@ function Donors() {
     setSearchName("");
     setSelectedLocation("");
     setSelectedBloodType("");
+  };
+
+  const openRequestModal = (donor) => {
+    setSelectedDonor(donor);
+    setShowRequestModal(true);
+    setRequestForm({ urgency: "Routine", message: "" });
+  };
+
+  const closeRequestModal = () => {
+    setShowRequestModal(false);
+    setSelectedDonor(null);
+    setRequestForm({ urgency: "Routine", message: "" });
+  };
+
+  const handleRequestSubmit = async (e) => {
+    e.preventDefault();
+    
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post(
+        "http://localhost:3000/api/requests/create",
+        {
+          donorId: selectedDonor._id,
+          bloodType: selectedDonor.bloodType,
+          urgency: requestForm.urgency,
+          message: requestForm.message,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      alert("Request sent successfully!");
+      closeRequestModal();
+      
+      // Refresh donors to update status
+      const res = await axios.get("http://localhost:3000/api/users/donors", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setDonors(res.data);
+      setFilteredDonors(res.data);
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to send request");
+    }
+  };
+
+  const getStatusBadge = (status) => {
+    const badges = {
+      Available: { color: "bg-green-100 text-green-800", text: "Available" },
+      Requested: { color: "bg-yellow-100 text-yellow-800", text: "Requested" },
+      "Donated Recently": { color: "bg-red-100 text-red-800", text: "Donated Recently" },
+      Unavailable: { color: "bg-gray-100 text-gray-800", text: "Unavailable" },
+    };
+
+    const badge = badges[status] || badges.Available;
+
+    return (
+      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${badge.color}`}>
+        {badge.text}
+      </span>
+    );
   };
 
   if (loading) {
@@ -235,6 +307,10 @@ function Donors() {
                   <th className="px-6 py-4 text-left font-semibold">Blood Type</th>
                   <th className="px-6 py-4 text-left font-semibold">Phone</th>
                   <th className="px-6 py-4 text-left font-semibold">Location</th>
+                  <th className="px-6 py-4 text-left font-semibold">Status</th>
+                  {userRole === "hospital" && (
+                    <th className="px-6 py-4 text-left font-semibold">Action</th>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -255,10 +331,116 @@ function Donors() {
                         {donor.location}
                       </span>
                     </td>
+                    <td className="px-6 py-4">
+                      {getStatusBadge(donor.status)}
+                    </td>
+                    {userRole === "hospital" && (
+                      <td className="px-6 py-4">
+                        {donor.status === "Available" ? (
+                          <button
+                            onClick={() => openRequestModal(donor)}
+                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
+                          >
+                            <Send className="w-4 h-4" />
+                            Request
+                          </button>
+                        ) : (
+                          <button
+                            disabled
+                            className="px-4 py-2 bg-gray-300 text-gray-500 rounded-lg font-semibold cursor-not-allowed flex items-center gap-2"
+                            title={`Donor is ${donor.status}`}
+                          >
+                            <AlertCircle className="w-4 h-4" />
+                            {donor.status === "Requested" ? "Requested" : "Unavailable"}
+                          </button>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Request Modal */}
+      {showRequestModal && selectedDonor && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="text-2xl font-bold text-gray-800">Request Donor</h3>
+                <p className="text-sm text-gray-600 mt-1">Send request to {selectedDonor.name}</p>
+              </div>
+              <button
+                onClick={closeRequestModal}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                  <Droplet className="w-6 h-6 text-red-600" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-800">{selectedDonor.name}</p>
+                  <p className="text-sm text-gray-600">Blood Type: <span className="font-bold text-red-600">{selectedDonor.bloodType}</span></p>
+                  <p className="text-sm text-gray-600">Phone: {selectedDonor.phone}</p>
+                </div>
+              </div>
+            </div>
+
+            <form onSubmit={handleRequestSubmit}>
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Urgency Level
+                </label>
+                <select
+                  value={requestForm.urgency}
+                  onChange={(e) => setRequestForm({ ...requestForm, urgency: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                  required
+                >
+                  <option value="Routine">Routine</option>
+                  <option value="Urgent">Urgent</option>
+                  <option value="Emergency">Emergency</option>
+                </select>
+              </div>
+
+              <div className="mb-6">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Message (Optional)
+                </label>
+                <textarea
+                  value={requestForm.message}
+                  onChange={(e) => setRequestForm({ ...requestForm, message: e.target.value })}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                  rows="3"
+                  placeholder="Add any additional information..."
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={closeRequestModal}
+                  className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-semibold transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
+                >
+                  <Send className="w-4 h-4" />
+                  Send Request
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

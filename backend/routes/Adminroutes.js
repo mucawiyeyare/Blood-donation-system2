@@ -1,5 +1,5 @@
 import express from "express";
-import { protect, adminOnly } from "../middleware/authMiddleware.js";
+import { protect, adminOnly, adminOrHealthInstitution } from "../middleware/authMiddleware.js";
 import User from "../models/usermodel.js";
 import bcrypt from "bcryptjs";
 
@@ -81,7 +81,7 @@ router.put("/update-role/:id", protect, adminOnly, async (req, res) => {
   try {
     const { role } = req.body;
     
-    if (!["donor", "hospital", "admin"].includes(role)) {
+    if (!["donor", "hospital", "admin", "health_institution"].includes(role)) {
       return res.status(400).json({ message: "Invalid role" });
     }
 
