@@ -1,17 +1,28 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { Activity, Users, Droplet, UserPlus, FileText, CheckCircle, XCircle, Clock } from "lucide-react";
 
 function ActivityLog() {
-  const activities = [
-    { id: 1, type: "user", action: "New user registered", user: "John Doe", time: "2 hours ago", status: "success" },
-    { id: 2, type: "donation", action: "Blood donation completed", user: "Jane Smith", time: "3 hours ago", status: "success" },
-    { id: 3, type: "report", action: "Monthly report generated", user: "Admin", time: "5 hours ago", status: "success" },
-    { id: 4, type: "user", action: "User profile updated", user: "Mike Johnson", time: "1 day ago", status: "success" },
-    { id: 5, type: "donation", action: "Donation request pending", user: "Sarah Williams", time: "1 day ago", status: "pending" },
-    { id: 6, type: "user", action: "Failed login attempt", user: "Unknown", time: "2 days ago", status: "error" },
-    { id: 7, type: "donation", action: "Blood donation completed", user: "Robert Brown", time: "2 days ago", status: "success" },
-    { id: 8, type: "report", action: "Inventory report generated", user: "Admin", time: "3 days ago", status: "success" },
-  ];
+  const [activities, setActivities] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchActivities();
+  }, []);
+
+  const fetchActivities = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get("http://localhost:3000/api/activity?limit=50", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setActivities(response.data);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching activities:", error);
+      setLoading(false);
+    }
+  };
 
   const getIcon = (type) => {
     switch (type) {
@@ -68,7 +79,7 @@ function ActivityLog() {
             </div>
             <h3 className="text-gray-600 font-medium">Total Activities</h3>
           </div>
-          <p className="text-3xl font-bold text-gray-800">1,234</p>
+          <p className="text-3xl font-bold text-gray-800">{activities.length}</p>
         </div>
 
         <div className="bg-white rounded-xl shadow-lg p-6">
@@ -78,7 +89,7 @@ function ActivityLog() {
             </div>
             <h3 className="text-gray-600 font-medium">Successful</h3>
           </div>
-          <p className="text-3xl font-bold text-green-600">1,180</p>
+          <p className="text-3xl font-bold text-green-600">{activities.filter(a => a.status === 'success').length}</p>
         </div>
 
         <div className="bg-white rounded-xl shadow-lg p-6">
@@ -88,7 +99,7 @@ function ActivityLog() {
             </div>
             <h3 className="text-gray-600 font-medium">Pending</h3>
           </div>
-          <p className="text-3xl font-bold text-yellow-600">42</p>
+          <p className="text-3xl font-bold text-yellow-600">{activities.filter(a => a.status === 'pending').length}</p>
         </div>
 
         <div className="bg-white rounded-xl shadow-lg p-6">
@@ -98,7 +109,7 @@ function ActivityLog() {
             </div>
             <h3 className="text-gray-600 font-medium">Failed</h3>
           </div>
-          <p className="text-3xl font-bold text-red-600">12</p>
+          <p className="text-3xl font-bold text-red-600">{activities.filter(a => a.status === 'error').length}</p>
         </div>
       </div>
 
@@ -108,7 +119,7 @@ function ActivityLog() {
         <div className="space-y-4">
           {activities.map((activity) => (
             <div
-              key={activity.id}
+              key={activity._id}
               className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
             >
               <div className={`${getTypeColor(activity.type)} p-3 rounded-full`}>
@@ -117,8 +128,13 @@ function ActivityLog() {
               <div className="flex-1">
                 <p className="font-semibold text-gray-800">{activity.action}</p>
                 <p className="text-sm text-gray-600">
-                  by <span className="font-medium">{activity.user}</span> • {activity.time}
+                   {/* Handle optional user */}
+                   {activity.user ? 
+                      <>by <span className="font-medium">{activity.user.name}</span> • </> 
+                      : ''}
+                   {new Date(activity.createdAt).toLocaleString()}
                 </p>
+                {activity.details && <p className="text-xs text-gray-500 mt-1">{activity.details}</p>}
               </div>
               <div>{getStatusIcon(activity.status)}</div>
             </div>

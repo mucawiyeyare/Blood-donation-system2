@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import axios from "axios";
 import { 
   Phone, Mail, MapPin, Clock, Building2, Send, 
   AlertCircle, CheckCircle, Users, Heart, Activity, 
@@ -23,12 +24,11 @@ function Contact() {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Simulate form submission
-    setFormStatus('success');
-    setTimeout(() => {
-      setFormStatus(null);
+    try {
+      await axios.post("http://localhost:3000/api/contact", formData);
+      setFormStatus('success');
       setFormData({
         fullName: "",
         email: "",
@@ -36,7 +36,12 @@ function Contact() {
         subject: "",
         message: ""
       });
-    }, 3000);
+      setTimeout(() => setFormStatus(null), 5000);
+    } catch (error) {
+      console.error("Error sending message:", error);
+      setFormStatus('error');
+      setTimeout(() => setFormStatus(null), 5000);
+    }
   };
 
   return (
@@ -183,6 +188,13 @@ function Contact() {
             <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
               <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
               <p className="text-green-800">Thank you! Your message has been sent successfully. We'll contact you soon.</p>
+            </div>
+          )}
+
+          {formStatus === 'error' && (
+            <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+              <p className="text-red-800">Something went wrong. Please try again later.</p>
             </div>
           )}
 

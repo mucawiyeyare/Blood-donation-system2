@@ -99,6 +99,52 @@ router.put("/update-role/:id", protect, adminOnly, async (req, res) => {
   }
 });
 
+// Admin updates entire user profile (Generic Edit)
+router.put("/update-user/:id", protect, adminOnly, async (req, res) => {
+  try {
+    const { name, email, phone, location, bloodType, role, isAvailable, lastDonationDate } = req.body;
+    
+    // Validations (basic)
+    if (role && !["donor", "hospital", "admin", "health_institution"].includes(role)) {
+      return res.status(400).json({ message: "Invalid role" });
+    }
+
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Update fields if provided
+    if (name) user.name = name;
+    if (email) user.email = email;
+    if (phone) user.phone = phone;
+    if (location) user.location = location;
+    if (bloodType) user.bloodType = bloodType;
+    if (role) user.role = role;
+    if (typeof isAvailable !== 'undefined') user.isAvailable = isAvailable;
+    if (lastDonationDate) user.lastDonationDate = lastDonationDate;
+
+    await user.save();
+
+    res.json({ 
+        message: "User updated successfully", 
+        user: { 
+            id: user._id, 
+            name: user.name, 
+            email: user.email, 
+            phone: user.phone, 
+            location: user.location, 
+            bloodType: user.bloodType, 
+            role: user.role,
+            isAvailable: user.isAvailable,
+            lastDonationDate: user.lastDonationDate
+        } 
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Admin deletes a user
 router.delete("/delete-user/:id", protect, adminOnly, async (req, res) => {
   try {

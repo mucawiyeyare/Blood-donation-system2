@@ -1,6 +1,8 @@
 import User from "../models/usermodel.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { createLog } from "./activityLogController.js";
+import DonorRequest from "../models/donorRequestModel.js";
 
 /**   Generate JWT Token */
 const generateToken = (user) => {
@@ -32,6 +34,9 @@ export const registerDonor = async (req, res) => {
       bloodType,
       role: "donor", // 
     });
+
+    // Log activity
+    await createLog(donor._id, "New user registered", "user", "success", `Role: donor`);
 
     res.status(201).json({
       message: "Donor registered successfully",
@@ -91,15 +96,15 @@ export const getAllUsers = async (req, res) => {
 // Admin view all donors
 export const getDonors = async (req, res) => {
   try {
+    const { status } = req.query; // Get status filter from query params
+    
     const donors = await User.find({ role: "donor" }).select("-password");
     
-    // Import DonorRequest model dynamically to avoid circular dependency
-    const DonorRequest = (await import("../models/donorRequestModel.js")).default;
     
     // Calculate status for each donor
     const donorsWithStatus = await Promise.all(
       donors.map(async (donor) => {
-        let status = "Available";
+        let donorStatus = "Available";
         let cooldownEndsAt = null;
 
         // Check if donor donated in last 6 months
@@ -108,40 +113,47 @@ export const getDonors = async (req, res) => {
           sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
           
           if (donor.lastDonationDate > sixMonthsAgo) {
-            status = "Donated Recently";
+            donorStatus = "Donated Recently";
             cooldownEndsAt = new Date(donor.lastDonationDate);
             cooldownEndsAt.setMonth(cooldownEndsAt.getMonth() + 6);
           }
         }
 
         // Check if donor has pending requests
-        if (status === "Available") {
+        if (donorStatus === "Available") {
           const pendingRequest = await DonorRequest.findOne({
             donorId: donor._id,
             status: "Pending"
           });
 
           if (pendingRequest) {
-            status = "Requested";
+            donorStatus = "Requested";
           }
         }
 
         // Check manual availability flag
         if (!donor.isAvailable) {
-          status = "Unavailable";
+          donorStatus = "Unavailable";
         }
 
         return {
           ...donor.toObject(),
-          status,
+          status: donorStatus,
           cooldownEndsAt,
         };
       })
     );
 
-    res.json(donorsWithStatus);
+    // Filter by status if provided in query params
+    let filteredDonors = donorsWithStatus;
+    if (status) {
+      filteredDonors = donorsWithStatus.filter(donor => donor.status === status);
+    }
+
+    res.json(filteredDonors);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error("Error in getDonors:", err);
+    res.status(500).json({ message: "Server Error loading donors: " + err.message });
   }
 };
 

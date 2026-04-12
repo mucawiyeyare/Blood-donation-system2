@@ -1,5 +1,6 @@
 import DonorRequest from "../models/donorRequestModel.js";
 import User from "../models/usermodel.js";
+import { createLog } from "./activityLogController.js";
 
 // Hospital creates a request to a donor
 export const createRequest = async (req, res) => {
@@ -56,6 +57,9 @@ export const createRequest = async (req, res) => {
     // Populate hospital and donor details
     await donorRequest.populate("hospitalId", "name email phone location");
     await donorRequest.populate("donorId", "name email phone bloodType location");
+
+    // Log activity
+    await createLog(req.user._id, "Donation request created", "donation", "success", `To: ${donor.name}`);
 
     res.status(201).json({
       message: "Donor request created successfully",
@@ -167,6 +171,9 @@ export const respondToRequest = async (req, res) => {
       message: `Request ${response}ed successfully`,
       request: donorRequest,
     });
+
+    // Log activity
+    await createLog(req.user._id, `Donation request ${response}ed`, "donation", "success", `From: ${req.user.name}`);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -214,6 +221,9 @@ export const markCompleted = async (req, res) => {
       message: "Donation marked as completed successfully",
       request: donorRequest,
     });
+
+    // Log activity
+    await createLog(req.user._id, "Blood donation completed", "donation", "success", `Donor: ${donorRequest.donorId.name}`);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

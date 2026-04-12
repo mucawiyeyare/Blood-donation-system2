@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, Users, Droplet, UserCircle, BarChart3, FileText, Activity, UserPlus, MapPin, Search, Inbox } from "lucide-react";
+import { LayoutDashboard, Users, Droplet, UserCircle, BarChart3, FileText, Activity, UserPlus, MapPin, Search, Inbox, MessageSquare } from "lucide-react";
 
 function Sidebar({ isOpen, onClose }) {
   const role = localStorage.getItem("role"); // admin / donor / hospital / health_institution
@@ -71,6 +71,10 @@ function Sidebar({ isOpen, onClose }) {
                 <UserPlus className="w-5 h-5" />
                 <span>Register User</span>
               </NavLink>
+              <NavLink to="/dashboard/messages" className={linkClass} onClick={handleLinkClick}>
+                <MessageSquare className="w-5 h-5" />
+                <span>Messages</span>
+              </NavLink>
               <NavLink to="/dashboard/profile" className={linkClass} onClick={handleLinkClick}>
                 <UserCircle className="w-5 h-5" />
                 <span>Profile</span>
@@ -86,20 +90,16 @@ function Sidebar({ isOpen, onClose }) {
                 <span>Dashboard</span>
               </NavLink>
               <NavLink to="/dashboard/donors" className={linkClass} onClick={handleLinkClick}>
-                <Droplet className="w-5 h-5" />
-                <span>All Donors</span>
+                <Users className="w-5 h-5" />
+                <span>Donors</span>
               </NavLink>
               <NavLink to="/dashboard/hospital-donors" className={linkClass} onClick={handleLinkClick}>
-                <Users className="w-5 h-5" />
-                <span>My Donors</span>
+                <Droplet className="w-5 h-5" />
+                <span>Available Donors</span>
               </NavLink>
               <NavLink to="/dashboard/reports" className={linkClass} onClick={handleLinkClick}>
                 <FileText className="w-5 h-5" />
                 <span>Reports</span>
-              </NavLink>
-              <NavLink to="/dashboard/nearest-donors" className={linkClass} onClick={handleLinkClick}>
-                <Search className="w-5 h-5" />
-                <span>Find Donors</span>
               </NavLink>
               <NavLink to="/dashboard/hospital-requests" className={linkClass} onClick={handleLinkClick}>
                 <Inbox className="w-5 h-5" />
@@ -115,17 +115,9 @@ function Sidebar({ isOpen, onClose }) {
           {/* DONOR LINKS */}
           {role === "donor" && (
             <>
-              <NavLink to="/dashboard" end className={linkClass} onClick={handleLinkClick}>
-                <LayoutDashboard className="w-5 h-5" />
-                <span>Dashboard</span>
-              </NavLink>
               <NavLink to="/dashboard/donor-requests" className={linkClass} onClick={handleLinkClick}>
                 <Inbox className="w-5 h-5" />
                 <span>Requests</span>
-              </NavLink>
-              <NavLink to="/dashboard/set-location" className={linkClass} onClick={handleLinkClick}>
-                <MapPin className="w-5 h-5" />
-                <span>Set Location</span>
               </NavLink>
               <NavLink to="/dashboard/profile" className={linkClass} onClick={handleLinkClick}>
                 <UserCircle className="w-5 h-5" />

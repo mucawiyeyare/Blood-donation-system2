@@ -307,7 +307,7 @@ function Home() {
               <h4 className="text-lg font-semibold mb-4">Contact</h4>
               <p className="text-sm text-gray-400">
                 Email: info@bdms.gov.so<br />
-                Phone: +252 61 XXX XXXX<br />
+                Phone: 252616408886<br />
                 Address: Ministry of Health, Mogadishu, Somalia<br />
                 Emergency Hotline: 888 (Toll-Free)
               </p>

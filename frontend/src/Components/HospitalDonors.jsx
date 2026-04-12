@@ -8,7 +8,6 @@ function HospitalDonors() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filterBloodType, setFilterBloodType] = useState("");
-  const [filterStatus, setFilterStatus] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
@@ -17,7 +16,7 @@ function HospitalDonors() {
 
   useEffect(() => {
     applyFilters();
-  }, [donors, filterBloodType, filterStatus, searchTerm]);
+  }, [donors, filterBloodType, searchTerm]);
 
   const fetchDonors = async () => {
     try {
@@ -28,7 +27,7 @@ function HospitalDonors() {
         return;
       }
 
-      const res = await axios.get("http://localhost:3000/api/users/donors", {
+      const res = await axios.get("http://localhost:3000/api/users/donors?status=Available", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -48,11 +47,6 @@ function HospitalDonors() {
     // Filter by blood type
     if (filterBloodType) {
       filtered = filtered.filter((donor) => donor.bloodType === filterBloodType);
-    }
-
-    // Filter by status
-    if (filterStatus) {
-      filtered = filtered.filter((donor) => donor.status === filterStatus);
     }
 
     // Search by name, email, or location
@@ -99,7 +93,11 @@ function HospitalDonors() {
     const badges = {
       Available: { color: "bg-green-100 text-green-800 border-green-300", icon: CheckCircle },
       Requested: { color: "bg-yellow-100 text-yellow-800 border-yellow-300", icon: Clock },
-      "Donated Recently": { color: "bg-red-100 text-red-800 border-red-300", icon: XCircle },
+      "Donated Recently": { 
+        color: "bg-red-100 text-red-800 border-red-300", 
+        icon: XCircle,
+        label: "Donated Recently: He will become available after 6 months"
+      },
       Unavailable: { color: "bg-gray-100 text-gray-800 border-gray-300", icon: AlertCircle },
     };
 
@@ -109,7 +107,7 @@ function HospitalDonors() {
     return (
       <span className={`px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-1 ${badge.color}`}>
         <Icon className="w-3 h-3" />
-        {status}
+        {badge.label || status}
       </span>
     );
   };
@@ -156,7 +154,7 @@ function HospitalDonors() {
           <h3 className="text-lg font-semibold text-gray-800">Filters</h3>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -185,31 +183,17 @@ function HospitalDonors() {
             <option value="O+">O+</option>
             <option value="O-">O-</option>
           </select>
-
-          {/* Status Filter */}
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-          >
-            <option value="">All Statuses</option>
-            <option value="Available">Available</option>
-            <option value="Requested">Requested</option>
-            <option value="Donated Recently">Donated Recently</option>
-            <option value="Unavailable">Unavailable</option>
-          </select>
         </div>
 
         <div className="mt-4 flex items-center justify-between">
           <p className="text-sm text-gray-600">
             Showing <span className="font-semibold text-gray-800">{filteredDonors.length}</span> of{" "}
-            <span className="font-semibold text-gray-800">{donors.length}</span> donors
+            <span className="font-semibold text-gray-800">{donors.length}</span> available donors
           </p>
-          {(filterBloodType || filterStatus || searchTerm) && (
+          {(filterBloodType || searchTerm) && (
             <button
               onClick={() => {
                 setFilterBloodType("");
-                setFilterStatus("");
                 setSearchTerm("");
               }}
               className="text-sm text-red-600 hover:text-red-700 font-semibold"

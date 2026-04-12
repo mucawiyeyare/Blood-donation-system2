@@ -11,6 +11,7 @@ function DashboardHome() {
     recentDonations: 0,
     pendingRequests: 0
   });
+  const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState("");
 
@@ -53,8 +54,27 @@ function DashboardHome() {
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       const recentDonors = donors.filter(d => new Date(d.createdAt) >= thirtyDaysAgo).length;
       
-      // Pending requests (for now, we'll use a placeholder - you can add a status field later)
-      const pendingRequests = 0; // Update this when you add request tracking
+      // Pending requests
+      let pendingRequests = 0;
+      if (role === "admin") {
+        // Fetch new messages
+        const messagesResponse = await axios.get("http://localhost:3000/api/contact", {
+           headers: { Authorization: `Bearer ${token}` }
+        });
+        pendingRequests = messagesResponse.data.filter(msg => msg.status === "New").length;
+      } else if (role === "hospital") {
+        // Fetch pending requests sent by hospital
+        const requestsResponse = await axios.get("http://localhost:3000/api/requests/hospital?status=Pending", {
+           headers: { Authorization: `Bearer ${token}` }
+        });
+        pendingRequests = requestsResponse.data.length;
+      } else if (role === "donor") {
+         // Fetch pending requests received by donor
+        const requestsResponse = await axios.get("http://localhost:3000/api/requests/donor?status=Pending", {
+           headers: { Authorization: `Bearer ${token}` }
+        });
+        pendingRequests = requestsResponse.data.length;
+      }
 
       setStats({
         totalUsers: totalUsers,
@@ -64,6 +84,12 @@ function DashboardHome() {
         recentDonations: recentDonors,
         pendingRequests: pendingRequests
       });
+
+      // Fetch Recent Activity
+      const activityResponse = await axios.get("http://localhost:3000/api/activity?limit=5", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setActivities(activityResponse.data);
       
       setLoading(false);
     } catch (error) {
@@ -72,9 +98,27 @@ function DashboardHome() {
     }
   };
 
+  const getIcon = (type) => {
+    switch (type) {
+      case "user": return <Users className="w-5 h-5 text-blue-600" />;
+      case "donation": return <Droplet className="w-5 h-5 text-red-600" />;
+      case "report": return <FileText className="w-5 h-5 text-green-600" />;
+      default: return <Activity className="w-5 h-5 text-gray-600" />;
+    }
+  };
+
+  const getTypeColor = (type) => {
+    switch (type) {
+      case "user": return "bg-blue-100";
+      case "donation": return "bg-red-100";
+      case "report": return "bg-green-100";
+      default: return "bg-gray-100";
+    }
+  };
+
   const StatCard = ({ icon: Icon, title, value, subtitle, bgColor, iconColor, trend }) => (
     <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300 border border-gray-100">
-      <div className="flex items-start justify-between">
+      <div className="flex ictems-start justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-3">
             <div className={`${bgColor} p-3 rounded-lg`}>
@@ -197,33 +241,27 @@ function DashboardHome() {
       <div className="bg-white rounded-xl shadow-lg p-6">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Recent Activity</h2>
         <div className="space-y-3">
-          <div className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
-            <div className="bg-blue-100 p-2 rounded-full">
-              <Users className="w-5 h-5 text-blue-600" />
-            </div>
-            <div className="flex-1">
-              <p className="font-medium text-gray-800">New user registered</p>
-              <p className="text-sm text-gray-500">2 hours ago</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
-            <div className="bg-red-100 p-2 rounded-full">
-              <Droplet className="w-5 h-5 text-red-600" />
-            </div>
-            <div className="flex-1">
-              <p className="font-medium text-gray-800">Blood donation completed</p>
-              <p className="text-sm text-gray-500">5 hours ago</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
-            <div className="bg-green-100 p-2 rounded-full">
-              <FileText className="w-5 h-5 text-green-600" />
-            </div>
-            <div className="flex-1">
-              <p className="font-medium text-gray-800">Monthly report generated</p>
-              <p className="text-sm text-gray-500">1 day ago</p>
-            </div>
-          </div>
+        <div className="space-y-3">
+          {activities.length > 0 ? (
+            activities.map((activity) => (
+              <div key={activity._id} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+                <div className={`${getTypeColor(activity.type)} p-2 rounded-full`}>
+                  {getIcon(activity.type)}
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-gray-800">{activity.action}</p>
+                  <p className="text-sm text-gray-500">
+                    {new Date(activity.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                     {' - '} 
+                    {new Date(activity.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-gray-500 text-center py-4">No recent activity</p>
+          )}
+        </div>
         </div>
       </div>
     </div>

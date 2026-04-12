@@ -25,6 +25,7 @@ import HealthInstitutionAnalytics from "./Components/HealthInstitutionAnalytics.
 import HospitalRequests from "./Components/HospitalRequests.jsx";
 import DonorRequests from "./Components/DonorRequests.jsx";
 import HospitalDonors from "./Components/HospitalDonors.jsx";
+import DashboardMessages from "./Components/DashboardMessages.jsx";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -121,7 +122,7 @@ function App() {
           index
           element={
             <ProtectedRoute allowedRoles={["admin", "donor", "hospital", "health_institution"]}>
-              <DashboardHome />
+              {user?.role === "donor" ? <Navigate to="/dashboard/donor-requests" replace /> : <DashboardHome />}
             </ProtectedRoute>
           }
         />
@@ -226,6 +227,14 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["hospital"]}>
               <HospitalDonors />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="messages"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <DashboardMessages />
             </ProtectedRoute>
           }
         />
