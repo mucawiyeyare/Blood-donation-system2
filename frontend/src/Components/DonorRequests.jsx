@@ -16,6 +16,10 @@ import {
   MessageCircle,
   Sparkles,
   ShieldCheck,
+  Heart,
+  User,
+  Users,
+  Trophy,
 } from "lucide-react";
 
 function DonorRequests() {
@@ -23,7 +27,7 @@ function DonorRequests() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filterStatus, setFilterStatus] = useState("");
-
+  const [donorStats, setDonorStats] = useState(null);
   const [donorStatus, setDonorStatus] = useState(null);
 
   // Response Modal
@@ -40,11 +44,25 @@ function DonorRequests() {
   useEffect(() => {
     fetchRequests();
     fetchDonorStatus();
+    fetchDonorStats();
     const interval = setInterval(() => {
       setNow(Date.now());
     }, 1000);
     return () => clearInterval(interval);
   }, [filterStatus]);
+
+  const fetchDonorStats = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      const res = await axios.get("/api/requests/my-stats", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setDonorStats(res.data);
+    } catch (err) {
+      console.error("Error fetching stats:", err);
+    }
+  };
 
   const fetchRequests = async () => {
     try {
@@ -174,6 +192,39 @@ function DonorRequests() {
         <p className="text-sm text-slate-600 mt-1">
           Track your real-time blood donation workflow and respond to hospital emergencies
         </p>
+      </div>
+
+      {/* Donor Impact Stats Banner */}
+      <div className="mb-6 p-6 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white shadow-xl shadow-red-600/20 flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div className="flex items-center gap-4">
+          <div className="p-3.5 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 text-white">
+            <Heart className="w-8 h-8 fill-white animate-pulse" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 text-red-200 text-xs font-bold uppercase tracking-wider mb-1">
+              <Sparkles className="w-4 h-4 text-amber-300" />
+              <span>Life-Saver Dashboard</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-black">
+              {donorStats?.livesHelped || 0} Patients Helped! 🩸
+            </h2>
+            <p className="text-red-100 text-xs sm:text-sm mt-1 max-w-xl">
+              {donorStats && donorStats.livesHelped > 0
+                ? `You have answered the call and saved lives ${donorStats.livesHelped} time(s). Somalia thanks you! 💪`
+                : "When hospitals urgently need blood, you'll receive requests right here. Ready to save lives!"}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="bg-white/10 backdrop-blur-md px-4 py-3 rounded-xl border border-white/20 text-center min-w-[100px]">
+            <span className="text-2xl font-black text-white">{donorStats?.totalCompleted || 0}</span>
+            <p className="text-[10px] font-bold text-red-200 uppercase">Donations</p>
+          </div>
+          <div className="bg-white/10 backdrop-blur-md px-4 py-3 rounded-xl border border-white/20 text-center min-w-[100px]">
+            <span className="text-2xl font-black text-amber-300">{donorStats?.totalPending || 0}</span>
+            <p className="text-[10px] font-bold text-red-200 uppercase">Pending</p>
+          </div>
+        </div>
       </div>
 
       {/* 1. Real-Time Status Workflow Stepper Banner */}
@@ -372,6 +423,30 @@ function DonorRequests() {
                       <span>Arrival Timer: {formatCountdown(request.pendingUntil)}</span>
                     </div>
                     <span className="text-[11px] text-amber-700">Please respond promptly</span>
+                  </div>
+                )}
+
+                {/* Patient Information Section */}
+                {request.patientInfo && request.patientInfo.name && (
+                  <div className="bg-rose-50/70 rounded-xl p-3.5 mb-4 text-xs border border-rose-200">
+                    <div className="flex items-center gap-1.5 font-bold text-rose-800 mb-1.5">
+                      <Users className="w-4 h-4 text-rose-600" />
+                      <span>Patient Details: {request.patientInfo.name}</span>
+                      {request.patientInfo.age && (
+                        <span className="text-[11px] font-normal text-rose-600">({request.patientInfo.age} yrs)</span>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-[11px] text-slate-700 pl-5">
+                      {request.patientInfo.diagnosis && (
+                        <p><strong className="text-slate-900">Condition/Injury:</strong> {request.patientInfo.diagnosis}</p>
+                      )}
+                      {request.patientInfo.causeOfInjury && (
+                        <p><strong className="text-slate-900">Cause:</strong> {request.patientInfo.causeOfInjury}</p>
+                      )}
+                      {request.patientInfo.notes && (
+                        <p className="col-span-full"><strong className="text-slate-900">Notes:</strong> {request.patientInfo.notes}</p>
+                      )}
+                    </div>
                   </div>
                 )}
 

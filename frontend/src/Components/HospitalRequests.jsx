@@ -387,6 +387,33 @@ function HospitalRequests() {
                   </div>
                 )}
 
+                {/* Patient Information Section */}
+                {request.patientInfo && request.patientInfo.name && (
+                  <div className="bg-rose-50/70 rounded-xl p-3.5 mb-4 text-xs border border-rose-200">
+                    <div className="flex items-center gap-1.5 font-bold text-rose-800 mb-1.5">
+                      <Users className="w-4 h-4 text-rose-600" />
+                      <span>Patient: {request.patientInfo.name}</span>
+                      {request.patientInfo.age && (
+                        <span className="text-[11px] font-normal text-rose-600">({request.patientInfo.age} yrs)</span>
+                      )}
+                      {request.patientInfo.phone && (
+                        <span className="text-[11px] font-normal text-slate-500">• Tel: {request.patientInfo.phone}</span>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 text-[11px] text-slate-700 pl-5">
+                      {request.patientInfo.diagnosis && (
+                        <p><strong className="text-slate-900">Diagnosis/Injury:</strong> {request.patientInfo.diagnosis}</p>
+                      )}
+                      {request.patientInfo.causeOfInjury && (
+                        <p><strong className="text-slate-900">Cause:</strong> {request.patientInfo.causeOfInjury}</p>
+                      )}
+                      {request.patientInfo.notes && (
+                        <p className="col-span-full"><strong className="text-slate-900">Notes:</strong> {request.patientInfo.notes}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {/* Message notes */}
                 {request.message && (
                   <div className="bg-slate-50 rounded-xl p-3 mb-4 text-xs text-slate-700 border border-slate-100 flex items-start gap-2">

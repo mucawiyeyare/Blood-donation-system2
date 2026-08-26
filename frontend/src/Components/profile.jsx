@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import {
   User,
@@ -21,6 +21,11 @@ import {
   CheckCircle2,
   AlertCircle,
   Building2,
+  Heart,
+  Sparkles,
+  Camera,
+  Upload,
+  Trash2,
 } from "lucide-react";
 import DhiigKaalLogo from "./DhiigKaalLogo.jsx";
 
@@ -32,6 +37,8 @@ function Profile() {
   const [editForm, setEditForm] = useState({});
   const [message, setMessage] = useState({ type: "", text: "" });
   const [saving, setSaving] = useState(false);
+  const fileInputRef = useRef(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // Donation history state
   const [donations, setDonations] = useState([]);
@@ -53,10 +60,79 @@ function Profile() {
     confirm: false,
   });
 
+  // Donor stats (lives saved)
+  const [donorStats, setDonorStats] = useState(null);
+
   useEffect(() => {
     fetchProfile();
     fetchDonations();
+    fetchDonorStats();
   }, []);
+
+  const fetchDonorStats = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const role = localStorage.getItem("role");
+      if (!token || role !== "donor") return;
+      const res = await axios.get("/api/requests/my-stats", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setDonorStats(res.data);
+    } catch (err) {
+      // silently ignore if not a donor
+    }
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      setMessage({ type: "error", text: "Image size must be less than 2MB" });
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64 = reader.result;
+      setUploadingImage(true);
+      try {
+        const token = localStorage.getItem("token");
+        const res = await axios.put(
+          "/api/users/profile",
+          { profileImage: base64 },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setProfile(res.data.user);
+        setEditForm(res.data.user);
+        setMessage({ type: "success", text: "Profile image updated successfully!" });
+      } catch (err) {
+        setMessage({ type: "error", text: err.response?.data?.message || "Failed to update profile image" });
+      } finally {
+        setUploadingImage(false);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveImage = async () => {
+    setUploadingImage(true);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.put(
+        "/api/users/profile",
+        { profileImage: "" },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setProfile(res.data.user);
+      setEditForm(res.data.user);
+      setMessage({ type: "success", text: "Profile photo removed." });
+    } catch (err) {
+      setMessage({ type: "error", text: "Failed to remove image" });
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const fetchProfile = async () => {
     try {
@@ -211,11 +287,93 @@ function Profile() {
         </div>
       )}
 
+      {profile?.role === "donor" && (
+        <div className="mb-6 p-6 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white shadow-xl shadow-red-600/20 relative overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-4">
+            <div className="p-4 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 text-white">
+              <Heart className="w-8 h-8 fill-white animate-pulse" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 text-red-200 text-xs font-bold uppercase tracking-wider mb-1">
+                <Sparkles className="w-4 h-4 text-amber-300" />
+                <span>Life-Saver Impact Dashboard</span>
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black">
+                {donorStats ? donorStats.livesHelped : donations.length} Patients Helped! 🩸
+              </h2>
+              <p className="text-red-100 text-xs sm:text-sm mt-1 max-w-xl">
+                {donorStats && donorStats.livesHelped > 0
+                  ? `Incredible contribution! You have completed ${donorStats.livesHelped} life-saving donation(s). Keep saving lives!`
+                  : "Every blood donation you make directly saves up to 3 lives across Somalia. Thank you for your generosity!"}
+              </p>
+            </div>
+          </div>
+          <div className="flex sm:flex-col items-center justify-center bg-white/10 backdrop-blur-md px-5 py-3 rounded-xl border border-white/20 text-center min-w-[130px]">
+            <span className="text-3xl font-black text-white">{donorStats ? donorStats.livesHelped : donations.length}</span>
+            <span className="text-[11px] font-bold text-red-200 uppercase tracking-wider">Lives Saved</span>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Summary Card */}
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex flex-col items-center text-center">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-red-600 to-red-500 text-white flex items-center justify-center font-black text-2xl shadow-lg mb-4">
-            {profile?.bloodType || <User className="w-10 h-10" />}
+          {/* Hidden File Input */}
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleImageUpload}
+            accept="image/*"
+            className="hidden"
+          />
+
+          {/* Profile Photo Avatar with Edit Overlay */}
+          <div className="relative group mb-4">
+            <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-xl bg-gradient-to-tr from-red-600 to-rose-500 flex items-center justify-center text-white font-black text-2xl">
+              {profile?.profileImage ? (
+                <img
+                  src={profile.profileImage}
+                  alt={profile.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span>{profile?.bloodType || <User className="w-10 h-10" />}</span>
+              )}
+            </div>
+
+            {/* Camera Edit Trigger Button */}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingImage}
+              title="Upload / Change profile photo"
+              className="absolute bottom-0 right-0 p-2 rounded-full bg-red-600 hover:bg-red-700 text-white shadow-md border-2 border-white transition-transform transform hover:scale-110 disabled:opacity-60"
+            >
+              <Camera className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2 mb-3">
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingImage}
+              className="text-[11px] font-bold text-red-600 hover:text-red-700 hover:underline flex items-center gap-1"
+            >
+              <Upload className="w-3 h-3" />
+              <span>{uploadingImage ? "Uploading..." : profile?.profileImage ? "Change Photo" : "Upload Photo"}</span>
+            </button>
+            {profile?.profileImage && (
+              <>
+                <span className="text-slate-300">•</span>
+                <button
+                  onClick={handleRemoveImage}
+                  disabled={uploadingImage}
+                  className="text-[11px] font-medium text-slate-400 hover:text-rose-600 flex items-center gap-1"
+                >
+                  <Trash2 className="w-3 h-3" />
+                  <span>Remove</span>
+                </button>
+              </>
+            )}
           </div>
 
           <h2 className="text-xl font-bold text-slate-900">{profile?.name}</h2>

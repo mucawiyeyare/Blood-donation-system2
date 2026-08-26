@@ -3,12 +3,11 @@ import React, { useState } from "react";
 export default function DhiigKaalLogo({ size = "md", showText = true, className = "", light = false }) {
   const [imgError, setImgError] = useState(false);
 
-  // Size mappings
   const sizeMap = {
-    sm: { img: "h-8 w-auto max-w-[36px]", text: "text-lg", subtext: "text-[10px]" },
-    md: { img: "h-11 w-auto max-w-[48px]", text: "text-2xl", subtext: "text-xs" },
-    lg: { img: "h-16 w-auto max-w-[70px]", text: "text-3xl", subtext: "text-sm" },
-    xl: { img: "h-24 w-auto max-w-[100px]", text: "text-4xl", subtext: "text-base" },
+    sm: { img: "h-8 w-auto max-w-[36px]", icon: "w-9 h-9", text: "text-lg" },
+    md: { img: "h-11 w-auto max-w-[48px]", icon: "w-12 h-12", text: "text-2xl" },
+    lg: { img: "h-16 w-auto max-w-[70px]", icon: "w-16 h-16", text: "text-3xl" },
+    xl: { img: "h-24 w-auto max-w-[100px]", icon: "w-24 h-24", text: "text-4xl" },
   };
 
   const currentSize = sizeMap[size] || sizeMap.md;
@@ -23,26 +22,47 @@ export default function DhiigKaalLogo({ size = "md", showText = true, className 
           onError={() => setImgError(true)}
         />
       ) : (
-        <div className="relative flex items-center justify-center p-2 rounded-xl bg-gradient-to-tr from-red-600 to-red-500 shadow-md">
-          <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" fill="#EF4444" stroke="#DC2626" />
-            <path d="M12 8v6M9 11h6" stroke="#38BDF8" strokeWidth="2.5" strokeLinecap="round" />
-          </svg>
-        </div>
+        /* Hand holding blood drop with medical cross — SVG fallback */
+        <svg
+          className={currentSize.icon}
+          viewBox="0 0 100 110"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          {/* Blood drop */}
+          <path
+            d="M50 5 C50 5 28 32 28 48 C28 61 38 70 50 70 C62 70 72 61 72 48 C72 32 50 5 50 5Z"
+            fill="#E53935"
+          />
+          {/* White halo behind cross */}
+          <circle cx="50" cy="48" r="13" fill="white" opacity="0.9" />
+          {/* Medical cross */}
+          <rect x="44" y="38" width="12" height="20" rx="2.5" fill="#29B6F6" />
+          <rect x="39" y="43" width="22" height="10" rx="2.5" fill="#29B6F6" />
+          {/* Palm */}
+          <path
+            d="M15 72 Q18 66 26 65 L74 65 Q82 66 85 72 L80 90 Q78 96 70 96 L30 96 Q22 96 20 90 Z"
+            fill="#29B6F6"
+          />
+          {/* Thumb */}
+          <path
+            d="M15 72 Q10 68 12 60 Q14 55 20 58 L26 65 Z"
+            fill="#29B6F6"
+          />
+          {/* Finger shading lines */}
+          <path d="M38 65 Q36 56 40 52 Q44 49 47 53 L50 65 Z" fill="#1DA8E0" />
+          <path d="M50 65 Q49 54 53 50 Q57 47 60 51 L62 65 Z" fill="#1DA8E0" />
+          <path d="M62 65 Q62 55 66 52 Q70 49 73 53 L74 65 Z" fill="#1DA8E0" />
+          <path d="M74 65 Q76 57 80 55 Q84 53 86 58 L85 72 Z" fill="#29B6F6" />
+        </svg>
       )}
 
       {showText && (
         <div className="flex flex-col leading-tight text-left">
-          <div className={`font-black tracking-wider flex items-center gap-1.5 ${currentSize.text}`}>
+          <div className={`font-black tracking-wider flex items-center gap-1 ${currentSize.text}`}>
             <span className="text-red-600">DHIIG</span>
-            <span className="text-sky-500 relative inline-block">
-              KAAL
-              <span className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-[2.5px] bg-red-600 rounded-full"></span>
-            </span>
+            <span className="text-sky-500">KAAL</span>
           </div>
-          <span className={`font-semibold tracking-wide uppercase ${light ? "text-gray-300" : "text-gray-500"} ${currentSize.subtext}`}>
-            Blood Donation System
-          </span>
         </div>
       )}
     </div>

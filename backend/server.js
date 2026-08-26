@@ -27,9 +27,7 @@ app.use(express.json());
 
 connectDB();
 
-app.get("/", (req, res) => {
-  res.send(" Blood Donation Management System (BDMS) API is running...");
-});
+import path from "path";
 
 // API Routes
 app.use("/api/users", Userrouter);
@@ -39,8 +37,23 @@ app.use("/api/contact", ContactRouter);
 app.use("/api/activity", ActivityLogRouter); 
 app.use("/api/whatsapp", WhatsAppRouter);
 
-// Initialize WhatsApp Gateway Service
-initWhatsApp().catch((err) => console.error("[WhatsApp Gateway] Startup error:", err));
+// Serve frontend static build in production
+const __dirname = path.resolve();
+const frontendDistPath = path.join(__dirname, "../frontend/dist");
+
+if (process.env.NODE_ENV === "production" || process.env.SERVE_FRONTEND === "true") {
+  app.use(express.static(frontendDistPath));
+  app.get("*", (req, res) => {
+    res.sendFile(path.join(frontendDistPath, "index.html"));
+  });
+} else {
+  app.get("/", (req, res) => {
+    res.send("🩸 DHIIG KAAL — Blood Donation Management System API is running...");
+  });
+}
+
+// WhatsApp Gateway Service (Optional in local development)
+// initWhatsApp().catch((err) => console.error("[WhatsApp Gateway] Startup error:", err));
 
 app.use((err, req, res, next) => {
   console.error(" Server Error:", err.message);

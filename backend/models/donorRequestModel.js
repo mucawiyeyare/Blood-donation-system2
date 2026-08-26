@@ -26,6 +26,14 @@ const donorRequestSchema = new mongoose.Schema(
       type: String,
       required: false,
     },
+    patientInfo: {
+      name: { type: String, required: false },
+      age: { type: Number, required: false },
+      phone: { type: String, required: false },
+      diagnosis: { type: String, required: false },
+      causeOfInjury: { type: String, required: false },
+      notes: { type: String, required: false },
+    },
     status: {
       type: String,
       enum: ["Pending", "Arrived", "Accepted", "Declined", "Completed", "Cancelled", "Expired"],

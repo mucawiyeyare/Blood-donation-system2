@@ -3,6 +3,7 @@ import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
 import { Droplet, User, Mail, Lock, Phone, MapPin, ShieldCheck, HeartHandshake, Calendar, AlertCircle, CheckCircle2 } from "lucide-react";
 import DhiigKaalLogo from "../Components/DhiigKaalLogo.jsx";
+import { SOMALIA_REGIONS } from "../utils/somaliaLocations.js";
 
 function Signup() {
   const [formData, setFormData] = useState({
@@ -12,7 +13,8 @@ function Signup() {
     email: "",
     password: "",
     phone: "",
-    location: "",
+    region: "",
+    district: "",
     bloodType: "",
     age: "",
   });
@@ -27,16 +29,37 @@ function Signup() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleRegionChange = (e) => {
+    const region = e.target.value;
+    setFormData({
+      ...formData,
+      region,
+      district: "",
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.region) {
+      setErrorMessage("Please select your region.");
+      return;
+    }
+    if (!formData.district) {
+      setErrorMessage("Please select your district.");
+      return;
+    }
     setErrorMessage("");
     setSuccessMessage("");
     setLoading(true);
 
     try {
-      const res = await axios.post("/api/users/register", formData);
+      const payload = {
+        ...formData,
+        location: `${formData.district}, ${formData.region}`,
+      };
+      const res = await axios.post("/api/users/register", payload);
       setSuccessMessage(res.data.message || "Donor registration successful! Redirecting to login...");
-      setFormData({ nationalId: "", gender: "", name: "", email: "", password: "", phone: "", location: "", bloodType: "", age: "" });
+      setFormData({ nationalId: "", gender: "", name: "", email: "", password: "", phone: "", region: "", district: "", bloodType: "", age: "" });
       setTimeout(() => {
         navigate("/signin");
       }, 1500);
@@ -48,29 +71,31 @@ function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-sky-50/40 to-slate-100 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+    <div className="min-h-[calc(100vh-80px)] bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
       <div className="w-full max-w-3xl">
-        {/* Header & Logo */}
+        {/* Top Centered Branding Logo */}
         <div className="text-center mb-8 flex flex-col items-center">
-          <Link to="/" className="inline-block transform hover:scale-105 transition-transform duration-200 mb-2">
+          <Link to="/" className="inline-block transform hover:scale-105 transition-transform duration-200 mb-3 bg-white p-3.5 rounded-2xl shadow-sm border border-slate-200/80">
             <DhiigKaalLogo size="lg" />
           </Link>
-          <p className="text-sm font-medium text-slate-600 mt-2">
+          <p className="text-sm font-medium text-slate-600 max-w-md mx-auto text-center">
             Register as a voluntary blood donor and connect directly with hospitals in need
           </p>
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-2xl shadow-xl border border-slate-100 p-6 sm:p-10 relative overflow-hidden">
+        <div className="bg-white rounded-3xl shadow-xl border border-slate-200/80 p-6 sm:p-10 relative overflow-hidden">
           {/* Top accent bar */}
-          <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-red-600 via-sky-500 to-red-600"></div>
+          <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-red-600 via-rose-500 to-red-600"></div>
 
-          <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
+          <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-100">
             <div>
-              <h2 className="text-2xl font-bold text-slate-800">Donor Registration</h2>
-              <p className="text-xs text-slate-500 mt-0.5">Please provide accurate information to assist emergency hospital requests</p>
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-900">Donor Registration</h2>
+              <p className="text-xs sm:text-sm text-slate-500 mt-1">
+                Register as a voluntary donor to connect directly with hospitals in need
+              </p>
             </div>
-            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold">
+            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-bold uppercase tracking-wide">
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
               Official System
             </div>
@@ -183,19 +208,50 @@ function Signup() {
               </select>
             </div>
 
-            {/* Location */}
+            {/* Region */}
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                Current Location / City *
+                Region *
               </label>
-              <input
-                name="location"
-                placeholder="e.g. Mogadishu (Hodan), Hargeisa, Kismayo"
-                value={formData.location}
-                onChange={handleChange}
+              <select
+                name="region"
+                value={formData.region}
+                onChange={handleRegionChange}
                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm transition-all"
                 required
-              />
+              >
+                <option value="">Select region</option>
+                {Object.keys(SOMALIA_REGIONS).map((reg) => (
+                  <option key={reg} value={reg}>
+                    {reg}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* District */}
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                District *
+              </label>
+              <select
+                name="district"
+                value={formData.district}
+                onChange={handleChange}
+                disabled={!formData.region}
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm transition-all disabled:bg-slate-100/80 disabled:text-slate-400 disabled:cursor-not-allowed"
+                required
+              >
+                <option value="">
+                  {formData.region ? "Select district" : "Choose region first"}
+                </option>
+                {formData.region &&
+                  SOMALIA_REGIONS[formData.region]?.map((dist) => (
+                    <option key={dist} value={dist}>
+                      {dist}
+                    </option>
+                  ))}
+              </select>
             </div>
 
             {/* Age / Date of Birth */}

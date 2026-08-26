@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
 import {
   Droplet,
   Heart,
@@ -13,8 +14,14 @@ import {
   ArrowRight,
   Send,
   Sparkles,
+  Trophy,
+  PieChart,
+  TrendingUp,
+  Activity,
+  BarChart3,
 } from "lucide-react";
-import DhiigKaalLogo from "../Components/DhiigKaalLogo.jsx";
+import ChatBot from "../Components/ChatBot.jsx";
+import FAQSection from "../Components/FAQSection.jsx";
 
 function FeatureCard({ icon: Icon, title, description, color, iconColor }) {
   return (
@@ -29,6 +36,62 @@ function FeatureCard({ icon: Icon, title, description, color, iconColor }) {
 }
 
 function Home() {
+  const heroImages = [
+    { src: "/hero1.jpg", alt: "Blood bags with blood types" },
+    { src: "/hero2.jpg", alt: "Blood storage facility" },
+    { src: "/hero3.jpg", alt: "Blood bags on shelves" },
+    { src: "/hero4.jpg", alt: "Blood donation bag with heart" },
+    { src: "/hero5.jpg", alt: "Blood transfusion bag" },
+  ];
+
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [leaderboard, setLeaderboard] = useState([]);
+  const [reportLoading, setReportLoading] = useState(true);
+  const [reportData, setReportData] = useState({
+    bloodTypeStats: {
+      "A+": { count: 0, percentage: "0.0" },
+      "A-": { count: 0, percentage: "0.0" },
+      "B+": { count: 0, percentage: "0.0" },
+      "B-": { count: 0, percentage: "0.0" },
+      "AB+": { count: 0, percentage: "0.0" },
+      "AB-": { count: 0, percentage: "0.0" },
+      "O+": { count: 0, percentage: "0.0" },
+      "O-": { count: 0, percentage: "0.0" },
+    },
+    monthlyStats: {
+      totalDonationsThisMonth: 0,
+      newDonorsThisMonth: 0,
+      percentageChange: 0,
+    },
+    activityStats: {
+      totalDonors: 0,
+      totalHospitals: 0,
+      totalUsers: 0,
+    },
+  });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % heroImages.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [heroImages.length]);
+
+  useEffect(() => {
+    axios.get("/api/requests/leaderboard")
+      .then(res => setLeaderboard(res.data))
+      .catch(() => {});
+
+    axios.get("/api/users/public-report")
+      .then(res => {
+        if (res.data && res.data.bloodTypeStats) {
+          setReportData(res.data);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setReportLoading(false));
+  }, []);
+
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Hero Section with DHIIG KAAL visual identity */}
@@ -93,52 +156,64 @@ function Home() {
               </div>
             </div>
 
-            {/* Right Column: Hero Visual Card with Brand Logo */}
+            {/* Right Column: Animated Image Slideshow */}
             <div className="lg:col-span-5 flex justify-center">
-              <div className="bg-white/10 backdrop-blur-md rounded-3xl p-6 sm:p-8 border border-white/20 shadow-2xl w-full max-w-md">
-                <div className="bg-white rounded-2xl p-6 shadow-inner text-center mb-6">
-                  <DhiigKaalLogo size="lg" className="justify-center" />
+              <div
+                className="relative w-full max-w-md rounded-3xl overflow-hidden shadow-2xl border border-white/20"
+                style={{ height: "420px" }}
+              >
+                {/* Slideshow Images */}
+                {heroImages.map((img, index) => (
+                  <div
+                    key={index}
+                    className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
+                    style={{ opacity: currentSlide === index ? 1 : 0 }}
+                  >
+                    <img
+                      src={img.src}
+                      alt={img.alt}
+                      className="w-full h-full object-cover"
+                    />
+                    {/* Gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent" />
+                  </div>
+                ))}
+
+                {/* Top-left: LIVE badge */}
+                <div className="absolute top-4 left-4 z-10 flex items-center gap-1.5 bg-red-600/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg">
+                  <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                  <span className="text-white text-xs font-bold tracking-wide">LIVE DONATIONS</span>
                 </div>
 
-                <div className="space-y-3">
-                  <div className="bg-slate-800/80 rounded-xl p-3.5 border border-slate-700/50 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-red-600/20 text-red-400 flex items-center justify-center font-bold text-sm">
-                        O-
-                      </div>
-                      <div className="text-left">
-                        <p className="text-xs font-semibold text-white">Emergency Blood Request</p>
-                        <p className="text-[11px] text-slate-400">Mogadishu General Hospital</p>
-                      </div>
-                    </div>
-                    <span className="px-2.5 py-1 rounded-md text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                      Pending (1h 45m)
-                    </span>
-                  </div>
-
-                  <div className="bg-slate-800/80 rounded-xl p-3.5 border border-slate-700/50 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold text-sm">
-                        A+
-                      </div>
-                      <div className="text-left">
-                        <p className="text-xs font-semibold text-white">Donor Check-in</p>
-                        <p className="text-[11px] text-slate-400">Hodan Clinic, Banaadir</p>
-                      </div>
-                    </div>
-                    <span className="px-2.5 py-1 rounded-md text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                      Arrived
-                    </span>
-                  </div>
+                {/* Top-right: image counter */}
+                <div className="absolute top-4 right-4 z-10 bg-black/40 backdrop-blur-sm px-2.5 py-1 rounded-full">
+                  <span className="text-white text-xs font-semibold">
+                    {currentSlide + 1} / {heroImages.length}
+                  </span>
                 </div>
 
-                <div className="mt-6 text-center">
-                  <p className="text-xs text-slate-300">
-                    Trusted by hospitals, healthcare institutions, and voluntary blood donors.
+                {/* Bottom: dots + label */}
+                <div className="absolute bottom-0 left-0 right-0 p-5 flex flex-col items-center gap-3 z-10">
+                  <p className="text-white/80 text-xs font-semibold tracking-widest uppercase">
+                    Blood Donation System — Somalia
                   </p>
+                  <div className="flex gap-2">
+                    {heroImages.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setCurrentSlide(index)}
+                        className={`transition-all duration-300 rounded-full ${
+                          currentSlide === index
+                            ? "w-7 h-2.5 bg-red-500"
+                            : "w-2.5 h-2.5 bg-white/40 hover:bg-white/70"
+                        }`}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
+
           </div>
         </div>
       </section>
@@ -251,6 +326,131 @@ function Home() {
         </div>
       </section>
 
+      {/* Live Public Report Section (Blood Type Distribution & Monthly Trends) */}
+      <section className="py-20 bg-slate-100/70 border-t border-b border-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-100 text-red-700 text-xs font-bold uppercase tracking-wider mb-3">
+              <BarChart3 className="w-4 h-4 text-red-600" />
+              <span>Real-Time Network Analytics</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 mb-3">
+              Blood Distribution & Monthly Trends
+            </h2>
+            <p className="text-slate-600 text-sm sm:text-base max-w-2xl mx-auto">
+              Real-time statistical breakdown of registered donor blood groups and monthly life-saving activities
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            {/* 1. Blood Type Distribution Card */}
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-6 sm:p-8 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
+                  <div className="p-2.5 rounded-xl bg-blue-50 text-blue-600">
+                    <PieChart className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-800">Blood Type Distribution</h3>
+                    <p className="text-xs text-slate-500">Live proportion across all registered donors</p>
+                  </div>
+                </div>
+
+                {reportLoading ? (
+                  <div className="py-12 text-center text-slate-400 text-sm">Loading blood group statistics...</div>
+                ) : (
+                  <div className="space-y-3.5">
+                    {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((type) => {
+                      const data = reportData.bloodTypeStats[type] || { count: 0, percentage: "0.0" };
+                      const pct = Number(data.percentage);
+                      return (
+                        <div key={type} className="flex items-center justify-between gap-3">
+                          <span className="text-sm font-bold text-slate-700 w-10">{type}</span>
+                          <div className="flex-1 bg-slate-100 rounded-full h-3 overflow-hidden shadow-inner">
+                            <div
+                              className="bg-gradient-to-r from-red-600 to-rose-500 h-3 rounded-full transition-all duration-700"
+                              style={{ width: `${Math.max(pct, data.count > 0 ? 5 : 0)}%` }}
+                            />
+                          </div>
+                          <span className="text-xs font-semibold text-slate-600 w-20 text-right font-mono">
+                            {data.count} <span className="text-slate-400">({data.percentage}%)</span>
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-medium">
+                <span>Total Donors Recorded:</span>
+                <span className="font-bold text-slate-800">{reportData.activityStats.totalDonors} Registered</span>
+              </div>
+            </div>
+
+            {/* 2. Monthly Trends Card */}
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-6 sm:p-8 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
+                  <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-600">
+                    <TrendingUp className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-800">Monthly Trends</h3>
+                    <p className="text-xs text-slate-500">Activity and growth for the current month</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {/* Total Donations Card (Green) */}
+                  <div className="bg-emerald-50/80 border border-emerald-100 p-5 rounded-2xl">
+                    <p className="text-xs font-bold text-emerald-900 uppercase tracking-wider">Total Donations This Month</p>
+                    <p className="text-4xl font-black text-emerald-600 my-2">
+                      {reportData.monthlyStats.totalDonationsThisMonth}
+                    </p>
+                    <p className={`text-xs font-semibold flex items-center gap-1.5 ${reportData.monthlyStats.percentageChange >= 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
+                      <TrendingUp className="w-4 h-4" />
+                      <span>
+                        {reportData.monthlyStats.percentageChange >= 0 ? '+' : ''}
+                        {reportData.monthlyStats.percentageChange}% from last month
+                      </span>
+                    </p>
+                  </div>
+
+                  {/* New Donors Card (Blue) */}
+                  <div className="bg-sky-50/80 border border-sky-100 p-5 rounded-2xl">
+                    <p className="text-xs font-bold text-sky-900 uppercase tracking-wider">New Donors Registered</p>
+                    <p className="text-4xl font-black text-sky-600 my-2">
+                      {reportData.monthlyStats.newDonorsThisMonth}
+                    </p>
+                    <p className="text-xs font-semibold text-sky-700 flex items-center gap-1.5">
+                      <TrendingUp className="w-4 h-4" />
+                      <span>Active this month</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Activity Overview Footer */}
+              <div className="mt-6 pt-4 border-t border-slate-100 grid grid-cols-3 gap-2 text-center">
+                <div className="p-2.5 rounded-xl bg-slate-50">
+                  <p className="text-lg font-black text-slate-800">{reportData.activityStats.totalDonors}</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase">Donors</p>
+                </div>
+                <div className="p-2.5 rounded-xl bg-slate-50">
+                  <p className="text-lg font-black text-slate-800">{reportData.activityStats.totalHospitals}</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase">Hospitals</p>
+                </div>
+                <div className="p-2.5 rounded-xl bg-slate-50">
+                  <p className="text-lg font-black text-slate-800">{reportData.activityStats.totalUsers}</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase">Total Users</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Call to Action Banner */}
       <section className="bg-gradient-to-r from-red-600 via-red-700 to-sky-600 py-16 text-white text-center">
         <div className="max-w-4xl mx-auto px-4">
@@ -271,11 +471,97 @@ function Home() {
               to="/signin"
               className="bg-red-950/60 hover:bg-red-950/80 text-white px-8 py-3.5 rounded-xl font-bold text-base border border-white/20 transition-all"
             >
-              Hospital Sign In
+              Sign In
             </Link>
           </div>
         </div>
       </section>
+
+      {/* Top 3 Donors Leaderboard (White Background) */}
+      <section className="py-20 bg-white border-t border-slate-200">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold mb-4 shadow-sm">
+            <Trophy className="w-4 h-4 text-amber-500" />
+            <span>Hall of Heroes — Top Donors</span>
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 mb-3">Our Blood Heroes 🏆</h2>
+          <p className="text-slate-600 text-sm max-w-xl mx-auto mb-12">
+            These amazing donors have saved the most lives on DhiigKaal. Keep going!
+          </p>
+
+          {leaderboard.length === 0 ? (
+            <p className="text-slate-400 text-sm">Be the first hero — donate blood today! 🩸</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+              {leaderboard.map((donor, index) => {
+                const medals = ["🥇", "🥈", "🥉"];
+                const cardStyles = [
+                  "bg-gradient-to-b from-amber-50/80 to-white border-2 border-amber-300/80 shadow-md shadow-amber-500/10",
+                  "bg-gradient-to-b from-slate-50 to-white border-2 border-slate-300 shadow-md shadow-slate-500/10",
+                  "bg-gradient-to-b from-orange-50/80 to-white border-2 border-orange-300/80 shadow-md shadow-orange-500/10",
+                ];
+                const messages = [
+                  "Absolute Legend! Keep saving lives! 🏆",
+                  "Amazing work! You're a true hero! ⭐",
+                  "Fantastic effort! Keep it up! 💪",
+                ];
+                return (
+                  <div
+                    key={index}
+                    className={`${cardStyles[index]} rounded-2xl p-6 text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300`}
+                  >
+                    {/* Hero Avatar with Medal Overlay */}
+                    <div className="relative w-20 h-20 mx-auto mb-3">
+                      <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-white shadow-lg bg-gradient-to-tr from-red-600 to-rose-500 flex items-center justify-center text-white font-black text-2xl">
+                        {donor.profileImage ? (
+                          <img
+                            src={donor.profileImage}
+                            alt={donor.firstName}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span>{donor.firstName ? donor.firstName.charAt(0).toUpperCase() : "D"}</span>
+                        )}
+                      </div>
+                      <div className="absolute -top-1.5 -right-1.5 text-2xl drop-shadow-md">
+                        {medals[index]}
+                      </div>
+                    </div>
+
+                    <p className="text-xl font-black text-slate-900">
+                      {donor.firstName}
+                      {donor.lastInitial ? ` ${donor.lastInitial}.` : ""}
+                    </p>
+                    <div className="my-2.5">
+                      <span className="inline-block px-3 py-1 rounded-full bg-red-50 text-red-700 border border-red-200 text-xs font-black">
+                        Blood Type: {donor.bloodType}
+                      </span>
+                    </div>
+                    <p className="text-slate-500 text-xs font-medium">{donor.location}</p>
+                    <div className="mt-4 py-2.5 px-4 bg-slate-50 border border-slate-100 rounded-xl">
+                      <p className="text-2xl font-black text-slate-900">{donor.donationCount}</p>
+                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                        donations completed
+                      </p>
+                    </div>
+                    <p className="text-xs text-red-600 mt-3 font-semibold italic">"{messages[index]}"</p>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <p className="text-slate-400 text-xs">
+            🔒 Only first name shown for privacy. Rankings update in real time.
+          </p>
+        </div>
+      </section>
+
+      {/* FAQ & Eligibility & Impact Section */}
+      <FAQSection stats={reportData} />
+
+      {/* ChatBot */}
+      <ChatBot />
     </div>
   );
 }

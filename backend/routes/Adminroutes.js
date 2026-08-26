@@ -47,7 +47,12 @@ router.post("/register-user", protect, adminOnly, async (req, res) => {
 
     const existingUser = await User.findOne({ email: email.toLowerCase().trim() });
     if (existingUser) {
-      return res.status(400).json({ message: "User with this email already exists" });
+      return res.status(400).json({ message: "Email is already registered" });
+    }
+
+    const existingPhone = await User.findOne({ phone: phone.trim() });
+    if (existingPhone) {
+      return res.status(400).json({ message: "Phone number is already registered" });
     }
 
     if (nationalId) {

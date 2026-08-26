@@ -46,9 +46,9 @@ function Sidebar({ isOpen, onClose }) {
     >
       {/* Brand Logo Header */}
       <div className="pb-6 mb-4 border-b border-slate-800">
-        <div className="bg-white/10 backdrop-blur-sm p-3 rounded-2xl border border-white/10 flex justify-center items-center">
+        <Link to="/" title="Go to Website Home" className="block bg-white/10 hover:bg-white/15 backdrop-blur-sm p-3 rounded-2xl border border-white/10 flex justify-center items-center transition-all group">
           <DhiigKaalLogo size="sm" light={true} />
-        </div>
+        </Link>
         <div className="mt-3 px-2 flex items-center justify-between">
           <span className="text-[11px] font-bold uppercase tracking-wider text-sky-400">
             {role === "health_institution" ? "Ministry Portal" : `${role || "User"} Portal`}

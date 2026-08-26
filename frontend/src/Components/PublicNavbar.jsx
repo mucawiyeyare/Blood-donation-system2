@@ -46,18 +46,35 @@ function PublicNavbar() {
             <Link to="/about" className={navLinkClass("/about")}>
               About
             </Link>
+            <Link to="/#eligibility" className="px-4 py-2 rounded-lg font-medium transition-all duration-200 text-sm tracking-wide text-gray-700 hover:bg-red-50 hover:text-red-600">
+              Eligibility
+            </Link>
+            <Link to="/#faq" className="px-4 py-2 rounded-lg font-medium transition-all duration-200 text-sm tracking-wide text-gray-700 hover:bg-red-50 hover:text-red-600">
+              FAQ
+            </Link>
             <Link to="/contact" className={navLinkClass("/contact")}>
               Contact
             </Link>
-            <Link to="/signin" className={navLinkClass("/signin")}>
-              Sign In
-            </Link>
-            <Link
-              to="/signup"
-              className="bg-gradient-to-r from-red-600 to-red-700 text-white px-5 py-2.5 rounded-lg font-semibold hover:from-red-700 hover:to-red-800 transition-all duration-200 shadow-md hover:shadow-lg ml-2 text-sm"
-            >
-              Become a Donor
-            </Link>
+            {localStorage.getItem("token") ? (
+              <Link
+                to="/dashboard"
+                className="bg-gradient-to-r from-slate-900 to-slate-800 text-white px-5 py-2.5 rounded-lg font-semibold hover:from-black hover:to-slate-900 transition-all duration-200 shadow-md hover:shadow-lg ml-2 text-sm"
+              >
+                Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link to="/signin" className={navLinkClass("/signin")}>
+                  Sign In
+                </Link>
+                <Link
+                  to="/signup"
+                  className="bg-gradient-to-r from-red-600 to-red-700 text-white px-5 py-2.5 rounded-lg font-semibold hover:from-red-700 hover:to-red-800 transition-all duration-200 shadow-md hover:shadow-lg ml-2 text-sm"
+                >
+                  Become a Donor
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -89,26 +106,52 @@ function PublicNavbar() {
                 About
               </Link>
               <Link
+                to="/#eligibility"
+                className="block px-4 py-3 rounded-lg font-medium transition-all duration-200 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Eligibility
+              </Link>
+              <Link
+                to="/#faq"
+                className="block px-4 py-3 rounded-lg font-medium transition-all duration-200 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                FAQ
+              </Link>
+              <Link
                 to="/contact"
                 className={mobileNavLinkClass("/contact")}
                 onClick={() => setIsMenuOpen(false)}
               >
                 Contact
               </Link>
-              <Link
-                to="/signin"
-                className={mobileNavLinkClass("/signin")}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Sign In
-              </Link>
-              <Link
-                to="/signup"
-                className="block text-center bg-red-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-red-700 transition-all duration-200 text-sm mt-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Become a Donor
-              </Link>
+              {localStorage.getItem("token") ? (
+                <Link
+                  to="/dashboard"
+                  className="block text-center bg-slate-900 text-white px-4 py-3 rounded-lg font-semibold hover:bg-black transition-all duration-200 text-sm mt-2"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Go to Dashboard
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    to="/signin"
+                    className={mobileNavLinkClass("/signin")}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    to="/signup"
+                    className="block text-center bg-red-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-red-700 transition-all duration-200 text-sm mt-2"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Become a Donor
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         )}

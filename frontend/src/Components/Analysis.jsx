@@ -22,68 +22,20 @@ function Analysis() {
 
   const fetchAnalysisData = async () => {
     try {
-      const token = localStorage.getItem("token");
-      
-      // Fetch all users and donors
-      const usersResponse = await axios.get("/api/admin/users", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      const donorsResponse = await axios.get("/api/users/donors", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await axios.get("/api/users/public-report");
+      const { bloodTypeStats, monthlyStats, activityStats } = res.data;
 
-      const allUsers = usersResponse.data;
-      const donors = donorsResponse.data;
-
-      // Calculate blood type distribution
-      const bloodTypes = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
-      const bloodTypeCount = {};
-      const totalDonors = donors.length;
-
-      bloodTypes.forEach(type => {
-        const count = donors.filter(d => d.bloodType === type).length;
-        bloodTypeCount[type] = {
-          count: count,
-          percentage: totalDonors > 0 ? ((count / totalDonors) * 100).toFixed(1) : 0
-        };
-      });
-
-      setBloodTypeStats(bloodTypeCount);
-
-      // Calculate monthly statistics
-      const now = new Date();
-      const currentMonth = now.getMonth();
-      const currentYear = now.getFullYear();
-      
-      const thisMonthDonors = donors.filter(d => {
-        const createdDate = new Date(d.createdAt);
-        return createdDate.getMonth() === currentMonth && createdDate.getFullYear() === currentYear;
-      });
-
-      const lastMonth = new Date(currentYear, currentMonth - 1, 1);
-      const lastMonthDonors = donors.filter(d => {
-        const createdDate = new Date(d.createdAt);
-        return createdDate.getMonth() === lastMonth.getMonth() && createdDate.getFullYear() === lastMonth.getFullYear();
-      });
-
-      const percentageChange = lastMonthDonors.length > 0 
-        ? (((thisMonthDonors.length - lastMonthDonors.length) / lastMonthDonors.length) * 100).toFixed(1)
-        : 100;
-
+      setBloodTypeStats(bloodTypeStats || {});
       setMonthlyStats({
-        totalDonationsThisMonth: thisMonthDonors.length,
-        newDonorsThisMonth: thisMonthDonors.length,
-        percentageChange: percentageChange
+        totalDonationsThisMonth: monthlyStats?.totalDonationsThisMonth || 0,
+        newDonorsThisMonth: monthlyStats?.newDonorsThisMonth || 0,
+        percentageChange: monthlyStats?.percentageChange || 0,
       });
-
-      // Activity overview
       setActivityStats({
-        totalDonors: donors.length,
-        totalHospitals: allUsers.filter(u => u.role === "hospital").length,
-        totalUsers: allUsers.length
+        totalDonors: activityStats?.totalDonors || 0,
+        totalHospitals: activityStats?.totalHospitals || 0,
+        totalUsers: activityStats?.totalUsers || 0,
       });
-
       setLoading(false);
     } catch (error) {
       console.error("Error fetching analysis data:", error);

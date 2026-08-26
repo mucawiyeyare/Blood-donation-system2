@@ -44,26 +44,26 @@ function Signin({ setUser }) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-sky-50/40 to-slate-100 flex items-center justify-center p-4">
+    <div className="min-h-[calc(100vh-80px)] bg-slate-50 py-12 px-4 flex items-center justify-center">
       <div className="w-full max-w-md">
-        {/* Branding Header */}
+        {/* Top Centered Branding Logo */}
         <div className="text-center mb-8 flex flex-col items-center">
-          <Link to="/" className="inline-block transform hover:scale-105 transition-transform duration-200 mb-2">
+          <Link to="/" className="inline-block transform hover:scale-105 transition-transform duration-200 mb-3 bg-white p-3.5 rounded-2xl shadow-sm border border-slate-200/80">
             <DhiigKaalLogo size="lg" />
           </Link>
-          <p className="text-sm text-slate-600 font-medium">
+          <p className="text-sm font-medium text-slate-600">
             Blood Donation Management System
           </p>
         </div>
 
         {/* Sign In Card */}
-        <div className="bg-white rounded-2xl shadow-xl border border-slate-100 p-8 relative overflow-hidden">
+        <div className="bg-white rounded-3xl shadow-xl border border-slate-200/80 p-8 relative overflow-hidden">
           {/* Top accent line */}
-          <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-red-600 via-sky-500 to-red-600"></div>
+          <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-red-600 via-rose-500 to-red-600"></div>
 
           <div className="mb-6">
-            <h2 className="text-2xl font-bold text-slate-800">Welcome Back</h2>
-            <p className="text-xs text-slate-500 mt-1">Sign in to access your portal</p>
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900">Welcome Back</h2>
+            <p className="text-xs sm:text-sm text-slate-500 mt-1">Sign in to access your portal</p>
           </div>
 
           {errorMessage && (

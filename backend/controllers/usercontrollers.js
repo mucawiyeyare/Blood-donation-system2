@@ -24,6 +24,9 @@ export const registerDonor = async (req, res) => {
     const userExists = await User.findOne({ email: email.toLowerCase().trim() });
     if (userExists) return res.status(400).json({ message: "Email is already registered" });
 
+    const phoneExists = await User.findOne({ phone: phone.trim() });
+    if (phoneExists) return res.status(400).json({ message: "Phone number is already registered" });
+
     const nationalIdExists = await User.findOne({ nationalId: nationalId.trim() });
     if (nationalIdExists) return res.status(400).json({ message: "Government / National ID is already registered" });
 
@@ -66,8 +69,16 @@ export const registerDonor = async (req, res) => {
       },
     });
   } catch (error) {
-    if (error.code === 11000 && error.keyPattern?.nationalId) {
-      return res.status(400).json({ message: "Government / National ID is already registered" });
+    if (error.code === 11000) {
+      if (error.keyPattern?.email) {
+        return res.status(400).json({ message: "Email is already registered" });
+      }
+      if (error.keyPattern?.phone) {
+        return res.status(400).json({ message: "Phone number is already registered" });
+      }
+      if (error.keyPattern?.nationalId) {
+        return res.status(400).json({ message: "Government / National ID is already registered" });
+      }
     }
     res.status(500).json({ message: error.message });
   }

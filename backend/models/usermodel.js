@@ -63,6 +63,10 @@ const userSchema = new mongoose.Schema(
       type: Date,
       required: false,
     },
+    profileImage: {
+      type: String,
+      required: false,
+    },
     isAvailable: {
       type: Boolean,
       default: true,

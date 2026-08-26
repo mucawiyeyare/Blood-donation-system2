@@ -13,6 +13,8 @@ import {
   getDonorStatus,
   getHospitalDonationHistory,
   getDonorDonationHistory,
+  getLeaderboard,
+  getDonorStats,
 } from "../controllers/donorRequestController.js";
 
 const router = express.Router();
@@ -52,5 +54,11 @@ router.get("/hospital-donations", protect, getHospitalDonationHistory);
 
 // Donor donations history
 router.get("/donor-donations", protect, getDonorDonationHistory);
+
+// Public leaderboard - top 3 donors
+router.get("/leaderboard", getLeaderboard);
+
+// Donor stats - lives saved
+router.get("/my-stats", protect, getDonorStats);
 
 export default router;

@@ -5,6 +5,7 @@ import {
   AlertCircle, CheckCircle, Users, Heart, Activity, 
   Headphones, FileText, HelpCircle, Shield
 } from "lucide-react";
+import ChatBot from "../Components/ChatBot.jsx";
 
 function Contact() {
   const [formData, setFormData] = useState({
@@ -106,8 +107,8 @@ function Contact() {
             icon={Phone}
             title="Phone Numbers"
             lines={[
-              "General: +252 61 XXX XXXX",
-              "Emergency: 888 (Toll-Free)",
+              "General: +252 61 640 8886",
+              "Emergency: 061 640 8886 (24/7)",
               "Mon-Fri: 8:00 AM - 5:00 PM"
             ]}
             bgColor="bg-red-50"
@@ -149,29 +150,29 @@ function Contact() {
             icon={Heart}
             title="Blood Bank Operations"
             description="Blood inventory, storage, and distribution"
-            email="bloodbank@bdms.gov.so"
-            phone="+252 61 XXX 1001"
+            email="bloodbank@dhiigkaal.so"
+            phone="+252 61 640 8886"
           />
           <DepartmentCard
             icon={Users}
             title="Donor Services"
             description="Donor registration, scheduling, and support"
-            email="donors@bdms.gov.so"
-            phone="+252 61 XXX 1002"
+            email="donors@dhiigkaal.so"
+            phone="+252 61 640 8886"
           />
           <DepartmentCard
             icon={Activity}
             title="Hospital Relations"
             description="Hospital partnerships and blood requests"
-            email="hospitals@bdms.gov.so"
-            phone="+252 61 XXX 1003"
+            email="hospitals@dhiigkaal.so"
+            phone="+252 61 640 8886"
           />
           <DepartmentCard
             icon={Headphones}
             title="Technical Support"
             description="System access, account issues, and IT help"
-            email="support@bdms.gov.so"
-            phone="+252 61 XXX 1004"
+            email="support@dhiigkaal.so"
+            phone="+252 61 640 8886"
           />
         </div>
       </section>
@@ -367,8 +368,8 @@ function Contact() {
                   <Phone className="w-6 h-6 text-red-600 flex-shrink-0 mt-1" />
                   <div>
                     <p className="font-semibold text-gray-800">Contact Numbers</p>
-                    <p className="text-gray-600">Main: +252 61 XXX XXXX</p>
-                    <p className="text-gray-600">Emergency: 888 (24/7 Toll-Free)</p>
+                    <p className="text-gray-600">Main: +252 61 640 8886</p>
+                    <p className="text-gray-600">Emergency: +252 61 640 8886 (24/7)</p>
                   </div>
                 </div>
               </div>
@@ -432,6 +433,9 @@ function DepartmentCard({ icon: Icon, title, description, email, phone }) {
           </div>
         </div>
       </div>
+
+      {/* Floating AI ChatBot */}
+      <ChatBot />
     </div>
   );
 }

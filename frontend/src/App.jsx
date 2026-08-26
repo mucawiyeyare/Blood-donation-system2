@@ -12,6 +12,7 @@ import Contact from "./pages/Contact.jsx";
 
 // Components
 import PublicNavbar from "./Components/PublicNavbar.jsx";
+import Footer from "./Components/Footer.jsx";
 import Donors from "./Components/Donors.jsx";
 import Users from "./Components/User.jsx";
 import Profile from "./Components/profile.jsx";
@@ -29,9 +30,18 @@ import HospitalDonors from "./Components/HospitalDonors.jsx";
 import HospitalDonationHistory from "./Components/HospitalDonationHistory.jsx";
 import HospitalManagement from "./Components/HospitalManagement.jsx";
 import DashboardMessages from "./Components/DashboardMessages.jsx";
+import DonorRegistrationModal from "./Components/DonorRegistrationModal.jsx";
+import ScrollToTop from "./Components/ScrollToTop.jsx";
 
 function App() {
   const [user, setUser] = useState(null);
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+
+  useEffect(() => {
+    const handleOpen = () => setIsRegisterModalOpen(true);
+    window.addEventListener("open-donor-register", handleOpen);
+    return () => window.removeEventListener("open-donor-register", handleOpen);
+  }, []);
 
   // Check login state when app loads
   useEffect(() => {
@@ -71,19 +81,18 @@ function App() {
   };
 
   return (
+    <>
+    <ScrollToTop />
     <Routes>
-      {/* Public Routes with Navbar */}
+      {/* Public Routes with Navbar and Footer */}
       <Route
         path="/"
         element={
-          user ? (
-            <Navigate to="/dashboard" />
-          ) : (
-            <>
-              <PublicNavbar />
-              <Home />
-            </>
-          )
+          <>
+            <PublicNavbar />
+            <Home />
+            <Footer />
+          </>
         }
       />
       <Route
@@ -92,6 +101,7 @@ function App() {
           <>
             <PublicNavbar />
             <About />
+            <Footer />
           </>
         }
       />
@@ -101,6 +111,7 @@ function App() {
           <>
             <PublicNavbar />
             <Contact />
+            <Footer />
           </>
         }
       />
@@ -113,6 +124,7 @@ function App() {
             <>
               <PublicNavbar />
               <Signin setUser={setUser} />
+              <Footer />
             </>
           )
         }
@@ -126,6 +138,7 @@ function App() {
             <>
               <PublicNavbar />
               <Signup />
+              <Footer />
             </>
           )
         }
@@ -285,6 +298,13 @@ function App() {
         />
       </Route>
     </Routes>
+
+    {/* Global Instant Donor Registration Modal */}
+    <DonorRegistrationModal
+      isOpen={isRegisterModalOpen}
+      onClose={() => setIsRegisterModalOpen(false)}
+    />
+    </>
   );
 }
 

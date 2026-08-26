@@ -51,6 +51,14 @@ function HospitalDonors() {
   const [batchMessage, setBatchMessage] = useState(
     `Asc Wll,\n\nWaxa kula soo xiriiray Isbitaalka 🏥\n\nWaxaa loo baahan yahay in aad ka qeyb qaadato dhiig-bixin si loogu caawiyo bukaan u baahan dhiig. 🩸❤️\n\nFadlan haddii aad awooddo, booqo Isbitaalka si aad uga qeyb qaadato dhiig-bixinta.\n\nMahadsanid walaal.\nCaawintaadu waxay badbaadin kartaa nolol. ❤️🩸`
   );
+
+  // Patient Info Modal state (single request)
+  const [showPatientModal, setShowPatientModal] = useState(false);
+  const [pendingDonor, setPendingDonor] = useState(null);
+  const [patientInfo, setPatientInfo] = useState({
+    name: "", age: "", phone: "", diagnosis: "", causeOfInjury: "", notes: "", urgency: "Urgent",
+  });
+
   const [submitting, setSubmitting] = useState(false);
   const [actionLoadingId, setActionLoadingId] = useState(null);
 
@@ -147,50 +155,55 @@ function HospitalDonors() {
     return cleaned;
   };
 
-  // Unified Send Request Action:
-  // 1. Sends backend request to initiate 2-hour donation window
-  // 2. Automatically logs and sends message to donor's WhatsApp (616408886) and system without opening new tabs
-  const handleDirectSendRequest = async (donor) => {
+  // Open Patient Info Modal instead of sending directly
+  const handleDirectSendRequest = (donor) => {
     if (!donor || donor.status !== "Available") return;
+    setPendingDonor(donor);
+    setPatientInfo({ name: "", age: "", phone: "", diagnosis: "", causeOfInjury: "", notes: "", urgency: "Urgent" });
+    setShowPatientModal(true);
+  };
 
-    setActionLoadingId(donor._id);
-    const defaultMsg = `Asc Wll,\n\nWaxa kula soo xiriiray Isbitaalka 🏥\n\nWaxaa loo baahan yahay in ${donor.name} uu ka qeyb qaato dhiig-bixin si loogu caawiyo bukaan u baahan dhiig. 🩸❤️\n\nFadlan haddii aad awooddo, booqo Isbitaalka si aad uga qeyb qaadato dhiig-bixinta.\n\nMahadsanid walaal.\nCaawintaadu waxay badbaadin kartaa nolol. ❤️🩸`;
-    const donorPhone = donor.phone || "616408886";
-
+  // Submit patient info and send the actual request
+  const handleSubmitPatientRequest = async (e) => {
+    e.preventDefault();
+    if (!pendingDonor) return;
+    setSubmitting(true);
     try {
       const token = localStorage.getItem("token");
-      if (token) {
-        await axios.post(
-          "/api/requests/create",
-          {
-            donorId: donor._id,
-            bloodType: donor.bloodType,
-            urgency: "Urgent",
-            message: defaultMsg,
-            phone: donorPhone,
+      await axios.post(
+        "/api/requests/create",
+        {
+          donorId: pendingDonor._id,
+          bloodType: pendingDonor.bloodType,
+          urgency: patientInfo.urgency || "Urgent",
+          patientInfo: {
+            name: patientInfo.name,
+            age: patientInfo.age ? Number(patientInfo.age) : undefined,
+            phone: patientInfo.phone,
+            diagnosis: patientInfo.diagnosis,
+            causeOfInjury: patientInfo.causeOfInjury,
+            notes: patientInfo.notes,
           },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-      }
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
+      setShowPatientModal(false);
+      setPendingDonor(null);
       setToastMessage({
         type: "success",
-        title: "Codsigii Waa La Diray (Request Sent)",
-        description: `Fariinta dhiig-bixinta waxaa si toos ah loogu diray WhatsApp-ka ${donor.name} (${donorPhone}) iyo nidaamka Dhiigkaal. Mudada 2-da saac ayaa bilaabatay.`,
+        title: "Request Sent ✅",
+        description: `Blood request sent to ${pendingDonor.name}. WhatsApp message dispatched with patient details. 2-hour window started.`,
       });
-
-      // Refresh donor status to reflect Pending (2h Window)
       fetchDonors();
     } catch (err) {
-      console.error("Direct request error:", err);
       setToastMessage({
         type: "warning",
-        title: "Digniin / Ogaysiis",
-        description: err.response?.data?.message || `Codsiga deeq-bixiyaha ${donor.name} lama diri karin xilligan.`,
+        title: "Request Failed",
+        description: err.response?.data?.message || `Could not send request to ${pendingDonor?.name}.`,
       });
-      fetchDonors();
     } finally {
-      setActionLoadingId(null);
+      setSubmitting(false);
     }
   };
 
@@ -824,6 +837,112 @@ function HospitalDonors() {
         onClose={() => setShowWhatsAppModal(false)}
         onStatusChange={(status) => setWhatsAppInfo(status)}
       />
+
+      {/* Patient Info Modal */}
+      {showPatientModal && pendingDonor && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-red-700 to-red-600 px-6 py-4 rounded-t-2xl flex items-center justify-between">
+              <div>
+                <h2 className="text-white font-black text-lg">🩸 Blood Request Details</h2>
+                <p className="text-red-200 text-xs mt-0.5">Sending request to <strong className="text-white">{pendingDonor.name}</strong> — {pendingDonor.bloodType}</p>
+              </div>
+              <button onClick={() => setShowPatientModal(false)} className="text-white/70 hover:text-white">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitPatientRequest} className="p-6 space-y-4">
+              {/* Urgency */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Urgency Level <span className="text-red-500">*</span></label>
+                <div className="flex gap-2">
+                  {["Routine", "Urgent", "Emergency"].map((u) => (
+                    <button key={u} type="button"
+                      onClick={() => setPatientInfo(p => ({ ...p, urgency: u }))}
+                      className={`flex-1 py-2 rounded-xl text-xs font-bold border transition-all ${
+                        patientInfo.urgency === u
+                          ? u === "Emergency" ? "bg-red-600 text-white border-red-600"
+                          : u === "Urgent" ? "bg-amber-500 text-white border-amber-500"
+                          : "bg-emerald-600 text-white border-emerald-600"
+                          : "bg-white text-slate-600 border-slate-200 hover:border-slate-400"
+                      }`}
+                    >{u}</button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Patient Name */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Patient Full Name <span className="text-red-500">*</span></label>
+                <input required value={patientInfo.name}
+                  onChange={e => setPatientInfo(p => ({ ...p, name: e.target.value }))}
+                  placeholder="e.g. Fatuma Mohamed Ali"
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-red-400 focus:border-transparent outline-none" />
+              </div>
+
+              {/* Age + Phone */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Patient Age</label>
+                  <input type="number" min="0" max="120" value={patientInfo.age}
+                    onChange={e => setPatientInfo(p => ({ ...p, age: e.target.value }))}
+                    placeholder="e.g. 34"
+                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-red-400 outline-none" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Patient Phone</label>
+                  <input value={patientInfo.phone}
+                    onChange={e => setPatientInfo(p => ({ ...p, phone: e.target.value }))}
+                    placeholder="e.g. 0612345678"
+                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-red-400 outline-none" />
+                </div>
+              </div>
+
+              {/* Diagnosis */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Diagnosis / Injury Type <span className="text-red-500">*</span></label>
+                <input required value={patientInfo.diagnosis}
+                  onChange={e => setPatientInfo(p => ({ ...p, diagnosis: e.target.value }))}
+                  placeholder="e.g. Road accident, Surgery, Anemia..."
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-red-400 outline-none" />
+              </div>
+
+              {/* Cause of Injury */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Cause of Injury</label>
+                <input value={patientInfo.causeOfInjury}
+                  onChange={e => setPatientInfo(p => ({ ...p, causeOfInjury: e.target.value }))}
+                  placeholder="e.g. Car accident on Afgooye road"
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-red-400 outline-none" />
+              </div>
+
+              {/* Notes */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1.5">Additional Notes</label>
+                <textarea value={patientInfo.notes} rows={2}
+                  onChange={e => setPatientInfo(p => ({ ...p, notes: e.target.value }))}
+                  placeholder="Any extra information for the donor..."
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-red-400 outline-none resize-none" />
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setShowPatientModal(false)}
+                  className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition-colors">
+                  Cancel
+                </button>
+                <button type="submit" disabled={submitting}
+                  className="flex-1 py-3 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-xl text-sm flex items-center justify-center gap-2 shadow-lg shadow-red-500/30 transition-all disabled:opacity-60">
+                  <Send className="w-4 h-4" />
+                  {submitting ? "Sending..." : "Send Blood Request"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

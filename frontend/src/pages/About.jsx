@@ -20,6 +20,7 @@ import {
   ArrowRight,
   ChevronRight,
 } from "lucide-react";
+import ChatBot from "../Components/ChatBot.jsx";
 
 function About() {
   const bloodGroups = [
@@ -298,6 +299,9 @@ function About() {
           </div>
         </div>
       </section>
+
+      {/* Floating AI ChatBot */}
+      <ChatBot />
     </div>
   );
 }

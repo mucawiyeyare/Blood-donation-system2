@@ -26,7 +26,7 @@ export const resolveExpiredRequests = async () => {
 };
 
 // Helper: Build WhatsApp message & URL
-export const buildWhatsAppLink = (phone, hospitalName = "Isbitaalka", hospitalLocation = "Mogadishu", donorName = "Walaal") => {
+export const buildWhatsAppLink = (phone, hospitalName = "Isbitaalka", hospitalLocation = "Mogadishu", donorName = "Walaal", patientInfo = null) => {
   if (!phone) return { message: "", whatsappUrl: "" };
   let cleanedPhone = phone.toString().replace(/[^0-9]/g, "");
   // Ensure Somalia country code 252
@@ -39,16 +39,27 @@ export const buildWhatsAppLink = (phone, hospitalName = "Isbitaalka", hospitalLo
   const hLoc = hospitalLocation || "Mogadishu";
   const dName = donorName || "Walaal";
 
+  let patientSection = "";
+  if (patientInfo && patientInfo.name) {
+    patientSection = `
+📋 *Macluumaadka Bukaanka:*
+👤 Magac: ${patientInfo.name}${patientInfo.age ? `\n🎂 Da': ${patientInfo.age} sano` : ""}${patientInfo.diagnosis ? `\n🩺 Xaaladda: ${patientInfo.diagnosis}` : ""}${patientInfo.causeOfInjury ? `\n⚠️ Sababta: ${patientInfo.causeOfInjury}` : ""}
+`;
+  }
+
   const message = `Asc Wll,
 
-Waxa kula soo xiriiray ${hName} 🏥
+Waxaan kula soo xiriiraynaa *${hName}* 🏥
 
-Waxaa loo baahan yahay in ${dName} uu ka qeyb qaato dhiig-bixin si loogu caawiyo bukaan u baahan dhiig. 🩸❤️
+🩸 *Waxaa loo baahan yahay dhiig-bixin degdeg ah!*
+${patientSection}
+Fadlan haddii aad awooddo, kaalay *${hName}*
+📍 Goobta: ${hLoc}
 
-Fadlan haddii aad awooddo, booqo ${hName} – ${hLoc} si aad uga qeyb qaadato dhiig-bixinta.
+Mahadsanid walaal ${dName}.
+Caawintaadu waxay badbaadin kartaa nolol. ❤️🩸
 
-Mahadsanid walaal.
-Caawintaadu waxay badbaadin kartaa nolol. ❤️🩸`;
+— *DhiigKaal System*`;
 
   return {
     message,
@@ -60,7 +71,7 @@ Caawintaadu waxay badbaadin kartaa nolol. ❤️🩸`;
 export const createRequest = async (req, res) => {
   try {
     await resolveExpiredRequests();
-    const { donorId, bloodType, urgency, message } = req.body;
+    const { donorId, bloodType, urgency, message, patientInfo } = req.body;
 
     if (req.user.role !== "hospital" && req.user.role !== "admin") {
       return res.status(403).json({ message: "Only hospitals or admins can create donor requests" });
@@ -104,6 +115,7 @@ export const createRequest = async (req, res) => {
       bloodType: bloodType || donor.bloodType,
       urgency: urgency || "Routine",
       message,
+      patientInfo: patientInfo || {},
       status: "Pending",
       requestDate: requestedAt,
       pendingUntil,
@@ -112,7 +124,7 @@ export const createRequest = async (req, res) => {
 
     await donorRequest.save();
     await donorRequest.populate("hospitalId", "name email phone location");
-    const wa = buildWhatsAppLink(donor.phone, hospital?.name, hospital?.location, donor.name);
+    const wa = buildWhatsAppLink(donor.phone, hospital?.name, hospital?.location, donor.name, patientInfo);
     const waMessageText = message || wa.message;
 
     // Automatically send real WhatsApp message from sender number (616408886) to donor
@@ -646,6 +658,70 @@ export const getDonorDonationHistory = async (req, res) => {
       .sort({ donationDate: -1 });
 
     res.json(donations);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// 13. Public leaderboard — Top 3 donors by completed donations
+export const getLeaderboard = async (req, res) => {
+  try {
+    const top = await DonorRequest.aggregate([
+      { $match: { status: "Completed" } },
+      { $group: { _id: "$donorId", count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 3 },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_id",
+          foreignField: "_id",
+          as: "donor",
+        },
+      },
+      { $unwind: "$donor" },
+      {
+        $project: {
+          _id: 0,
+          donationCount: "$count",
+          firstName: { $arrayElemAt: [{ $split: ["$donor.name", " "] }, 0] },
+          lastInitial: {
+            $cond: {
+              if: { $gt: [{ $size: { $split: ["$donor.name", " "] } }, 1] },
+              then: { $substr: [{ $arrayElemAt: [{ $split: ["$donor.name", " "] }, 1] }, 0, 1] },
+              else: "",
+            },
+          },
+          bloodType: "$donor.bloodType",
+          location: "$donor.location",
+          profileImage: "$donor.profileImage",
+        },
+      },
+    ]);
+    res.json(top);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// 14. Donor stats — lives saved counter
+export const getDonorStats = async (req, res) => {
+  try {
+    if (req.user.role !== "donor") {
+      return res.status(403).json({ message: "Access restricted to donors" });
+    }
+    const donorId = req.user._id;
+    const totalCompleted = await DonorRequest.countDocuments({ donorId, status: "Completed" });
+    const totalPending = await DonorRequest.countDocuments({ donorId, status: "Pending" });
+    const totalArrived = await DonorRequest.countDocuments({ donorId, status: "Arrived" });
+    const totalDeclined = await DonorRequest.countDocuments({ donorId, status: "Declined" });
+    res.json({
+      livesHelped: totalCompleted,
+      totalCompleted,
+      totalPending,
+      totalArrived,
+      totalDeclined,
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
