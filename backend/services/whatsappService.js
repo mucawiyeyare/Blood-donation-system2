@@ -17,19 +17,14 @@ if (!fs.existsSync(authDir)) {
   fs.mkdirSync(authDir, { recursive: true });
 }
 
-// Global WhatsApp state
 let sock = null;
 let connectionStatus = "disconnected"; // 'disconnected' | 'connecting' | 'qr_ready' | 'connected'
-let qrCodeData = null; // Data URL for image rendering
+let qrCodeData = null; // base64 Data URL
 let rawQr = null;
 let pairingCode = null;
 let connectedNumber = null;
-let reconnectAttempts = 0;
+let isInitializing = false;
 
-/**
- * Format any Somalia phone number into standard WhatsApp JID format
- * e.g. "616408886" -> "252616408886@s.whatsapp.net"
- */
 export const formatSomaliPhone = (phone) => {
   if (!phone) return "";
   let cleaned = phone.toString().replace(/[^0-9]/g, "");
@@ -42,23 +37,41 @@ export const formatSomaliPhone = (phone) => {
 };
 
 /**
- * Initialize WhatsApp Socket Connection
+ * Initialize WhatsApp Socket
  */
-export const initWhatsApp = async () => {
+export const initWhatsApp = async (forceReset = false) => {
+  if (isInitializing) return sock;
+  isInitializing = true;
+
+  if (forceReset) {
+    try {
+      if (sock) {
+        sock.ev.removeAllListeners();
+        sock.end();
+      }
+    } catch (e) {}
+    try {
+      fs.rmSync(authDir, { recursive: true, force: true });
+      fs.mkdirSync(authDir, { recursive: true });
+    } catch (e) {}
+  }
+
   try {
     const { state, saveCreds } = await useMultiFileAuthState(authDir);
     const { version, isLatest } = await fetchLatestBaileysVersion();
 
-    console.log(`[WhatsApp Gateway] Starting Baileys v${version.join(".")} (Latest: ${isLatest})...`);
+    console.log(`[WhatsApp Gateway] Starting Baileys v${version.join(".")}...`);
     connectionStatus = "connecting";
 
     sock = makeWASocket({
       version,
       auth: state,
-      printQRInTerminal: false, // We render QR in Admin UI and API
+      printQRInTerminal: false,
       logger: pino({ level: "silent" }),
-      browser: ["DHIIG KAAL Somalia", "Chrome", "1.0.0"],
-      generateHighQualityLinkPreview: false,
+      browser: ["Ubuntu", "Chrome", "120.0.0"],
+      connectTimeoutMs: 60000,
+      keepAliveIntervalMs: 25000,
+      emitOwnEvents: false,
     });
 
     sock.ev.on("creds.update", saveCreds);
@@ -69,11 +82,11 @@ export const initWhatsApp = async () => {
       if (qr) {
         rawQr = qr;
         try {
-          qrCodeData = await qrcode.toDataURL(qr);
+          qrCodeData = await qrcode.toDataURL(qr, { margin: 2, scale: 6 });
           connectionStatus = "qr_ready";
-          console.log("[WhatsApp Gateway] New QR code generated for authentication");
+          console.log("[WhatsApp Gateway] ✅ Fresh QR code generated for authentication");
         } catch (err) {
-          console.error("[WhatsApp Gateway] QR generation error:", err);
+          console.error("[WhatsApp Gateway] QR conversion error:", err);
         }
       }
 
@@ -84,91 +97,120 @@ export const initWhatsApp = async () => {
         qrCodeData = null;
         rawQr = null;
         pairingCode = null;
-        connectedNumber = null;
 
-        console.log(`[WhatsApp Gateway] Connection closed. Reason: ${statusCode || lastDisconnect?.error?.message}`);
+        console.log(`[WhatsApp Gateway] Connection closed (Status ${statusCode}). Reconnecting: ${shouldReconnect}`);
 
-        if (shouldReconnect && reconnectAttempts < 10) {
-          reconnectAttempts++;
-          const delay = Math.min(reconnectAttempts * 3000, 30000);
-          console.log(`[WhatsApp Gateway] Reconnecting in ${delay / 1000}s (Attempt ${reconnectAttempts})...`);
-          setTimeout(() => {
-            initWhatsApp();
-          }, delay);
-        } else if (!shouldReconnect) {
-          console.log("[WhatsApp Gateway] Logged out. Session cleared.");
+        if (statusCode === DisconnectReason.loggedOut || statusCode === 401) {
           try {
             fs.rmSync(authDir, { recursive: true, force: true });
+            fs.mkdirSync(authDir, { recursive: true });
           } catch (e) {}
         }
+
+        // Auto restart socket so it's always ready for pairing or QR scan
+        setTimeout(() => {
+          isInitializing = false;
+          initWhatsApp();
+        }, 3000);
       } else if (connection === "open") {
-        reconnectAttempts = 0;
         connectionStatus = "connected";
         qrCodeData = null;
         rawQr = null;
         pairingCode = null;
         connectedNumber = sock?.user?.id?.split(":")[0] || sock?.user?.id || "252616408886";
-        console.log(`[WhatsApp Gateway] ✅ Successfully connected to WhatsApp! Logged in as: ${connectedNumber}`);
+        console.log(`[WhatsApp Gateway] 🟢 CONNECTED as: ${connectedNumber}`);
       }
     });
 
+    isInitializing = false;
     return sock;
   } catch (error) {
-    console.error("[WhatsApp Gateway] Initialization error:", error);
+    console.error("[WhatsApp Gateway] Init error:", error);
     connectionStatus = "disconnected";
+    isInitializing = false;
     return null;
   }
 };
 
 /**
- * Request an 8-digit Pairing Code for a phone number (e.g. 252616408886)
+ * Request an 8-digit Pairing Code for a phone number
  */
 export const requestPairingCodeForNumber = async (phoneNumber = "252616408886") => {
-  if (!sock) {
-    await initWhatsApp();
-  }
-
   let cleaned = phoneNumber.replace(/[^0-9]/g, "");
   if (cleaned.startsWith("0")) cleaned = "252" + cleaned.substring(1);
   else if (!cleaned.startsWith("252") && cleaned.length <= 9) cleaned = "252" + cleaned;
+
+  // If sock is dead or disconnected, re-init first
+  if (!sock || connectionStatus === "disconnected") {
+    await initWhatsApp(true);
+    // Wait 2 seconds for socket to start
+    await new Promise((r) => setTimeout(r, 2000));
+  }
 
   try {
     if (sock && !sock.authState.creds.registered) {
       console.log(`[WhatsApp Gateway] Requesting pairing code for ${cleaned}...`);
       const code = await sock.requestPairingCode(cleaned);
       pairingCode = code;
-      console.log(`[WhatsApp Gateway] 🔑 Pairing Code: ${code}`);
+      console.log(`[WhatsApp Gateway] 🔑 New Pairing Code: ${code}`);
       return { success: true, pairingCode: code, phone: cleaned };
     } else if (sock?.authState?.creds?.registered) {
-      return { success: true, alreadyConnected: true, connectedNumber };
+      return { success: true, alreadyConnected: true, connectedNumber: sock?.user?.id || "252616408886" };
     }
   } catch (err) {
-    console.error("[WhatsApp Gateway] Pairing code error:", err);
+    console.error("[WhatsApp Gateway] Pairing error:", err);
+    // Try reinitializing and retrying
+    await initWhatsApp(true);
+    await new Promise((r) => setTimeout(r, 2500));
+    try {
+      if (sock) {
+        const code = await sock.requestPairingCode(cleaned);
+        pairingCode = code;
+        return { success: true, pairingCode: code, phone: cleaned };
+      }
+    } catch (e2) {
+      return { success: false, error: e2.message };
+    }
     return { success: false, error: err.message };
   }
-  return { success: false, error: "Socket not ready" };
+  return { success: false, error: "Gateway initializing, please retry in 2 seconds" };
 };
 
 /**
- * Send a real WhatsApp text message to any phone number
+ * Force Refresh QR code
+ */
+export const refreshQR = async () => {
+  if (connectionStatus !== "connected") {
+    await initWhatsApp(true);
+    // Wait for QR generation up to 4 seconds
+    for (let i = 0; i < 8; i++) {
+      if (qrCodeData) break;
+      await new Promise((r) => setTimeout(r, 500));
+    }
+  }
+  return getWhatsAppStatus();
+};
+
+/**
+ * Send WhatsApp text message
  */
 export const sendWhatsAppMessage = async (toPhone, message) => {
   const targetJid = formatSomaliPhone(toPhone);
 
   if (!sock || connectionStatus !== "connected") {
-    console.warn(`[WhatsApp Gateway] Cannot send message to ${toPhone}: Gateway is ${connectionStatus}`);
+    console.warn(`[WhatsApp Gateway] Cannot send to ${toPhone}: Gateway is ${connectionStatus}`);
     return {
       success: false,
       status: connectionStatus,
-      message: `WhatsApp Gateway is currently ${connectionStatus}. Please connect sender number 616408886.`,
+      message: `WhatsApp Gateway is ${connectionStatus}. Please link sender number 616408886.`,
       targetPhone: toPhone,
     };
   }
 
   try {
-    console.log(`[WhatsApp Gateway] 📤 Sending message to ${targetJid}: "${message}"`);
+    console.log(`[WhatsApp Gateway] 📤 Sending to ${targetJid}: "${message}"`);
     const sentMsg = await sock.sendMessage(targetJid, { text: message });
-    console.log(`[WhatsApp Gateway] ✅ Message delivered successfully! ID: ${sentMsg?.key?.id}`);
+    console.log(`[WhatsApp Gateway] ✅ Delivered! ID: ${sentMsg?.key?.id}`);
     return {
       success: true,
       messageId: sentMsg?.key?.id,
@@ -176,7 +218,7 @@ export const sendWhatsAppMessage = async (toPhone, message) => {
       timestamp: new Date(),
     };
   } catch (error) {
-    console.error(`[WhatsApp Gateway] ❌ Failed to send message to ${targetJid}:`, error);
+    console.error(`[WhatsApp Gateway] ❌ Send failed for ${targetJid}:`, error);
     return {
       success: false,
       error: error.message,
@@ -189,6 +231,10 @@ export const sendWhatsAppMessage = async (toPhone, message) => {
  * Get current Gateway status
  */
 export const getWhatsAppStatus = () => {
+  // If disconnected, trigger background init
+  if (connectionStatus === "disconnected" && !isInitializing) {
+    initWhatsApp();
+  }
   return {
     status: connectionStatus,
     connectedNumber,
@@ -199,21 +245,21 @@ export const getWhatsAppStatus = () => {
 };
 
 /**
- * Disconnect / Logout WhatsApp session
+ * Disconnect / Logout
  */
 export const logoutWhatsApp = async () => {
   try {
     if (sock) {
       await sock.logout();
     }
+  } catch (e) {}
+  try {
     fs.rmSync(authDir, { recursive: true, force: true });
-    connectionStatus = "disconnected";
-    qrCodeData = null;
-    pairingCode = null;
-    connectedNumber = null;
-    setTimeout(() => initWhatsApp(), 2000);
-    return { success: true };
-  } catch (err) {
-    return { success: false, error: err.message };
-  }
+  } catch (e) {}
+  connectionStatus = "disconnected";
+  qrCodeData = null;
+  pairingCode = null;
+  connectedNumber = null;
+  setTimeout(() => initWhatsApp(true), 1500);
+  return { success: true };
 };

@@ -2,6 +2,7 @@ import express from "express";
 import {
   getWhatsAppStatus,
   requestPairingCodeForNumber,
+  refreshQR,
   sendWhatsAppMessage,
   logoutWhatsApp,
 } from "../services/whatsappService.js";
@@ -12,6 +13,16 @@ const router = express.Router();
 router.get("/status", (req, res) => {
   try {
     const status = getWhatsAppStatus();
+    res.json(status);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/whatsapp/refresh-qr
+router.get("/refresh-qr", async (req, res) => {
+  try {
+    const status = await refreshQR();
     res.json(status);
   } catch (err) {
     res.status(500).json({ error: err.message });
