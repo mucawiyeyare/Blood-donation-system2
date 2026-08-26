@@ -26,7 +26,7 @@ export const resolveExpiredRequests = async () => {
 };
 
 // Helper: Build WhatsApp message & URL
-export const buildWhatsAppLink = (phone, hospitalName, hospitalLocation) => {
+export const buildWhatsAppLink = (phone, hospitalName = "Isbitaalka", hospitalLocation = "Mogadishu", donorName = "Walaal") => {
   if (!phone) return { message: "", whatsappUrl: "" };
   let cleanedPhone = phone.toString().replace(/[^0-9]/g, "");
   // Ensure Somalia country code 252
@@ -35,7 +35,21 @@ export const buildWhatsAppLink = (phone, hospitalName, hospitalLocation) => {
   } else if (!cleanedPhone.startsWith("252") && cleanedPhone.length <= 9) {
     cleanedPhone = "252" + cleanedPhone;
   }
-  const message = `Asc wll waxa laga raba in add dhiiig shubto`;
+  const hName = hospitalName || "Isbitaalka";
+  const hLoc = hospitalLocation || "Mogadishu";
+  const dName = donorName || "Walaal";
+
+  const message = `Asc Wll,
+
+Waxa kula soo xiriiray ${hName} 🏥
+
+Waxaa loo baahan yahay in ${dName} uu ka qeyb qaato dhiig-bixin si loogu caawiyo bukaan u baahan dhiig. 🩸❤️
+
+Fadlan haddii aad awooddo, booqo ${hName} – ${hLoc} si aad uga qeyb qaadato dhiig-bixinta.
+
+Mahadsanid walaal.
+Caawintaadu waxay badbaadin kartaa nolol. ❤️🩸`;
+
   return {
     message,
     whatsappUrl: `https://wa.me/${cleanedPhone}?text=${encodeURIComponent(message)}`,
@@ -98,10 +112,8 @@ export const createRequest = async (req, res) => {
 
     await donorRequest.save();
     await donorRequest.populate("hospitalId", "name email phone location");
-    await donorRequest.populate("donorId", "name email phone bloodType location nationalId gender age");
-
-    const waMessageText = message || "Asc wll waxa laga raba in add dhiiig shubto";
-    const wa = buildWhatsAppLink(donor.phone, hospital?.name, hospital?.location);
+    const wa = buildWhatsAppLink(donor.phone, hospital?.name, hospital?.location, donor.name);
+    const waMessageText = message || wa.message;
 
     // Automatically send real WhatsApp message from sender number (616408886) to donor
     const waResult = await sendWhatsAppMessage(donor.phone, waMessageText);
@@ -185,10 +197,11 @@ export const createBatchRequest = async (req, res) => {
       await reqDoc.save();
       await reqDoc.populate("donorId", "name email phone bloodType location nationalId");
 
-      const wa = buildWhatsAppLink(donor.phone, hospital?.name, hospital?.location);
+      const wa = buildWhatsAppLink(donor.phone, hospital?.name, hospital?.location, donor.name);
+      const waMessageText = message || wa.message;
       
       // Automatically send real WhatsApp message to each donor in batch
-      sendWhatsAppMessage(donor.phone, message || "Asc wll waxa laga raba in add dhiiig shubto").catch((e) =>
+      sendWhatsAppMessage(donor.phone, waMessageText).catch((e) =>
         console.error(`Batch WhatsApp send error for ${donor.phone}:`, e)
       );
 

@@ -48,7 +48,9 @@ function HospitalDonors() {
   // Batch Request Modal state
   const [showBatchModal, setShowBatchModal] = useState(false);
   const [batchUrgency, setBatchUrgency] = useState("Urgent");
-  const [batchMessage, setBatchMessage] = useState("Asc wll waxa laga raba in add dhiiig shubto");
+  const [batchMessage, setBatchMessage] = useState(
+    `Asc Wll,\n\nWaxa kula soo xiriiray Isbitaalka 🏥\n\nWaxaa loo baahan yahay in aad ka qeyb qaadato dhiig-bixin si loogu caawiyo bukaan u baahan dhiig. 🩸❤️\n\nFadlan haddii aad awooddo, booqo Isbitaalka si aad uga qeyb qaadato dhiig-bixinta.\n\nMahadsanid walaal.\nCaawintaadu waxay badbaadin kartaa nolol. ❤️🩸`
+  );
   const [submitting, setSubmitting] = useState(false);
   const [actionLoadingId, setActionLoadingId] = useState(null);
 
@@ -152,7 +154,7 @@ function HospitalDonors() {
     if (!donor || donor.status !== "Available") return;
 
     setActionLoadingId(donor._id);
-    const defaultMsg = "Asc wll waxa laga raba in add dhiiig shubto";
+    const defaultMsg = `Asc Wll,\n\nWaxa kula soo xiriiray Isbitaalka 🏥\n\nWaxaa loo baahan yahay in ${donor.name} uu ka qeyb qaato dhiig-bixin si loogu caawiyo bukaan u baahan dhiig. 🩸❤️\n\nFadlan haddii aad awooddo, booqo Isbitaalka si aad uga qeyb qaadato dhiig-bixinta.\n\nMahadsanid walaal.\nCaawintaadu waxay badbaadin kartaa nolol. ❤️🩸`;
     const donorPhone = donor.phone || "616408886";
 
     try {
@@ -174,7 +176,7 @@ function HospitalDonors() {
       setToastMessage({
         type: "success",
         title: "Codsigii Waa La Diray (Request Sent)",
-        description: `Fariinta ("${defaultMsg}") waxaa si toos ah loogu diray WhatsApp-ka deeq-bixiyaha (${donorPhone}) iyo nidaamka Dhiigkaal. Mudada 2-da saac ee imaatinka ayaa bilaabatay.`,
+        description: `Fariinta dhiig-bixinta waxaa si toos ah loogu diray WhatsApp-ka ${donor.name} (${donorPhone}) iyo nidaamka Dhiigkaal. Mudada 2-da saac ayaa bilaabatay.`,
       });
 
       // Refresh donor status to reflect Pending (2h Window)
