@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import path from "path";
 import { fileURLToPath } from "url";
 import connectDB from "./Db/db.js";
 
@@ -27,8 +28,6 @@ app.use(express.json());
 
 connectDB();
 
-import path from "path";
-
 // API Routes
 app.use("/api/users", Userrouter);
 app.use("/api/admin", Adminrouter); 
@@ -37,23 +36,12 @@ app.use("/api/contact", ContactRouter);
 app.use("/api/activity", ActivityLogRouter); 
 app.use("/api/whatsapp", WhatsAppRouter);
 
-// Serve frontend static build in production
-const __dirname = path.resolve();
-const frontendDistPath = path.join(__dirname, "../frontend/dist");
+app.get("/", (req, res) => {
+  res.send("🩸 DHIIG KAAL — Blood Donation Management System API is running...");
+});
 
-if (process.env.NODE_ENV === "production" || process.env.SERVE_FRONTEND === "true") {
-  app.use(express.static(frontendDistPath));
-  app.get("*", (req, res) => {
-    res.sendFile(path.join(frontendDistPath, "index.html"));
-  });
-} else {
-  app.get("/", (req, res) => {
-    res.send("🩸 DHIIG KAAL — Blood Donation Management System API is running...");
-  });
-}
-
-// WhatsApp Gateway Service (Optional in local development)
-// initWhatsApp().catch((err) => console.error("[WhatsApp Gateway] Startup error:", err));
+// Initialize WhatsApp Gateway Service
+initWhatsApp().catch((err) => console.error("[WhatsApp Gateway] Startup error:", err));
 
 app.use((err, req, res, next) => {
   console.error(" Server Error:", err.message);
