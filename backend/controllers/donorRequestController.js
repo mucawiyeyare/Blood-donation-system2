@@ -663,14 +663,16 @@ export const getDonorDonationHistory = async (req, res) => {
   }
 };
 
-// 13. Public leaderboard — Top 3 donors by completed donations
+// 13. Public leaderboard — Top 3 donors by completed donations (tie-break: alphabetical by name)
 export const getLeaderboard = async (req, res) => {
   try {
     const top = await DonorRequest.aggregate([
       { $match: { status: "Completed" } },
       { $group: { _id: "$donorId", count: { $sum: 1 } } },
+      // Primary: most donations DESC. Tie-break: donor _id ASC (stable; real name sort done after lookup)
       { $sort: { count: -1 } },
-      { $limit: 3 },
+      // Fetch more than 3 so we can re-sort by name after lookup when counts are tied
+      { $limit: 10 },
       {
         $lookup: {
           from: "users",
@@ -683,7 +685,9 @@ export const getLeaderboard = async (req, res) => {
       {
         $project: {
           _id: 0,
+          donorId: "$_id",
           donationCount: "$count",
+          donorName: "$donor.name",
           firstName: { $arrayElemAt: [{ $split: ["$donor.name", " "] }, 0] },
           lastInitial: {
             $cond: {
@@ -697,6 +701,11 @@ export const getLeaderboard = async (req, res) => {
           profileImage: "$donor.profileImage",
         },
       },
+      // Secondary sort: same count → alphabetical by donor name
+      { $sort: { donationCount: -1, donorName: 1 } },
+      { $limit: 3 },
+      // Remove helper fields before sending
+      { $project: { donorId: 0, donorName: 0 } },
     ]);
     res.json(top);
   } catch (err) {

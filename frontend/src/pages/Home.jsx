@@ -520,9 +520,14 @@ function Home() {
             These amazing donors have saved the most lives on DhiigKaal. Keep going!
           </p>
 
-          {/* Always show 3 slots */}
+          {/* Show up to 3 real donors; only pad with placeholder slots if fewer than 3 donated */}
+          {leaderboard.length === 0 ? (
+            <p className="text-slate-400 text-sm py-4">Be the first hero — donate blood today! 🩸</p>
+          ) : (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-            {[0, 1, 2].map((index) => {
+            {Array.from({ length: Math.max(leaderboard.length, 3) }).map((_, index) => {
+              // Only render placeholder if we have < 3 real donors AND this slot is empty
+              if (index >= 3) return null;
               const donor = leaderboard[index] || null;
               const medals = ["🥇", "🥈", "🥉"];
               const rankLabels = ["1st Place", "2nd Place", "3rd Place"];
@@ -611,6 +616,7 @@ function Home() {
               );
             })}
           </div>
+          )}
 
           <p className="text-slate-400 text-xs">
             🔒 Only first name shown for privacy. Rankings update in real time.
