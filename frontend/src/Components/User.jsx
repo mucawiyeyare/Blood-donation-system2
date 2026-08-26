@@ -48,7 +48,7 @@ function Users() {
         return;
       }
 
-      const res = await axios.get("http://localhost:3000/api/admin/users", {
+      const res = await axios.get("/api/admin/users", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setUsers(res.data);
@@ -74,7 +74,7 @@ function Users() {
 
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://localhost:3000/api/admin/delete-user/${userId}`, {
+      await axios.delete(`/api/admin/delete-user/${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       alert("User deleted successfully");
@@ -103,7 +103,7 @@ function Users() {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `http://localhost:3000/api/admin/update-user/${editingUser._id}`,
+        `/api/admin/update-user/${editingUser._id}`,
         editForm,
         { headers: { Authorization: `Bearer ${token}` } }
       );

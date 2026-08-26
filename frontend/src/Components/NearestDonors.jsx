@@ -79,7 +79,7 @@ function NearestDonors() {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        "http://localhost:3000/api/geolocation/nearest-donors",
+        "/api/geolocation/nearest-donors",
         searchParams,
         { headers: { Authorization: `Bearer ${token}` } }
       );

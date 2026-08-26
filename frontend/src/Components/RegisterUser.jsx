@@ -27,7 +27,7 @@ function RegisterUser() {
     try {
       const token = localStorage.getItem("token");
       const res = await axios.post(
-        "http://localhost:3000/api/admin/register-user",
+        "/api/admin/register-user",
         formData,
         { headers: { Authorization: `Bearer ${token}` } }
       );

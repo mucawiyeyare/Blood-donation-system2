@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+import axios from "axios";
 
 // Pages
 import Home from "./pages/Home.jsx";
@@ -25,6 +26,8 @@ import HealthInstitutionAnalytics from "./Components/HealthInstitutionAnalytics.
 import HospitalRequests from "./Components/HospitalRequests.jsx";
 import DonorRequests from "./Components/DonorRequests.jsx";
 import HospitalDonors from "./Components/HospitalDonors.jsx";
+import HospitalDonationHistory from "./Components/HospitalDonationHistory.jsx";
+import HospitalManagement from "./Components/HospitalManagement.jsx";
 import DashboardMessages from "./Components/DashboardMessages.jsx";
 
 function App() {
@@ -39,9 +42,29 @@ function App() {
     }
   }, []);
 
+  // Clear expired or invalid tokens
+  useEffect(() => {
+    const interceptorId = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        const isAuthenticatedRequest = Boolean(error.config?.headers?.Authorization);
+
+        if (error.response?.status === 401 && isAuthenticatedRequest) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("role");
+          setUser(null);
+        }
+
+        return Promise.reject(error);
+      }
+    );
+
+    return () => axios.interceptors.response.eject(interceptorId);
+  }, []);
+
   // Auth guard
   const ProtectedRoute = ({ children, allowedRoles }) => {
-    if (!user) return <Navigate to="/" replace />;
+    if (!user) return <Navigate to="/signin" replace />;
     if (allowedRoles && !allowedRoles.includes(user.role))
       return <Navigate to="/dashboard/profile" replace />;
     return children;
@@ -122,7 +145,21 @@ function App() {
           index
           element={
             <ProtectedRoute allowedRoles={["admin", "donor", "hospital", "health_institution"]}>
-              {user?.role === "donor" ? <Navigate to="/dashboard/donor-requests" replace /> : <DashboardHome />}
+              {user?.role === "donor" ? (
+                <Navigate to="/dashboard/donor-requests" replace />
+              ) : user?.role === "hospital" ? (
+                <Navigate to="/dashboard/hospital-donors" replace />
+              ) : (
+                <DashboardHome />
+              )}
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="hospitals"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <HospitalManagement />
             </ProtectedRoute>
           }
         />
@@ -209,7 +246,7 @@ function App() {
         <Route
           path="hospital-requests"
           element={
-            <ProtectedRoute allowedRoles={["hospital"]}>
+            <ProtectedRoute allowedRoles={["hospital", "admin"]}>
               <HospitalRequests />
             </ProtectedRoute>
           }
@@ -225,8 +262,16 @@ function App() {
         <Route
           path="hospital-donors"
           element={
-            <ProtectedRoute allowedRoles={["hospital"]}>
+            <ProtectedRoute allowedRoles={["hospital", "admin", "health_institution"]}>
               <HospitalDonors />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="hospital-history"
+          element={
+            <ProtectedRoute allowedRoles={["hospital", "admin"]}>
+              <HospitalDonationHistory />
             </ProtectedRoute>
           }
         />

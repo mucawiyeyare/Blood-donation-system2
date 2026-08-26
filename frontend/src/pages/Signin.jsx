@@ -1,90 +1,143 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
-import { Droplet } from "lucide-react";
+import { LogIn, Mail, Lock, AlertCircle, ShieldCheck, Heart } from "lucide-react";
+import DhiigKaalLogo from "../Components/DhiigKaalLogo.jsx";
 
 function Signin({ setUser }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setErrorMessage("");
+    setLoading(true);
+
     try {
-      const res = await axios.post("http://localhost:3000/api/users/login", {
-        email,
+      const res = await axios.post("/api/users/login", {
+        email: email.trim(),
         password,
       });
+
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("role", res.data.user.role);
+      localStorage.setItem("userName", res.data.user.name);
+
       setUser({ token: res.data.token, role: res.data.user.role });
-      navigate("/dashboard");
+
+      // Role-specific redirect
+      if (res.data.user.role === "donor") {
+        navigate("/dashboard/donor-requests");
+      } else if (res.data.user.role === "hospital") {
+        navigate("/dashboard/hospital-donors");
+      } else {
+        navigate("/dashboard");
+      }
     } catch (err) {
-      alert(err.response?.data?.message || "Login failed");
+      setErrorMessage(err.response?.data?.message || "Invalid credentials. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-gray-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
+    <div className="min-h-screen bg-gradient-to-br from-red-50 via-sky-50/40 to-slate-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
         {/* Branding Header */}
-        <div className="text-center mb-6">
-          <div className="flex items-center justify-center gap-2 mb-2">
-            <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
-              <Droplet className="w-5 h-5 text-white" />
-            </div>
-            <h1 className="text-2xl font-bold text-gray-800">Blood Donation MS</h1>
-          </div>
-          <p className="text-sm text-gray-500">Management System</p>
+        <div className="text-center mb-8 flex flex-col items-center">
+          <Link to="/" className="inline-block transform hover:scale-105 transition-transform duration-200 mb-2">
+            <DhiigKaalLogo size="lg" />
+          </Link>
+          <p className="text-sm text-slate-600 font-medium">
+            Blood Donation Management System
+          </p>
         </div>
 
         {/* Sign In Card */}
-        <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-800 mb-1">Sign In</h2>
-          <p className="text-sm text-gray-500 mb-5">Welcome back to your account</p>
+        <div className="bg-white rounded-2xl shadow-xl border border-slate-100 p-8 relative overflow-hidden">
+          {/* Top accent line */}
+          <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-red-600 via-sky-500 to-red-600"></div>
+
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-slate-800">Welcome Back</h2>
+            <p className="text-xs text-slate-500 mt-1">Sign in to access your portal</p>
+          </div>
+
+          {errorMessage && (
+            <div className="mb-5 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-center gap-2.5">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <span>{errorMessage}</span>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email Input */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm"
-                required
-              />
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                Email Address
+              </label>
+              <div className="relative">
+                <input
+                  type="email"
+                  placeholder="name@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm transition-all"
+                  required
+                />
+              </div>
             </div>
 
             {/* Password Input */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-              <input
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm"
-                required
-              />
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  type="password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm transition-all"
+                  required
+                />
+              </div>
             </div>
 
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md font-medium text-sm transition-colors"
+              disabled={loading}
+              className="w-full mt-2 py-3 px-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-xl shadow-lg shadow-red-600/30 hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 text-sm"
             >
-              Sign In
+              <LogIn className="w-4 h-4" />
+              {loading ? "Signing in..." : "Sign In to Portal"}
             </button>
           </form>
 
+          {/* Quick Role Notice */}
+          <div className="mt-6 pt-5 border-t border-slate-100 flex items-center justify-center gap-4 text-xs text-slate-500">
+            <span className="flex items-center gap-1 font-medium">
+              <span className="w-2 h-2 rounded-full bg-red-600"></span> Donor
+            </span>
+            <span className="flex items-center gap-1 font-medium">
+              <span className="w-2 h-2 rounded-full bg-sky-500"></span> Hospital
+            </span>
+            <span className="flex items-center gap-1 font-medium">
+              <span className="w-2 h-2 rounded-full bg-slate-700"></span> Admin
+            </span>
+          </div>
+
           {/* Sign Up Link */}
-          <div className="mt-5 pt-4 border-t border-gray-200 text-center">
-            <p className="text-sm text-gray-600">
-              Don't have an account?{" "}
-              <Link to="/signup" className="text-red-600 hover:text-red-700 font-medium">
-                Sign Up
+          <div className="mt-5 pt-4 border-t border-slate-100 text-center">
+            <p className="text-sm text-slate-600">
+              New blood donor?{" "}
+              <Link to="/signup" className="text-red-600 hover:text-red-700 font-bold hover:underline">
+                Register as a Donor
               </Link>
             </p>
           </div>

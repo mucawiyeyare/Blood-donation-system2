@@ -7,6 +7,21 @@ const donationSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    hospitalId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: false,
+    },
+    requestId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "DonorRequest",
+      required: false,
+    },
+    bloodType: {
+      type: String,
+      enum: ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"],
+      required: false,
+    },
     donationDate: {
       type: Date,
       required: true,
@@ -18,7 +33,7 @@ const donationSchema = new mongoose.Schema(
     },
     collectionCenter: {
       type: String,
-      required: true,
+      required: false,
     },
     donationType: {
       type: String,

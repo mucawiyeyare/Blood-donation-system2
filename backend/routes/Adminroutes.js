@@ -1,32 +1,33 @@
 import express from "express";
-import { protect, adminOnly, adminOrHealthInstitution } from "../middleware/authMiddleware.js";
+import { protect, adminOnly } from "../middleware/authMiddleware.js";
 import User from "../models/usermodel.js";
+import DonorRequest from "../models/donorRequestModel.js";
+import Donation from "../models/donationModel.js";
 import bcrypt from "bcryptjs";
+import { createLog } from "../controllers/activityLogController.js";
 
 const router = express.Router();
 
-// Get all users (Admin only)
+// 1. Get all users (Admin only)
 router.get("/users", protect, adminOnly, async (req, res) => {
   try {
-    const users = await User.find({}).select('-password');
+    const { role } = req.query;
+    const filter = role ? { role } : {};
+    const users = await User.find(filter).select("-password").sort({ createdAt: -1 });
     res.json(users);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-// Get user by ID (Admin can see all, users can see only their own)
+// 2. Get user by ID
 router.get("/users/:id", protect, async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select('-password');
-    
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
+    const user = await User.findById(req.params.id).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Allow access if user is admin or requesting their own profile
-    if (req.user.role !== 'admin' && req.user._id.toString() !== user._id.toString()) {
-      return res.status(403).json({ message: 'Not authorized to view this profile' });
+    if (req.user.role !== "admin" && req.user._id.toString() !== user._id.toString()) {
+      return res.status(403).json({ message: "Not authorized to view this profile" });
     }
 
     res.json(user);
@@ -35,131 +36,125 @@ router.get("/users/:id", protect, async (req, res) => {
   }
 });
 
-// Admin registers a new user
+// 3. Admin registers a new user (Donor, Hospital, Admin, Health Institution)
 router.post("/register-user", protect, adminOnly, async (req, res) => {
   try {
-    const { name, email, password, phone, location, bloodType, role } = req.body;
+    const { name, email, password, phone, location, bloodType, role, nationalId, gender, age, hospitalLicense } = req.body;
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    if (!name || !email || !password || !phone || !location) {
+      return res.status(400).json({ message: "Name, email, password, phone, and location are required." });
+    }
+
+    const existingUser = await User.findOne({ email: email.toLowerCase().trim() });
     if (existingUser) {
       return res.status(400).json({ message: "User with this email already exists" });
     }
 
-    // Hash password
+    if (nationalId) {
+      const existingId = await User.findOne({ nationalId: nationalId.trim() });
+      if (existingId) {
+        return res.status(400).json({ message: "Government / National ID is already registered" });
+      }
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create new user
     const newUser = new User({
-      name,
-      email,
+      name: name.trim(),
+      email: email.toLowerCase().trim(),
       password: hashedPassword,
-      phone,
-      location,
-      bloodType,
-      role: role || "donor"
+      phone: phone.trim(),
+      location: location.trim(),
+      bloodType: bloodType || "O+",
+      role: role || "donor",
+      nationalId: nationalId ? nationalId.trim() : undefined,
+      gender: gender || "Male",
+      age: age ? Number(age) : undefined,
+      hospitalLicense,
+      isAvailable: true,
     });
 
     await newUser.save();
 
+    await createLog(req.user._id, "Admin created user", "user", "success", `Created ${newUser.role}: ${newUser.name}`);
+
     res.status(201).json({
-      message: `${role || "donor"} registered successfully by admin`,
+      message: `${role || "User"} registered successfully by admin`,
       user: {
         id: newUser._id,
         name: newUser.name,
         email: newUser.email,
-        role: newUser.role
-      }
+        role: newUser.role,
+        location: newUser.location,
+        phone: newUser.phone,
+        bloodType: newUser.bloodType,
+      },
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// Admin updates user role
-router.put("/update-role/:id", protect, adminOnly, async (req, res) => {
-  try {
-    const { role } = req.body;
-    
-    if (!["donor", "hospital", "admin", "health_institution"].includes(role)) {
-      return res.status(400).json({ message: "Invalid role" });
-    }
-
-    const user = await User.findById(req.params.id);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    user.role = role;
-    await user.save();
-
-    res.json({ message: `User role updated to ${role}`, user: { id: user._id, name: user.name, role: user.role } });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// Admin updates entire user profile (Generic Edit)
+// 4. Admin updates user profile (Generic Edit)
 router.put("/update-user/:id", protect, adminOnly, async (req, res) => {
   try {
-    const { name, email, phone, location, bloodType, role, isAvailable, lastDonationDate } = req.body;
-    
-    // Validations (basic)
-    if (role && !["donor", "hospital", "admin", "health_institution"].includes(role)) {
-      return res.status(400).json({ message: "Invalid role" });
-    }
+    const { name, email, phone, location, bloodType, role, isAvailable, lastDonationDate, nationalId, gender, age, hospitalLicense } = req.body;
 
     const user = await User.findById(req.params.id);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Update fields if provided
-    if (name) user.name = name;
-    if (email) user.email = email;
-    if (phone) user.phone = phone;
-    if (location) user.location = location;
+    if (name) user.name = name.trim();
+    if (email) user.email = email.toLowerCase().trim();
+    if (phone) user.phone = phone.trim();
+    if (location) user.location = location.trim();
     if (bloodType) user.bloodType = bloodType;
-    if (role) user.role = role;
-    if (typeof isAvailable !== 'undefined') user.isAvailable = isAvailable;
-    if (lastDonationDate) user.lastDonationDate = lastDonationDate;
+    if (role && ["donor", "hospital", "admin", "health_institution"].includes(role)) user.role = role;
+    if (nationalId !== undefined) user.nationalId = nationalId.trim();
+    if (gender) user.gender = gender;
+    if (age !== undefined) user.age = Number(age);
+    if (hospitalLicense !== undefined) user.hospitalLicense = hospitalLicense;
+    if (typeof isAvailable !== "undefined") user.isAvailable = isAvailable;
+    if (lastDonationDate !== undefined) user.lastDonationDate = lastDonationDate ? new Date(lastDonationDate) : null;
 
     await user.save();
 
-    res.json({ 
-        message: "User updated successfully", 
-        user: { 
-            id: user._id, 
-            name: user.name, 
-            email: user.email, 
-            phone: user.phone, 
-            location: user.location, 
-            bloodType: user.bloodType, 
-            role: user.role,
-            isAvailable: user.isAvailable,
-            lastDonationDate: user.lastDonationDate
-        } 
+    await createLog(req.user._id, "Admin updated user", "user", "success", `Updated: ${user.name} (${user.role})`);
+
+    res.json({
+      message: "User updated successfully",
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        location: user.location,
+        bloodType: user.bloodType,
+        role: user.role,
+        isAvailable: user.isAvailable,
+        lastDonationDate: user.lastDonationDate,
+        nationalId: user.nationalId,
+        gender: user.gender,
+        age: user.age,
+      },
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// Admin deletes a user
+// 5. Admin deletes a user
 router.delete("/delete-user/:id", protect, adminOnly, async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
-    
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Prevent admin from deleting themselves
     if (user._id.toString() === req.user._id.toString()) {
-      return res.status(400).json({ message: "You cannot delete your own account" });
+      return res.status(400).json({ message: "You cannot delete your own admin account" });
     }
 
     await User.findByIdAndDelete(req.params.id);
+
+    await createLog(req.user._id, "Admin deleted user", "user", "warning", `Deleted: ${user.name} (${user.role})`);
 
     res.json({ message: "User deleted successfully" });
   } catch (err) {
@@ -167,16 +162,59 @@ router.delete("/delete-user/:id", protect, adminOnly, async (req, res) => {
   }
 });
 
-// Admin promotes another user (legacy route - kept for compatibility)
-router.put("/make-admin/:id", protect, adminOnly, async (req, res) => {
+// 6. Admin Hospital Management: Get all hospitals with donation & request statistics
+router.get("/hospitals", protect, adminOnly, async (req, res) => {
   try {
-    const user = await User.findById(req.params.id);
-    if (!user) return res.status(404).json({ message: "User not found" });
+    const hospitals = await User.find({ role: "hospital" }).select("-password").sort({ name: 1 });
 
-    user.role = "admin";
-    await user.save();
+    const hospitalsWithStats = await Promise.all(
+      hospitals.map(async (hospital) => {
+        const totalRequests = await DonorRequest.countDocuments({ hospitalId: hospital._id });
+        const completedDonations = await Donation.countDocuments({ hospitalId: hospital._id });
+        const activeRequests = await DonorRequest.countDocuments({
+          hospitalId: hospital._id,
+          status: { $in: ["Pending", "Arrived"] },
+        });
 
-    res.json({ message: "User promoted to admin", user });
+        return {
+          ...hospital.toObject(),
+          totalRequests,
+          completedDonations,
+          activeRequests,
+        };
+      })
+    );
+
+    res.json(hospitalsWithStats);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// 7. System Stats & Overview
+router.get("/stats", protect, adminOnly, async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments({});
+    const totalDonors = await User.countDocuments({ role: "donor" });
+    const totalHospitals = await User.countDocuments({ role: "hospital" });
+    const totalDonations = await Donation.countDocuments({ status: "Completed" });
+    const activeRequests = await DonorRequest.countDocuments({ status: { $in: ["Pending", "Arrived"] } });
+
+    // Blood type distribution of registered donors
+    const bloodTypes = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+    const bloodTypeCounts = {};
+    for (const bt of bloodTypes) {
+      bloodTypeCounts[bt] = await User.countDocuments({ role: "donor", bloodType: bt });
+    }
+
+    res.json({
+      totalUsers,
+      totalDonors,
+      totalHospitals,
+      totalDonations,
+      activeRequests,
+      bloodTypeCounts,
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

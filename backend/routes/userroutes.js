@@ -20,7 +20,7 @@ router.get("/profile", protect, getProfile);
 // Update profile
 router.put("/profile", protect, async (req, res) => {
   try {
-    const { name, phone, location, bloodType } = req.body;
+    const { name, phone, location, bloodType, nationalId, gender, age } = req.body;
     
     const user = await User.findById(req.user._id);
     if (!user) {
@@ -28,10 +28,13 @@ router.put("/profile", protect, async (req, res) => {
     }
 
     // Update fields
-    if (name) user.name = name;
-    if (phone) user.phone = phone;
-    if (location) user.location = location;
+    if (name) user.name = name.trim();
+    if (phone) user.phone = phone.trim();
+    if (location) user.location = location.trim();
     if (bloodType) user.bloodType = bloodType;
+    if (nationalId) user.nationalId = nationalId.trim();
+    if (gender) user.gender = gender;
+    if (age !== undefined) user.age = Number(age);
 
     await user.save();
 
@@ -39,12 +42,17 @@ router.put("/profile", protect, async (req, res) => {
       message: "Profile updated successfully",
       user: {
         _id: user._id,
+        nationalId: user.nationalId,
+        gender: user.gender,
+        age: user.age,
         name: user.name,
         email: user.email,
         phone: user.phone,
         location: user.location,
         bloodType: user.bloodType,
-        role: user.role
+        role: user.role,
+        isAvailable: user.isAvailable,
+        lastDonationDate: user.lastDonationDate,
       }
     });
   } catch (err) {

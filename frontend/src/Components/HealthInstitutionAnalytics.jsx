@@ -44,7 +44,7 @@ function HealthInstitutionAnalytics() {
       const userRole = localStorage.getItem("role");
       
       // Fetch donors (accessible by health_institution)
-      const donorsResponse = await axios.get("http://localhost:3000/api/users/donors", {
+      const donorsResponse = await axios.get("/api/users/donors", {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -55,7 +55,7 @@ function HealthInstitutionAnalytics() {
       let hospitals = 0;
       try {
         if (userRole === "admin") {
-          const usersResponse = await axios.get("http://localhost:3000/api/admin/users", {
+          const usersResponse = await axios.get("/api/admin/users", {
             headers: { Authorization: `Bearer ${token}` }
           });
           hospitals = usersResponse.data.filter(u => u.role === "hospital").length;

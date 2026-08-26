@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Droplet, Menu, X, Home, Info, LogIn, UserPlus, Phone } from "lucide-react";
+import { Menu, X } from "lucide-react";
+import DhiigKaalLogo from "./DhiigKaalLogo.jsx";
 
 function PublicNavbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -15,58 +16,47 @@ function PublicNavbar() {
   };
 
   const navLinkClass = (path) => {
-    const baseClass = "flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200";
+    const baseClass = "px-4 py-2 rounded-lg font-medium transition-all duration-200 text-sm tracking-wide";
     return isActive(path)
-      ? `${baseClass} bg-red-600 text-white shadow-lg`
+      ? `${baseClass} bg-red-600 text-white shadow-md font-semibold`
       : `${baseClass} text-gray-700 hover:bg-red-50 hover:text-red-600`;
   };
 
   const mobileNavLinkClass = (path) => {
-    const baseClass = "flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all duration-200";
+    const baseClass = "block px-4 py-3 rounded-lg font-medium transition-all duration-200 text-sm";
     return isActive(path)
-      ? `${baseClass} bg-red-600 text-white`
+      ? `${baseClass} bg-red-600 text-white font-semibold`
       : `${baseClass} text-gray-700 hover:bg-red-50 hover:text-red-600`;
   };
 
   return (
-    <nav className="bg-white shadow-md sticky top-0 z-50">
-      <div className="w-full px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group">
-            <div className="bg-red-600 p-2 rounded-lg group-hover:bg-red-700 transition-colors">
-              <Droplet className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <span className="text-xl font-bold text-gray-800">BDMS</span>
-              <p className="text-xs text-gray-500 hidden sm:block">Blood Donation System</p>
-            </div>
+    <nav className="bg-white/95 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-gray-100">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-20">
+          {/* DHIIG KAAL Brand Logo */}
+          <Link to="/" className="flex items-center group transition-transform hover:scale-105">
+            <DhiigKaalLogo size="md" />
           </Link>
 
-          {/* Desktop Navigation */}
+          {/* Desktop Navigation (No Icons) */}
           <div className="hidden md:flex items-center space-x-2">
             <Link to="/" className={navLinkClass("/")}>
-              <Home className="w-4 h-4" />
-              <span>Home</span>
+              Home
             </Link>
             <Link to="/about" className={navLinkClass("/about")}>
-              <Info className="w-4 h-4" />
-              <span>About</span>
+              About
             </Link>
             <Link to="/contact" className={navLinkClass("/contact")}>
-              <Phone className="w-4 h-4" />
-              <span>Contact</span>
+              Contact
             </Link>
             <Link to="/signin" className={navLinkClass("/signin")}>
-              <LogIn className="w-4 h-4" />
-              <span>Sign In</span>
+              Sign In
             </Link>
             <Link
               to="/signup"
-              className="flex items-center gap-2 bg-red-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-red-700 transition-all duration-200 shadow-md hover:shadow-lg ml-2"
+              className="bg-gradient-to-r from-red-600 to-red-700 text-white px-5 py-2.5 rounded-lg font-semibold hover:from-red-700 hover:to-red-800 transition-all duration-200 shadow-md hover:shadow-lg ml-2 text-sm"
             >
-              <UserPlus className="w-4 h-4" />
-              <span>Sign Up</span>
+              Become a Donor
             </Link>
           </div>
 
@@ -76,53 +66,48 @@ function PublicNavbar() {
             className="md:hidden p-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
             aria-label="Toggle menu"
           >
-            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6 text-red-600" />}
           </button>
         </div>
 
-        {/* Mobile Navigation */}
+        {/* Mobile Navigation (No Icons) */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-gray-200">
+          <div className="md:hidden py-4 border-t border-gray-100 bg-white">
             <div className="flex flex-col space-y-2">
               <Link
                 to="/"
                 className={mobileNavLinkClass("/")}
                 onClick={() => setIsMenuOpen(false)}
               >
-                <Home className="w-5 h-5" />
-                <span>Home</span>
+                Home
               </Link>
               <Link
                 to="/about"
                 className={mobileNavLinkClass("/about")}
                 onClick={() => setIsMenuOpen(false)}
               >
-                <Info className="w-5 h-5" />
-                <span>About</span>
+                About
               </Link>
               <Link
                 to="/contact"
                 className={mobileNavLinkClass("/contact")}
                 onClick={() => setIsMenuOpen(false)}
               >
-                <Phone className="w-5 h-5" />
-                <span>Contact</span>
+                Contact
               </Link>
               <Link
                 to="/signin"
                 className={mobileNavLinkClass("/signin")}
                 onClick={() => setIsMenuOpen(false)}
               >
-                <LogIn className="w-5 h-5" />
-                <span>Sign In</span>
+                Sign In
               </Link>
               <Link
                 to="/signup"
-                className="flex items-center gap-3 bg-red-600 text-white px-4 py-3 rounded-lg font-medium hover:bg-red-700 transition-all duration-200"
+                className="block text-center bg-red-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-red-700 transition-all duration-200 text-sm mt-2"
                 onClick={() => setIsMenuOpen(false)}
               >
-                <UserPlus className="w-5 h-5" />
-                <span>Sign Up</span>
+                Become a Donor
               </Link>
             </div>
           </div>

@@ -28,7 +28,7 @@ const donorRequestSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Pending", "Accepted", "Declined", "Completed", "Cancelled"],
+      enum: ["Pending", "Arrived", "Accepted", "Declined", "Completed", "Cancelled", "Expired"],
       default: "Pending",
     },
     availabilityTime: {
@@ -39,6 +39,15 @@ const donorRequestSchema = new mongoose.Schema(
       type: Date,
       required: true,
       default: Date.now,
+    },
+    pendingUntil: {
+      type: Date,
+      required: true,
+      default: () => new Date(Date.now() + 2 * 60 * 60 * 1000), // Default 2 hours from now
+    },
+    arrivedAt: {
+      type: Date,
+      required: false,
     },
     responseDate: {
       type: Date,
@@ -52,6 +61,15 @@ const donorRequestSchema = new mongoose.Schema(
       type: String,
       required: false,
     },
+    batchId: {
+      type: String,
+      required: false,
+      index: true,
+    },
+    whatsappSent: {
+      type: Boolean,
+      default: true,
+    },
   },
   { timestamps: true }
 );
@@ -59,5 +77,6 @@ const donorRequestSchema = new mongoose.Schema(
 // Index for faster queries
 donorRequestSchema.index({ hospitalId: 1, status: 1 });
 donorRequestSchema.index({ donorId: 1, status: 1 });
+donorRequestSchema.index({ pendingUntil: 1, status: 1 });
 
 export default mongoose.model("DonorRequest", donorRequestSchema);

@@ -1,12 +1,28 @@
 import React, { useState, useEffect } from "react";
-import { FileText, Download, Calendar, Filter, Printer } from "lucide-react";
+import {
+  FileText,
+  Download,
+  Calendar,
+  Filter,
+  Printer,
+  Droplet,
+  Building2,
+  Users,
+  CheckCircle2,
+  Clock,
+  Sparkles,
+} from "lucide-react";
 import axios from "axios";
+import DhiigKaalLogo from "./DhiigKaalLogo.jsx";
 
 function Reports() {
   const [users, setUsers] = useState([]);
   const [donors, setDonors] = useState([]);
+  const [hospitals, setHospitals] = useState([]);
+  const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [generatingReport, setGeneratingReport] = useState(false);
+  const [reportOutput, setReportOutput] = useState("");
+  const [reportTitle, setReportTitle] = useState("");
   const [userRole, setUserRole] = useState("");
 
   useEffect(() => {
@@ -19,374 +35,248 @@ function Reports() {
     try {
       const token = localStorage.getItem("token");
       const role = localStorage.getItem("role");
-      
-      // Only admins can fetch all users
-      if (role === "admin") {
-        const usersResponse = await axios.get("http://localhost:3000/api/admin/users", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setUsers(usersResponse.data);
-      }
-      
-      // Both admin and hospital can fetch donors
-      const donorsResponse = await axios.get("http://localhost:3000/api/users/donors", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
 
-      setDonors(donorsResponse.data);
+      if (role === "admin" || role === "health_institution") {
+        const [usersRes, donorsRes, hospRes] = await Promise.all([
+          axios.get("/api/admin/users", {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get("/api/users/donors", {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get("/api/admin/hospitals", {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+        setUsers(usersRes.data);
+        setDonors(donorsRes.data);
+        setHospitals(hospRes.data);
+      } else if (role === "hospital") {
+        const [donorsRes, reqRes] = await Promise.all([
+          axios.get("/api/users/donors", {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get("/api/requests/hospital", {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+        setDonors(donorsRes.data);
+        setRequests(reqRes.data);
+      }
       setLoading(false);
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error("Error fetching report data:", error);
       setLoading(false);
     }
   };
 
-  const generateDonorReport = (e) => {
-    // Prevent any default behavior
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    
-    setGeneratingReport(true);
-    
-    // Calculate blood type distribution
+  const generateNationalSummaryReport = () => {
+    setReportTitle("DHIIG KAAL - National Blood Donation Summary Report");
     const bloodTypes = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
-    const bloodTypeCount = {};
-    
-    bloodTypes.forEach(type => {
-      bloodTypeCount[type] = donors.filter(d => d.bloodType === type).length;
+    const counts = {};
+    bloodTypes.forEach((bt) => {
+      counts[bt] = donors.filter((d) => d.bloodType === bt).length;
     });
 
-    // Generate report content
-    let reportContent = `
-═══════════════════════════════════════════════════════════
-          BLOOD DONATION MANAGEMENT SYSTEM
-                  DONOR STATISTICS REPORT
-═══════════════════════════════════════════════════════════
+    const report = `
+═══════════════════════════════════════════════════════════════════════════
+                              DHIIG KAAL
+               NATIONAL BLOOD DONATION MANAGEMENT SYSTEM
+═══════════════════════════════════════════════════════════════════════════
+Date Generated: ${new Date().toLocaleString()}
+Classification: Official Healthcare Summary (Somalia)
 
-Generated: ${new Date().toLocaleString()}
+1. SYSTEM LEVEL OVERVIEW
+───────────────────────────────────────────────────────────────────────────
+• Total Registered Donors       : ${donors.length}
+• Total Verified Hospitals      : ${hospitals.length}
+• Total Registered Users        : ${users.length}
+• Available Active Donors       : ${donors.filter((d) => d.status === "Available").length}
+• Donors in Medical Cooldown    : ${donors.filter((d) => d.status === "Donated").length}
 
-SUMMARY STATISTICS:
-─────────────────────────────────────────────────────────
-Total Registered Donors: ${donors.length}
-Total Users in System: ${users.length}
-Total Hospitals: ${users.filter(u => u.role === "hospital").length}
-Total Admins: ${users.filter(u => u.role === "admin").length}
+2. BLOOD TYPE DISTRIBUTION MATRIX
+───────────────────────────────────────────────────────────────────────────
+${bloodTypes
+  .map((bt) => {
+    const c = counts[bt];
+    const pct = donors.length > 0 ? ((c / donors.length) * 100).toFixed(1) : 0;
+    return `${bt.padEnd(6)}: ${c.toString().padStart(4)} donors  (${pct}%)`;
+  })
+  .join("\n")}
 
-BLOOD TYPE DISTRIBUTION:
-─────────────────────────────────────────────────────────
-${bloodTypes.map(type => {
-  const count = bloodTypeCount[type];
-  const percentage = donors.length > 0 ? ((count / donors.length) * 100).toFixed(1) : 0;
-  return `${type.padEnd(5)} : ${count.toString().padStart(4)} donors (${percentage}%)`;
-}).join('\n')}
+3. REGISTERED HEALTHCARE FACILITIES
+───────────────────────────────────────────────────────────────────────────
+${hospitals
+  .map(
+    (h, idx) =>
+      `${idx + 1}. ${h.name.padEnd(30)} | Location: ${h.location.padEnd(20)} | Phone: ${h.phone}`
+  )
+  .join("\n")}
 
-DONOR DETAILS:
-─────────────────────────────────────────────────────────
-${donors.map((donor, index) => `
-${index + 1}. ${donor.name}
-   Email: ${donor.email}
-   Phone: ${donor.phone}
-   Blood Type: ${donor.bloodType}
-   Location: ${donor.location}
-   Registered: ${new Date(donor.createdAt).toLocaleDateString()}
-`).join('\n')}
-
-═══════════════════════════════════════════════════════════
-                    END OF REPORT
-═══════════════════════════════════════════════════════════
+═══════════════════════════════════════════════════════════════════════════
+                     END OF NATIONAL SUMMARY REPORT
+═══════════════════════════════════════════════════════════════════════════
     `;
-
-    // Create blob and download (NO PRINTING)
-    const blob = new Blob([reportContent], { type: 'text/plain' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Donor_Report_${new Date().toISOString().split('T')[0]}.txt`;
-    a.style.display = 'none'; // Hide the link
-    document.body.appendChild(a);
-    a.click();
-    // Clean up immediately
-    setTimeout(() => {
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-    }, 100);
-    
-    setTimeout(() => setGeneratingReport(false), 1000);
+    setReportOutput(report.trim());
   };
 
-  const generateUserReport = (e) => {
-    // Prevent any default behavior
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    
-    setGeneratingReport(true);
-    
-    const roleCount = {
-      donor: users.filter(u => u.role === "donor").length,
-      hospital: users.filter(u => u.role === "hospital").length,
-      admin: users.filter(u => u.role === "admin").length
-    };
+  const generateHospitalReport = () => {
+    setReportTitle("DHIIG KAAL - Hospital Blood Requests & Donation Report");
+    const completed = requests.filter((r) => r.status === "Completed");
+    const pending = requests.filter((r) => r.status === "Pending" || r.status === "Arrived");
 
-    let reportContent = `
-═══════════════════════════════════════════════════════════
-          BLOOD DONATION MANAGEMENT SYSTEM
-                  USER STATISTICS REPORT
-═══════════════════════════════════════════════════════════
+    const report = `
+═══════════════════════════════════════════════════════════════════════════
+                              DHIIG KAAL
+                 HOSPITAL CLINICAL ACTIVITY REPORT
+═══════════════════════════════════════════════════════════════════════════
+Date Generated : ${new Date().toLocaleString()}
+Facility Name  : ${localStorage.getItem("userName") || "Hospital Clinic"}
 
-Generated: ${new Date().toLocaleString()}
+1. REQUEST & DONATION METRICS
+───────────────────────────────────────────────────────────────────────────
+• Total Blood Requests Dispatched : ${requests.length}
+• Completed / Donated Requests   : ${completed.length}
+• Active / Pending Requests       : ${pending.length}
+• Fulfillment Success Rate        : ${
+      requests.length > 0 ? ((completed.length / requests.length) * 100).toFixed(1) : 0
+    }%
 
-SUMMARY STATISTICS:
-─────────────────────────────────────────────────────────
-Total Users: ${users.length}
-Donors: ${roleCount.donor}
-Hospitals: ${roleCount.hospital}
-Administrators: ${roleCount.admin}
+2. FULFILLED DONATIONS LOG
+───────────────────────────────────────────────────────────────────────────
+${
+  completed.length === 0
+    ? "No completed donations recorded."
+    : completed
+        .map(
+          (r, idx) =>
+            `${idx + 1}. ${new Date(r.completionDate || r.requestDate).toLocaleDateString()} | Donor: ${
+              r.donorId?.name || "N/A"
+            } | Blood: ${r.bloodType} | ID: ${r.donorId?.nationalId || "N/A"}`
+        )
+        .join("\n")
+}
 
-USER DETAILS BY ROLE:
-─────────────────────────────────────────────────────────
-
-DONORS (${roleCount.donor}):
-${users.filter(u => u.role === "donor").map((user, index) => `
-${index + 1}. ${user.name} - ${user.bloodType} - ${user.location}
-   Email: ${user.email} | Phone: ${user.phone}
-`).join('\n')}
-
-HOSPITALS (${roleCount.hospital}):
-${users.filter(u => u.role === "hospital").map((user, index) => `
-${index + 1}. ${user.name} - ${user.location}
-   Email: ${user.email} | Phone: ${user.phone}
-`).join('\n')}
-
-ADMINISTRATORS (${roleCount.admin}):
-${users.filter(u => u.role === "admin").map((user, index) => `
-${index + 1}. ${user.name}
-   Email: ${user.email}
-`).join('\n')}
-
-═══════════════════════════════════════════════════════════
-                    END OF REPORT
-═══════════════════════════════════════════════════════════
+═══════════════════════════════════════════════════════════════════════════
+                       END OF HOSPITAL REPORT
+═══════════════════════════════════════════════════════════════════════════
     `;
-
-    const blob = new Blob([reportContent], { type: 'text/plain' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `User_Report_${new Date().toISOString().split('T')[0]}.txt`;
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => {
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-    }, 100);
-    
-    setTimeout(() => setGeneratingReport(false), 1000);
+    setReportOutput(report.trim());
   };
 
-  const generateBloodInventoryReport = (e) => {
-    // Prevent any default behavior
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    
-    setGeneratingReport(true);
-    
-    const bloodTypes = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
-    const bloodTypeCount = {};
-    
-    bloodTypes.forEach(type => {
-      bloodTypeCount[type] = donors.filter(d => d.bloodType === type).length;
-    });
-
-    let reportContent = `
-═══════════════════════════════════════════════════════════
-          BLOOD DONATION MANAGEMENT SYSTEM
-              BLOOD INVENTORY REPORT
-═══════════════════════════════════════════════════════════
-
-Generated: ${new Date().toLocaleString()}
-
-BLOOD TYPE AVAILABILITY:
-─────────────────────────────────────────────────────────
-${bloodTypes.map(type => {
-  const count = bloodTypeCount[type];
-  const percentage = donors.length > 0 ? ((count / donors.length) * 100).toFixed(1) : 0;
-  const status = count > 10 ? "✓ Good" : count > 5 ? "⚠ Low" : "✗ Critical";
-  return `${type.padEnd(5)} : ${count.toString().padStart(4)} donors (${percentage}%) - ${status}`;
-}).join('\n')}
-
-LOCATION-WISE DONOR DISTRIBUTION:
-─────────────────────────────────────────────────────────
-${Array.from(new Set(donors.map(d => d.location))).map(location => {
-  const locationDonors = donors.filter(d => d.location === location);
-  return `${location}: ${locationDonors.length} donors`;
-}).join('\n')}
-
-RECOMMENDATIONS:
-─────────────────────────────────────────────────────────
-${bloodTypes.map(type => {
-  const count = bloodTypeCount[type];
-  if (count < 5) return `⚠ URGENT: Need more ${type} donors`;
-  if (count < 10) return `⚠ LOW: Recruit more ${type} donors`;
-  return null;
-}).filter(Boolean).join('\n') || '✓ All blood types have adequate donors'}
-
-═══════════════════════════════════════════════════════════
-                    END OF REPORT
-═══════════════════════════════════════════════════════════
-    `;
-
-    const blob = new Blob([reportContent], { type: 'text/plain' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Blood_Inventory_Report_${new Date().toISOString().split('T')[0]}.txt`;
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => {
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
-    }, 100);
-    
-    setTimeout(() => setGeneratingReport(false), 1000);
+  const downloadReportFile = () => {
+    if (!reportOutput) return;
+    const blob = new Blob([reportOutput], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `DHIIG_KAAL_Report_${new Date().toISOString().slice(0, 10)}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
+
+  if (loading) {
+    return (
+      <div className="p-8 flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-14 w-14 border-4 border-red-600 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-slate-600 font-semibold">Generating report models...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-800 mb-2">Reports</h1>
-        <p className="text-gray-600">
-          {userRole === "hospital" 
-            ? "Generate and download donor reports for your hospital" 
-            : "Generate and download real-time system reports"}
+    <div className="p-4 sm:p-6 lg:p-8 bg-slate-50 min-h-screen">
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-2xl sm:text-3xl font-black text-slate-800 flex items-center gap-3">
+          <span className="p-2 rounded-xl bg-red-600 text-white shadow-md shadow-red-600/30">
+            <FileText className="w-6 h-6" />
+          </span>
+          Reports & Analytics Engine
+        </h1>
+        <p className="text-sm text-slate-600 mt-1">
+          Generate, preview, print, and export structured operational reports
         </p>
       </div>
 
-      {/* System Statistics */}
-      <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Current System Statistics</h2>
-        {loading ? (
-          <p className="text-gray-500">Loading data...</p>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {userRole === "admin" && (
-              <div className="bg-blue-50 p-4 rounded-lg text-center">
-                <p className="text-sm text-gray-600 mb-1">Total Users</p>
-                <p className="text-3xl font-bold text-blue-600">{users.length}</p>
+      {/* Report Generator Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+        {(userRole === "admin" || userRole === "health_institution") && (
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-all flex flex-col justify-between">
+            <div>
+              <div className="w-12 h-12 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center mb-4">
+                <Droplet className="w-6 h-6" />
               </div>
-            )}
-            <div className="bg-red-50 p-4 rounded-lg text-center">
-              <p className="text-sm text-gray-600 mb-1">Total Donors</p>
-              <p className="text-3xl font-bold text-red-600">{donors.length}</p>
+              <h3 className="text-lg font-bold text-slate-900 mb-1">National Donor & Blood Distribution</h3>
+              <p className="text-xs text-slate-500 leading-relaxed mb-4">
+                Complete overview of registered donors, blood type distributions, and facility participation across Somalia.
+              </p>
             </div>
-            {userRole === "admin" && (
-              <div className="bg-green-50 p-4 rounded-lg text-center">
-                <p className="text-sm text-gray-600 mb-1">Hospitals</p>
-                <p className="text-3xl font-bold text-green-600">{users.filter(u => u.role === "hospital").length}</p>
-              </div>
-            )}
-            <div className="bg-purple-50 p-4 rounded-lg text-center">
-              <p className="text-sm text-gray-600 mb-1">Blood Types</p>
-              <p className="text-3xl font-bold text-purple-600">8</p>
-            </div>
-            <div className="bg-orange-50 p-4 rounded-lg text-center">
-              <p className="text-sm text-gray-600 mb-1">Available Donors</p>
-              <p className="text-3xl font-bold text-orange-600">{donors.length}</p>
-            </div>
+            <button
+              onClick={generateNationalSummaryReport}
+              className="w-full py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all"
+            >
+              <FileText className="w-4 h-4" />
+              <span>Generate Summary Report</span>
+            </button>
           </div>
         )}
-      </div>
 
-      {/* Generate New Report Section */}
-      <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Generate Real-Time Reports</h2>
-        <p className="text-gray-600 mb-4">
-          {userRole === "hospital" 
-            ? "Generate donor reports to track available donors for your hospital" 
-            : "Click any button below to generate and download a report with current system data"}
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {userRole === "admin" && (
-            <button 
-              type="button"
-              onClick={generateUserReport}
-              disabled={generatingReport || loading}
-              className="bg-blue-500 hover:bg-blue-600 disabled:bg-gray-400 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
-            >
-              <Download className="w-5 h-5" />
-              {generatingReport ? "Downloading..." : "Download User Report"}
-            </button>
-          )}
-          <button 
-            type="button"
-            onClick={generateDonorReport}
-            disabled={generatingReport || loading}
-            className="bg-red-500 hover:bg-red-600 disabled:bg-gray-400 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-all flex flex-col justify-between">
+          <div>
+            <div className="w-12 h-12 rounded-2xl bg-sky-100 text-sky-600 flex items-center justify-center mb-4">
+              <Building2 className="w-6 h-6" />
+            </div>
+            <h3 className="text-lg font-bold text-slate-900 mb-1">Hospital Clinical Requests & Response</h3>
+            <p className="text-xs text-slate-500 leading-relaxed mb-4">
+              Detailed tracking of dispatched blood requests, 2-hour arrival fulfillment rates, and completed donations.
+            </p>
+          </div>
+          <button
+            onClick={generateHospitalReport}
+            className="w-full py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all"
           >
-            <Download className="w-5 h-5" />
-            {generatingReport ? "Downloading..." : "Download Donor Report"}
-          </button>
-          <button 
-            type="button"
-            onClick={generateBloodInventoryReport}
-            disabled={generatingReport || loading}
-            className="bg-green-500 hover:bg-green-600 disabled:bg-gray-400 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
-          >
-            <Download className="w-5 h-5" />
-            {generatingReport ? "Downloading..." : "Download Inventory Report"}
+            <FileText className="w-4 h-4" />
+            <span>Generate Activity Report</span>
           </button>
         </div>
       </div>
 
-      {/* Report Information */}
-      <div className="bg-white rounded-xl shadow-lg p-6">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">Report Information</h2>
-        <div className="space-y-4">
-          {userRole === "admin" && (
-            <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg">
-              <FileText className="w-6 h-6 text-blue-600 mt-1" />
-              <div>
-                <h3 className="font-semibold text-gray-800 mb-1">User Statistics Report</h3>
-                <p className="text-sm text-gray-600">
-                  Comprehensive report of all users in the system, categorized by role (Donors, Hospitals, Admins) 
-                  with detailed contact information and registration dates.
-                </p>
-              </div>
-            </div>
-          )}
-          
-          <div className="flex items-start gap-3 p-4 bg-red-50 rounded-lg">
-            <FileText className="w-6 h-6 text-red-600 mt-1" />
+      {/* Generated Report Output Box */}
+      {reportOutput && (
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 mb-4 border-b border-slate-100">
             <div>
-              <h3 className="font-semibold text-gray-800 mb-1">Donor Report</h3>
-              <p className="text-sm text-gray-600">
-                {userRole === "hospital" 
-                  ? "Complete list of available donors with blood type distribution, contact details, and location information for your hospital's donor requests."
-                  : "Detailed donor statistics including blood type distribution, individual donor information, contact details, and registration timeline."}
-              </p>
+              <h3 className="text-lg font-bold text-slate-900">{reportTitle}</h3>
+              <p className="text-xs text-slate-500">Ready for print and export</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => window.print()}
+                className="py-2 px-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-colors"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>Print</span>
+              </button>
+              <button
+                onClick={downloadReportFile}
+                className="py-2 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-md transition-all"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Download .TXT</span>
+              </button>
             </div>
           </div>
-          
-          <div className="flex items-start gap-3 p-4 bg-green-50 rounded-lg">
-            <FileText className="w-6 h-6 text-green-600 mt-1" />
-            <div>
-              <h3 className="font-semibold text-gray-800 mb-1">Blood Inventory Report</h3>
-              <p className="text-sm text-gray-600">
-                {userRole === "hospital"
-                  ? "Blood type availability report showing donor counts by blood type, location-wise distribution, and critical shortage alerts for your hospital."
-                  : "Blood type availability analysis with status indicators (Good/Low/Critical), location-wise distribution, and recommendations for donor recruitment."}
-              </p>
-            </div>
-          </div>
+
+          <pre className="bg-slate-900 text-slate-100 p-6 rounded-2xl text-xs sm:text-sm font-mono overflow-x-auto whitespace-pre leading-relaxed border border-slate-800">
+            {reportOutput}
+          </pre>
         </div>
-      </div>
+      )}
     </div>
   );
 }

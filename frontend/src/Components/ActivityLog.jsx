@@ -13,7 +13,7 @@ function ActivityLog() {
   const fetchActivities = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("http://localhost:3000/api/activity?limit=50", {
+      const response = await axios.get("/api/activity?limit=50", {
         headers: { Authorization: `Bearer ${token}` }
       });
       setActivities(response.data);

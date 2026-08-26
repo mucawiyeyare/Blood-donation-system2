@@ -125,7 +125,7 @@ function DonorLocationPicker() {
    */
   const fetchCurrentLocation = async () => {
     try {
-      const savedLocation = await axios.get("http://localhost:3000/api/geolocation/my-location", {
+      const savedLocation = await axios.get("/api/geolocation/my-location", {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
       });
 
@@ -196,7 +196,7 @@ function DonorLocationPicker() {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        "http://localhost:3000/api/geolocation/set-location",
+        "/api/geolocation/set-location",
         {
           latitude: selectedLocation.latitude,
           longitude: selectedLocation.longitude,

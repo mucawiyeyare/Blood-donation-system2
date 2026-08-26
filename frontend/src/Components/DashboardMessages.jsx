@@ -23,7 +23,7 @@ function DashboardMessages() {
         }
       };
       // Use full URL for now since execution environment might differ
-      const response = await axios.get("http://localhost:3000/api/contact", config);
+      const response = await axios.get("/api/contact", config);
       setMessages(response.data);
       setLoading(false);
     } catch (err) {
@@ -42,7 +42,7 @@ function DashboardMessages() {
             Authorization: `Bearer ${token}`
           }
         };
-        await axios.delete(`http://localhost:3000/api/contact/${id}`, config);
+        await axios.delete(`/api/contact/${id}`, config);
         setMessages(messages.filter((msg) => msg._id !== id));
       } catch (err) {
         console.error("Error deleting message:", err);

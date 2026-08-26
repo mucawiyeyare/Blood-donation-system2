@@ -14,7 +14,22 @@ const userSchema = new mongoose.Schema(
       type: String,
        required: true },
 
+    nationalId: {
+      type: String,
+      unique: true,
+      sparse: true,
+      trim: true,
+    },
+    gender: {
+      type: String,
+      enum: ["Male", "Female", "Other"],
+    },
+
     phone: { 
+      type: String,
+       required: true },
+    location: {
+       type: String, 
       type: String,
        required: true },
     location: {
@@ -29,6 +44,19 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["donor", "hospital", "admin", "health_institution"],
       default: "donor",
+    },
+    age: {
+      type: Number,
+      required: false,
+    },
+    dateOfBirth: {
+      type: Date,
+      required: false,
+    },
+    // Hospital specific fields
+    hospitalLicense: {
+      type: String,
+      required: false,
     },
     // Donor-specific fields
     lastDonationDate: {

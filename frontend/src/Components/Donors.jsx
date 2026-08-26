@@ -1,80 +1,125 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Search, Filter, MapPin, Droplet, X, Send, AlertCircle, Edit, Save, User as UserIcon, Phone, Mail, Shield } from "lucide-react";
+import {
+  Search,
+  Filter,
+  MapPin,
+  Droplet,
+  X,
+  Send,
+  AlertCircle,
+  Edit,
+  Save,
+  User as UserIcon,
+  Phone,
+  Mail,
+  Shield,
+  Plus,
+  Trash2,
+  CheckCircle,
+  Clock,
+  Building2,
+  XCircle,
+  MessageCircle,
+  CheckSquare,
+} from "lucide-react";
 
 function Donors() {
   const [donors, setDonors] = useState([]);
   const [filteredDonors, setFilteredDonors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
-  // Search and filter states
+
+  // Filters
   const [searchName, setSearchName] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("");
   const [selectedBloodType, setSelectedBloodType] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
-  
-  // Request modal states
-  const [showRequestModal, setShowRequestModal] = useState(false);
-  const [selectedDonor, setSelectedDonor] = useState(null);
-  const [requestForm, setRequestForm] = useState({
-    urgency: "Routine",
-    message: "",
-  });
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [selectedGender, setSelectedGender] = useState("");
   const [userRole, setUserRole] = useState("");
 
-  // Edit Modal State (Admin Only)
+  // Modals
+  const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingDonor, setEditingDonor] = useState(null);
-  const [editForm, setEditForm] = useState({
+
+  const [addForm, setAddForm] = useState({
+    nationalId: "",
     name: "",
+    gender: "Male",
+    phone: "",
+    location: "",
+    bloodType: "O+",
     email: "",
+    password: "",
+    age: "",
+  });
+
+  const [editForm, setEditForm] = useState({
+    nationalId: "",
+    name: "",
+    gender: "Male",
     phone: "",
     location: "",
     bloodType: "",
+    age: "",
     isAvailable: true,
   });
-  
-  // Get unique locations from donors
-  const [locations, setLocations] = useState([]);
+
+  const [submitting, setSubmitting] = useState(false);
+
   const bloodTypes = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
   useEffect(() => {
+    const role = localStorage.getItem("role");
+    setUserRole(role);
     fetchDonors();
   }, []);
+
+  useEffect(() => {
+    let list = [...donors];
+
+    if (searchName) {
+      const term = searchName.toLowerCase();
+      list = list.filter(
+        (d) =>
+          d.name.toLowerCase().includes(term) ||
+          d.email.toLowerCase().includes(term) ||
+          d.phone.includes(term) ||
+          (d.nationalId && d.nationalId.toLowerCase().includes(term))
+      );
+    }
+    if (selectedLocation) {
+      list = list.filter((d) => d.location.toLowerCase().includes(selectedLocation.toLowerCase()));
+    }
+    if (selectedBloodType) {
+      list = list.filter((d) => d.bloodType === selectedBloodType);
+    }
+    if (selectedStatus) {
+      list = list.filter((d) => d.status.toLowerCase() === selectedStatus.toLowerCase());
+    }
+    if (selectedGender) {
+      list = list.filter((d) => d.gender === selectedGender);
+    }
+
+    setFilteredDonors(list);
+  }, [donors, searchName, selectedLocation, selectedBloodType, selectedStatus, selectedGender]);
 
   const fetchDonors = async () => {
     try {
       const token = localStorage.getItem("token");
-      
       if (!token) {
         setError("No authentication token found");
         setLoading(false);
         return;
       }
 
-      // Decode token to get user role
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      setUserRole(payload.role);
-
-      const res = await axios.get("http://localhost:3000/api/admin/users", { // Fetching all users but filtering for donors/view
-         headers: { Authorization: `Bearer ${token}` },
-         params: { role: 'donor' } // Ideally the backend endpoint allows filtering or we just fetch donors endpoint
-      });
-      // Note: The previous endpoint was /api/users/donors which returns calculated status. 
-      // We should probably stick to that for the main list, but for editing we might need to hit the generic update endpoint.
-      // Let's stick to the original endpoint for fetching to keep the Status logic working.
-      const resDonors = await axios.get("http://localhost:3000/api/users/donors", {
+      const res = await axios.get("/api/users/donors", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      setDonors(resDonors.data);
-      setFilteredDonors(resDonors.data);
-      
-      // Extract unique locations
-      const uniqueLocations = [...new Set(resDonors.data.map(d => d.location))];
-      setLocations(uniqueLocations);
-      
+      setDonors(res.data);
+      setFilteredDonors(res.data);
       setError(null);
     } catch (err) {
       console.error("Error fetching donors:", err);
@@ -84,493 +129,475 @@ function Donors() {
     }
   };
 
-  // Filter donors whenever search criteria changes
-  useEffect(() => {
-    let filtered = donors;
-
-    // Filter by name
-    if (searchName) {
-      filtered = filtered.filter(donor =>
-        donor.name.toLowerCase().includes(searchName.toLowerCase()) ||
-        donor.email.toLowerCase().includes(searchName.toLowerCase())
-      );
-    }
-
-    // Filter by location
-    if (selectedLocation) {
-      filtered = filtered.filter(donor => donor.location === selectedLocation);
-    }
-
-    // Filter by blood type
-    if (selectedBloodType) {
-      filtered = filtered.filter(donor => donor.bloodType === selectedBloodType);
-    }
-
-    setFilteredDonors(filtered);
-  }, [searchName, selectedLocation, selectedBloodType, donors]);
-
-  const clearFilters = () => {
-    setSearchName("");
-    setSelectedLocation("");
-    setSelectedBloodType("");
-  };
-
-  const openRequestModal = (donor) => {
-    setSelectedDonor(donor);
-    setShowRequestModal(true);
-    setRequestForm({ urgency: "Routine", message: "" });
-  };
-
-  const closeRequestModal = () => {
-    setShowRequestModal(false);
-    setSelectedDonor(null);
-    setRequestForm({ urgency: "Routine", message: "" });
-  };
-
-  const handleRequestSubmit = async (e) => {
+  const handleAddSubmit = async (e) => {
     e.preventDefault();
-    
+    setSubmitting(true);
+
     try {
       const token = localStorage.getItem("token");
       await axios.post(
-        "http://localhost:3000/api/requests/create",
+        "/api/admin/register-user",
         {
-          donorId: selectedDonor._id,
-          bloodType: selectedDonor.bloodType,
-          urgency: requestForm.urgency,
-          message: requestForm.message,
+          ...addForm,
+          role: "donor",
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      alert("Request sent successfully!");
-      closeRequestModal();
-      fetchDonors(); // Refresh list
+      alert("Donor created successfully!");
+      setShowAddModal(false);
+      setAddForm({
+        nationalId: "",
+        name: "",
+        gender: "Male",
+        phone: "",
+        location: "",
+        bloodType: "O+",
+        email: "",
+        password: "",
+        age: "",
+      });
+      fetchDonors();
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to send request");
+      alert(err.response?.data?.message || "Failed to add donor");
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  // Admin Edit Functions
   const handleEditClick = (donor) => {
     setEditingDonor(donor);
     setEditForm({
+      nationalId: donor.nationalId || "",
       name: donor.name,
-      email: donor.email,
-      phone: donor.phone || "",
-      location: donor.location || "",
-      bloodType: donor.bloodType || "",
-      isAvailable: donor.isAvailable !== undefined ? donor.isAvailable : true,
+      gender: donor.gender || "Male",
+      phone: donor.phone,
+      location: donor.location,
+      bloodType: donor.bloodType,
+      age: donor.age || "",
+      isAvailable: donor.isAvailable !== false,
     });
     setShowEditModal(true);
   };
 
-  const handleUpdateDonor = async (e) => {
+  const handleEditSubmit = async (e) => {
     e.preventDefault();
+    if (!editingDonor) return;
+
+    setSubmitting(true);
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `http://localhost:3000/api/admin/update-user/${editingDonor._id}`,
+        `/api/admin/update-user/${editingDonor._id}`,
         editForm,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      alert("Donor updated successfully");
+
+      alert("Donor updated successfully!");
       setShowEditModal(false);
-      setEditingDonor(null);
-      fetchDonors(); // Refresh the list
+      fetchDonors();
     } catch (err) {
       alert(err.response?.data?.message || "Failed to update donor");
+    } finally {
+      setSubmitting(false);
     }
   };
 
+  const handleDelete = async (id, name) => {
+    if (!window.confirm(`Delete donor "${name}"? This action cannot be undone.`)) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      await axios.delete(`/api/admin/delete-user/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      alert("Donor deleted successfully");
+      fetchDonors();
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to delete donor");
+    }
+  };
 
   const getStatusBadge = (status) => {
-    const badges = {
-      Available: { color: "bg-green-100 text-green-800", text: "Available" },
-      Requested: { color: "bg-yellow-100 text-yellow-800", text: "Requested" },
-      "Donated Recently": { color: "bg-red-100 text-red-800", text: "Donated Recently: He will become available after 6 months" },
-      Unavailable: { color: "bg-gray-100 text-gray-800", text: "Unavailable" },
-    };
-
-    const badge = badges[status] || badges.Available;
-
-    return (
-      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${badge.color}`}>
-        {badge.text}
-      </span>
-    );
+    switch (status) {
+      case "Available":
+        return (
+          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
+            <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
+            Available
+          </span>
+        );
+      case "Pending":
+        return (
+          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300 flex items-center gap-1">
+            <Clock className="w-3.5 h-3.5 text-amber-600" />
+            Pending (2h)
+          </span>
+        );
+      case "Arrived":
+        return (
+          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-sky-100 text-sky-800 border border-sky-300 flex items-center gap-1">
+            <Building2 className="w-3.5 h-3.5 text-sky-600" />
+            Arrived
+          </span>
+        );
+      case "Donated":
+        return (
+          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800 border border-red-300 flex items-center gap-1">
+            <Droplet className="w-3.5 h-3.5 text-red-600" />
+            In Cooldown
+          </span>
+        );
+      default:
+        return (
+          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-300">
+            {status}
+          </span>
+        );
+    }
   };
 
   if (loading) {
     return (
-      <div className="p-6 w-full">
-        <p className="text-gray-600">Loading donors...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-6 w-full">
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-          <strong>Error:</strong> {error}
+      <div className="p-8 flex items-center justify-center min-h-[60vh]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-14 w-14 border-4 border-red-600 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-slate-600 font-semibold">Loading donors database...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 w-full bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+    <div className="p-4 sm:p-6 lg:p-8 bg-slate-50 min-h-screen">
       {/* Header */}
-      <div className="mb-6">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">All Donors</h2>
-        <p className="text-gray-600">Total Donors: {donors.length} | Showing: {filteredDonors.length}</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-800 flex items-center gap-3">
+            <span className="p-2 rounded-xl bg-red-600 text-white shadow-md shadow-red-600/30">
+              <Droplet className="w-6 h-6" />
+            </span>
+            Donor Directory & Management
+          </h1>
+          <p className="text-sm text-slate-600 mt-1">
+            Manage registered voluntary blood donors, verify national IDs, and monitor statuses
+          </p>
+        </div>
+
+        {userRole === "admin" && (
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="self-start sm:self-auto flex items-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold shadow-md shadow-red-600/30 transition-all"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add New Donor</span>
+          </button>
+        )}
       </div>
 
-      {/* Search and Filter Section */}
-      <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-        {/* Search Bar */}
-        <div className="flex items-center gap-4 mb-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+      {/* Filters */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+          {/* Search Term */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               type="text"
-              placeholder="Search by name or email..."
+              placeholder="Search donor name, ID, phone..."
               value={searchName}
               onChange={(e) => setSearchName(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-red-500"
             />
           </div>
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-colors ${
-              showFilters ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
+
+          {/* Blood Type */}
+          <select
+            value={selectedBloodType}
+            onChange={(e) => setSelectedBloodType(e.target.value)}
+            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-red-500 font-semibold"
           >
-            <Filter className="w-5 h-5" />
-            Filters
-          </button>
-          {(searchName || selectedLocation || selectedBloodType) && (
+            <option value="">All Blood Types</option>
+            {bloodTypes.map((bt) => (
+              <option key={bt} value={bt}>
+                {bt}
+              </option>
+            ))}
+          </select>
+
+          {/* Location */}
+          <input
+            type="text"
+            placeholder="Filter location (e.g. Mogadishu)..."
+            value={selectedLocation}
+            onChange={(e) => setSelectedLocation(e.target.value)}
+            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-red-500"
+          />
+
+          {/* Status */}
+          <select
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
+            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-red-500"
+          >
+            <option value="">All Statuses</option>
+            <option value="Available">Available</option>
+            <option value="Pending">Pending (2h)</option>
+            <option value="Arrived">Arrived</option>
+            <option value="Donated">In Cooldown</option>
+            <option value="Unavailable">Unavailable</option>
+          </select>
+
+          {/* Gender */}
+          <select
+            value={selectedGender}
+            onChange={(e) => setSelectedGender(e.target.value)}
+            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-red-500"
+          >
+            <option value="">All Genders</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+        </div>
+
+        <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+          <span>
+            Showing <strong className="text-slate-900">{filteredDonors.length}</strong> of{" "}
+            <strong>{donors.length}</strong> donors
+          </span>
+          {(searchName || selectedLocation || selectedBloodType || selectedStatus || selectedGender) && (
             <button
-              onClick={clearFilters}
-              className="flex items-center gap-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-semibold transition-colors"
+              onClick={() => {
+                setSearchName("");
+                setSelectedLocation("");
+                setSelectedBloodType("");
+                setSelectedStatus("");
+                setSelectedGender("");
+              }}
+              className="text-red-600 hover:text-red-700 font-bold hover:underline"
             >
-              <X className="w-5 h-5" />
-              Clear
+              Reset Filters
             </button>
           )}
         </div>
-
-        {/* Filter Options (Collapsible) */}
-        {showFilters && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200">
-            {/* Location Filter */}
-            <div>
-              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                <MapPin className="w-4 h-4 text-blue-600" />
-                Filter by Location
-              </label>
-              <select
-                value={selectedLocation}
-                onChange={(e) => setSelectedLocation(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">All Locations</option>
-                {locations.map((location) => (
-                  <option key={location} value={location}>
-                    {location}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Blood Type Filter */}
-            <div>
-              <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
-                <Droplet className="w-4 h-4 text-red-600" />
-                Filter by Blood Type
-              </label>
-              <select
-                value={selectedBloodType}
-                onChange={(e) => setSelectedBloodType(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-              >
-                <option value="">All Blood Types</option>
-                {bloodTypes.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        )}
-
-        {/* Active Filters Display */}
-        {(selectedLocation || selectedBloodType) && (
-          <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-200">
-            <span className="text-sm font-semibold text-gray-600">Active Filters:</span>
-            {selectedLocation && (
-              <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium flex items-center gap-1">
-                <MapPin className="w-3 h-3" />
-                {selectedLocation}
-                <button onClick={() => setSelectedLocation("")} className="ml-1 hover:text-blue-900">
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            )}
-            {selectedBloodType && (
-              <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm font-medium flex items-center gap-1">
-                <Droplet className="w-3 h-3" />
-                {selectedBloodType}
-                <button onClick={() => setSelectedBloodType("")} className="ml-1 hover:text-red-900">
-                  <X className="w-3 h-3" />
-                </button>
-              </span>
-            )}
-          </div>
-        )}
       </div>
 
-      {/* Donors List */}
+      {/* Donors Grid */}
       {filteredDonors.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-lg p-8 text-center">
-          <p className="text-gray-600 text-lg">No donors found matching your search criteria.</p>
-          <button
-            onClick={clearFilters}
-            className="mt-4 px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-colors"
-          >
-            Clear Filters
-          </button>
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-12 text-center">
+          <AlertCircle className="w-16 h-16 text-slate-300 mx-auto mb-3" />
+          <h3 className="text-lg font-bold text-slate-700">No Donors Found</h3>
+          <p className="text-sm text-slate-500 max-w-sm mx-auto mt-1">Try adjusting your filters.</p>
         </div>
       ) : (
-        <>
-          {/* Desktop Table View */}
-          <div className="hidden md:block bg-white rounded-xl shadow-lg overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead className="bg-gradient-to-r from-red-600 to-red-700 text-white">
-                  <tr>
-                    <th className="px-6 py-4 text-left font-semibold">#</th>
-                    <th className="px-6 py-4 text-left font-semibold">Name</th>
-                    <th className="px-6 py-4 text-left font-semibold">Email</th>
-                    <th className="px-6 py-4 text-left font-semibold">Blood Type</th>
-                    <th className="px-6 py-4 text-left font-semibold">Phone</th>
-                    <th className="px-6 py-4 text-left font-semibold">Location</th>
-                    <th className="px-6 py-4 text-left font-semibold">Status</th>
-                    {(userRole === "hospital" || userRole === "admin") && (
-                      <th className="px-6 py-4 text-left font-semibold">Action</th>
-                    )}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {filteredDonors.map((donor, index) => (
-                    <tr key={donor._id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 text-gray-600 font-medium">{index + 1}</td>
-                      <td className="px-6 py-4 font-semibold text-gray-800">{donor.name}</td>
-                      <td className="px-6 py-4 text-gray-600">{donor.email}</td>
-                      <td className="px-6 py-4">
-                        <span className="px-4 py-2 bg-red-100 text-red-800 rounded-full font-bold text-sm">
-                          {donor.bloodType}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-gray-600">{donor.phone}</td>
-                      <td className="px-6 py-4">
-                        <span className="flex items-center gap-1 text-gray-700">
-                          <MapPin className="w-4 h-4 text-blue-600" />
-                          {donor.location}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        {getStatusBadge(donor.status)}
-                      </td>
-                      {(userRole === "hospital" || userRole === "admin") && (
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                              {/* Hospital Request Button */}
-                              {userRole === "hospital" && (
-                                  donor.status === "Available" ? (
-                                  <button
-                                      onClick={() => openRequestModal(donor)}
-                                      className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
-                                  >
-                                      <Send className="w-4 h-4" />
-                                      Request
-                                  </button>
-                                  ) : (
-                                  <button
-                                      disabled
-                                      className="px-4 py-2 bg-gray-300 text-gray-500 rounded-lg font-semibold cursor-not-allowed flex items-center gap-2"
-                                      title={`Donor is ${donor.status}`}
-                                  >
-                                      <AlertCircle className="w-4 h-4" />
-                                      {donor.status === "Requested" ? "Requested" : "Unavailable"}
-                                  </button>
-                                  )
-                              )}
-                              {/* Admin Edit Button */}
-                              {userRole === "admin" && (
-                                  <button
-                                      onClick={() => handleEditClick(donor)}
-                                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
-                                  >
-                                      <Edit className="w-4 h-4" />
-                                      Edit
-                                  </button>
-                              )}
-                          </div>
-                        </td>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Mobile Card View */}
-          <div className="grid grid-cols-1 gap-4 md:hidden">
-            {filteredDonors.map((donor) => (
-              <div key={donor._id} className="bg-white rounded-xl shadow-lg p-5 border border-gray-100 flex flex-col gap-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                      <h3 className="text-lg font-bold text-gray-800">{donor.name}</h3>
-                      <p className="text-sm text-gray-500">{donor.email}</p>
-                  </div>
-                  <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full font-bold text-sm">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {filteredDonors.map((donor) => (
+            <div
+              key={donor._id}
+              className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition-all border border-slate-200 flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-600 to-red-700 text-white flex items-center justify-center font-black text-base shadow-md flex-shrink-0">
                       {donor.bloodType}
-                  </span>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-y-2 text-sm">
-                  <div className="flex items-center gap-2 text-gray-600">
-                      <Phone className="w-4 h-4 text-gray-400" />
-                      {donor.phone || "N/A"}
-                  </div>
-                  <div className="flex items-center gap-2 text-gray-600">
-                      <MapPin className="w-4 h-4 text-blue-600" />
-                      {donor.location || "N/A"}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-slate-800 text-base leading-snug">{donor.name}</h3>
+                      <p className="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5">
+                        <span>ID: {donor.nationalId || "N/A"}</span>
+                        {donor.gender && <span>• {donor.gender}</span>}
+                        {donor.age && <span>• {donor.age} yrs</span>}
+                      </p>
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex justify-between items-center pt-3 border-t border-gray-100">
-                  <div>{getStatusBadge(donor.status)}</div>
-                  
-                  {(userRole === "hospital" || userRole === "admin") && (
-                      <div className="flex items-center gap-2">
-                          {/* Hospital Request Button */}
-                          {userRole === "hospital" && (
-                              donor.status === "Available" ? (
-                              <button
-                                  onClick={() => openRequestModal(donor)}
-                                  className="p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
-                                  title="Request Donor"
-                              >
-                                  <Send className="w-4 h-4" />
-                              </button>
-                              ) : (
-                              <button
-                                  disabled
-                                  className="p-2 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed"
-                                  title={`Donor is ${donor.status}`}
-                              >
-                                  <AlertCircle className="w-4 h-4" />
-                              </button>
-                              )
-                          )}
-                          {/* Admin Edit Button */}
-                          {userRole === "admin" && (
-                              <button
-                                  onClick={() => handleEditClick(donor)}
-                                  className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-sm transition-colors flex items-center gap-2"
-                              >
-                                  <Edit className="w-4 h-4" />
-                                  Edit
-                              </button>
-                          )}
-                      </div>
+                <div className="space-y-2 mb-4 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
+                    <span className="font-medium truncate">{donor.location}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Phone className="w-3.5 h-3.5 text-sky-500 flex-shrink-0" />
+                    <span className="font-medium">{donor.phone}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Mail className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+                    <span className="font-medium truncate">{donor.email}</span>
+                  </div>
+                </div>
+
+                <div className="mb-4 flex items-center justify-between">
+                  {getStatusBadge(donor.status)}
+                  {donor.status === "Donated" && donor.cooldownEndsAt && (
+                    <span className="text-[10px] text-red-600 font-semibold">
+                      Eligible: {new Date(donor.cooldownEndsAt).toLocaleDateString()}
+                    </span>
                   )}
                 </div>
               </div>
-            ))}
-          </div>
-        </>
+
+              {/* Actions for Admin */}
+              {userRole === "admin" && (
+                <div className="flex gap-2 pt-3 border-t border-slate-100">
+                  <button
+                    onClick={() => handleEditClick(donor)}
+                    className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
+                  >
+                    <Edit className="w-3.5 h-3.5 text-slate-600" />
+                    <span>Edit</span>
+                  </button>
+                  <button
+                    onClick={() => handleDelete(donor._id, donor.name)}
+                    className="py-2 px-3 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition-colors"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 text-red-600" />
+                    <span>Delete</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       )}
 
-      {/* Request Modal */}
-      {showRequestModal && selectedDonor && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
-            <div className="flex justify-between items-start mb-4">
+      {/* Add Donor Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 border border-slate-100 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-start mb-4 pb-3 border-b border-slate-100">
               <div>
-                <h3 className="text-2xl font-bold text-gray-800">Request Donor</h3>
-                <p className="text-sm text-gray-600 mt-1">Send request to {selectedDonor.name}</p>
+                <h3 className="text-xl font-black text-slate-800">Add New Donor</h3>
+                <p className="text-xs text-slate-500 mt-0.5">Admin registration for blood donor</p>
               </div>
-              <button
-                onClick={closeRequestModal}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                <X className="w-6 h-6" />
+              <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600">
+                <XCircle className="w-6 h-6" />
               </button>
             </div>
 
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                  <Droplet className="w-6 h-6 text-red-600" />
-                </div>
-                <div>
-                  <p className="font-semibold text-gray-800">{selectedDonor.name}</p>
-                  <p className="text-sm text-gray-600">Blood Type: <span className="font-bold text-red-600">{selectedDonor.bloodType}</span></p>
-                  <p className="text-sm text-gray-600">Phone: {selectedDonor.phone}</p>
-                </div>
-              </div>
-            </div>
-
-            <form onSubmit={handleRequestSubmit}>
-              <div className="mb-4">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Urgency Level
-                </label>
-                <select
-                  value={requestForm.urgency}
-                  onChange={(e) => setRequestForm({ ...requestForm, urgency: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+            <form onSubmit={handleAddSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Government ID *</label>
+                <input
+                  value={addForm.nationalId}
+                  onChange={(e) => setAddForm({ ...addForm, nationalId: e.target.value })}
+                  placeholder="e.g. SOM-998811"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-red-500"
                   required
-                >
-                  <option value="Routine">Routine</option>
-                  <option value="Urgent">Urgent</option>
-                  <option value="Emergency">Emergency</option>
-                </select>
-              </div>
-
-              <div className="mb-6">
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Message (Optional)
-                </label>
-                <textarea
-                  value={requestForm.message}
-                  onChange={(e) => setRequestForm({ ...requestForm, message: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-                  rows="3"
-                  placeholder="Add any additional information..."
                 />
               </div>
 
-              <div className="flex gap-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Gender *</label>
+                <select
+                  value={addForm.gender}
+                  onChange={(e) => setAddForm({ ...addForm, gender: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-red-500"
+                  required
+                >
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Full Name *</label>
+                <input
+                  value={addForm.name}
+                  onChange={(e) => setAddForm({ ...addForm, name: e.target.value })}
+                  placeholder="Donor full name"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-red-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">WhatsApp Phone *</label>
+                <input
+                  value={addForm.phone}
+                  onChange={(e) => setAddForm({ ...addForm, phone: e.target.value })}
+                  placeholder="+252 61 0000000"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-red-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Blood Type *</label>
+                <select
+                  value={addForm.bloodType}
+                  onChange={(e) => setAddForm({ ...addForm, bloodType: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm font-bold text-red-600 focus:ring-2 focus:ring-red-500"
+                  required
+                >
+                  {bloodTypes.map((bt) => (
+                    <option key={bt} value={bt}>
+                      {bt}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Location *</label>
+                <input
+                  value={addForm.location}
+                  onChange={(e) => setAddForm({ ...addForm, location: e.target.value })}
+                  placeholder="e.g. Mogadishu (Hodan)"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-red-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Age</label>
+                <input
+                  type="number"
+                  value={addForm.age}
+                  onChange={(e) => setAddForm({ ...addForm, age: e.target.value })}
+                  placeholder="e.g. 24"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-red-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Email Address *</label>
+                <input
+                  type="email"
+                  value={addForm.email}
+                  onChange={(e) => setAddForm({ ...addForm, email: e.target.value })}
+                  placeholder="donor@example.com"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-red-500"
+                  required
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Password *</label>
+                <input
+                  type="password"
+                  value={addForm.password}
+                  onChange={(e) => setAddForm({ ...addForm, password: e.target.value })}
+                  placeholder="Create password"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-red-500"
+                  required
+                />
+              </div>
+
+              <div className="sm:col-span-2 flex gap-3 pt-3">
                 <button
                   type="button"
-                  onClick={closeRequestModal}
-                  className="flex-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-semibold transition-colors"
+                  onClick={() => setShowAddModal(false)}
+                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold transition-colors flex items-center justify-center gap-2"
+                  disabled={submitting}
+                  className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs shadow-md"
                 >
-                  <Send className="w-4 h-4" />
-                  Send Request
+                  {submitting ? "Creating..." : "Create Donor"}
                 </button>
               </div>
             </form>
@@ -578,139 +605,130 @@ function Donors() {
         </div>
       )}
 
-      {/* Edit Donor Modal (Admin Only) */}
+      {/* Edit Donor Modal */}
       {showEditModal && editingDonor && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center p-6 border-b border-gray-200">
-               <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                  <Edit className="w-5 h-5 text-blue-600" />
-                  Edit Donor Details
-               </h3>
-               <button onClick={() => setShowEditModal(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
-                  <X className="w-6 h-6" />
-               </button>
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 border border-slate-100 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-start mb-4 pb-3 border-b border-slate-100">
+              <div>
+                <h3 className="text-xl font-black text-slate-800">Edit Donor Profile</h3>
+                <p className="text-xs text-slate-500 mt-0.5">{editingDonor.name}</p>
+              </div>
+              <button onClick={() => setShowEditModal(false)} className="text-slate-400 hover:text-slate-600">
+                <XCircle className="w-6 h-6" />
+              </button>
             </div>
-            
-            <form onSubmit={handleUpdateDonor} className="p-6">
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Name */}
-                  <div className="col-span-2 md:col-span-1">
-                     <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-                     <div className="relative">
-                        <UserIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                        <input
-                           type="text"
-                           required
-                           value={editForm.name}
-                           onChange={(e) => setEditForm({...editForm, name: e.target.value})}
-                           className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                     </div>
-                  </div>
 
-                  {/* Email */}
-                  <div className="col-span-2 md:col-span-1">
-                     <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-                     <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                        <input
-                           type="email"
-                           required
-                           value={editForm.email}
-                           onChange={(e) => setEditForm({...editForm, email: e.target.value})}
-                           className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                     </div>
-                  </div>
+            <form onSubmit={handleEditSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Government ID</label>
+                <input
+                  value={editForm.nationalId}
+                  onChange={(e) => setEditForm({ ...editForm, nationalId: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm font-mono focus:ring-2 focus:ring-red-500"
+                />
+              </div>
 
-                  {/* Phone */}
-                  <div className="col-span-2 md:col-span-1">
-                     <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                     <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                        <input
-                           type="text"
-                           required
-                           value={editForm.phone}
-                           onChange={(e) => setEditForm({...editForm, phone: e.target.value})}
-                           className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                     </div>
-                  </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Gender</label>
+                <select
+                  value={editForm.gender}
+                  onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-red-500"
+                >
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                </select>
+              </div>
 
-                  {/* Location */}
-                  <div className="col-span-2 md:col-span-1">
-                     <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
-                     <div className="relative">
-                        <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                        <input
-                           type="text"
-                           required
-                           value={editForm.location}
-                           onChange={(e) => setEditForm({...editForm, location: e.target.value})}
-                           className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                     </div>
-                  </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Full Name *</label>
+                <input
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-red-500"
+                  required
+                />
+              </div>
 
-                  {/* Blood Type */}
-                  <div className="col-span-2 md:col-span-1">
-                     <label className="block text-sm font-medium text-gray-700 mb-2">Blood Type</label>
-                     <div className="relative">
-                        <Droplet className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                        <select
-                           value={editForm.bloodType}
-                           onChange={(e) => setEditForm({...editForm, bloodType: e.target.value})}
-                           className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none bg-white font-medium"
-                        >
-                           <option value="">Select Blood Type</option>
-                           {bloodTypes.map((type) => (
-                              <option key={type} value={type}>{type}</option>
-                           ))}
-                        </select>
-                     </div>
-                  </div>
-                  
-                   {/* Availability */}
-                   <div className="col-span-2">
-                        <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                checked={editForm.isAvailable}
-                                onChange={(e) => setEditForm({...editForm, isAvailable: e.target.checked})}
-                                className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 border-gray-300"
-                            />
-                            <div className="flex flex-col">
-                                <span className="text-sm font-medium text-gray-900">Available to Donate</span>
-                                <span className="text-xs text-gray-500">Uncheck if donor is temporarily unavailable</span>
-                            </div>
-                        </label>
-                    </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">WhatsApp Phone *</label>
+                <input
+                  value={editForm.phone}
+                  onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-red-500"
+                  required
+                />
+              </div>
 
-               </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Location *</label>
+                <input
+                  value={editForm.location}
+                  onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-red-500"
+                  required
+                />
+              </div>
 
-               <div className="flex items-center justify-end gap-3 mt-8 pt-6 border-t border-gray-100">
-                  <button
-                     type="button"
-                     onClick={() => setShowEditModal(false)}
-                     className="px-6 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-semibold transition-colors"
-                  >
-                     Cancel
-                  </button>
-                  <button
-                     type="submit"
-                     className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors flex items-center gap-2"
-                  >
-                     <Save className="w-4 h-4" />
-                     Save Changes
-                  </button>
-               </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Blood Type</label>
+                <select
+                  value={editForm.bloodType}
+                  onChange={(e) => setEditForm({ ...editForm, bloodType: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm font-bold text-red-600 focus:ring-2 focus:ring-red-500"
+                >
+                  {bloodTypes.map((bt) => (
+                    <option key={bt} value={bt}>
+                      {bt}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Age</label>
+                <input
+                  type="number"
+                  value={editForm.age}
+                  onChange={(e) => setEditForm({ ...editForm, age: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-red-500"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 pt-6">
+                <input
+                  type="checkbox"
+                  id="avail"
+                  checked={editForm.isAvailable}
+                  onChange={(e) => setEditForm({ ...editForm, isAvailable: e.target.checked })}
+                  className="w-4 h-4 text-red-600 rounded"
+                />
+                <label htmlFor="avail" className="text-xs font-bold text-slate-700 cursor-pointer">
+                  Donor is Available
+                </label>
+              </div>
+
+              <div className="sm:col-span-2 flex gap-3 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setShowEditModal(false)}
+                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs shadow-md"
+                >
+                  {submitting ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
             </form>
           </div>
         </div>
       )}
-
     </div>
   );
 }

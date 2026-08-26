@@ -1,14 +1,53 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { User, Droplet, MapPin, Phone, Clock, CheckCircle, XCircle, AlertCircle, Search, Filter } from "lucide-react";
+import {
+  Droplet,
+  MapPin,
+  Phone,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  Search,
+  Filter,
+  Send,
+  Users,
+  CheckSquare,
+  Square,
+  Building2,
+  LayoutGrid,
+  List as ListIcon,
+  X,
+  Sparkles,
+} from "lucide-react";
 
 function HospitalDonors() {
   const [donors, setDonors] = useState([]);
   const [filteredDonors, setFilteredDonors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // View Mode: 'list' or 'grid'
+  const [viewMode, setViewMode] = useState("list");
+
+  // Filters
   const [filterBloodType, setFilterBloodType] = useState("");
+  const [filterLocation, setFilterLocation] = useState("");
+  const [filterStatus, setFilterStatus] = useState("Available");
+  const [filterGender, setFilterGender] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Multi-select state for Batch Request
+  const [selectedDonorIds, setSelectedDonorIds] = useState([]);
+
+  // Batch Request Modal state
+  const [showBatchModal, setShowBatchModal] = useState(false);
+  const [batchUrgency, setBatchUrgency] = useState("Urgent");
+  const [batchMessage, setBatchMessage] = useState("Asc wll waxa laga raba in add dhiiig shubto");
+  const [submitting, setSubmitting] = useState(false);
+  const [actionLoadingId, setActionLoadingId] = useState(null);
+
+  // Toast / notification banner
+  const [toastMessage, setToastMessage] = useState(null);
 
   useEffect(() => {
     fetchDonors();
@@ -16,18 +55,28 @@ function HospitalDonors() {
 
   useEffect(() => {
     applyFilters();
-  }, [donors, filterBloodType, searchTerm]);
+  }, [donors, filterBloodType, filterLocation, filterStatus, filterGender, searchTerm]);
+
+  // Auto clear toast after 5 seconds
+  useEffect(() => {
+    if (toastMessage) {
+      const timer = setTimeout(() => {
+        setToastMessage(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [toastMessage]);
 
   const fetchDonors = async () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        setError("No authentication token found");
+        setError("No authentication token found. Please login.");
         setLoading(false);
         return;
       }
 
-      const res = await axios.get("http://localhost:3000/api/users/donors?status=Available", {
+      const res = await axios.get("/api/users/donors", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -44,134 +93,328 @@ function HospitalDonors() {
   const applyFilters = () => {
     let filtered = [...donors];
 
-    // Filter by blood type
     if (filterBloodType) {
-      filtered = filtered.filter((donor) => donor.bloodType === filterBloodType);
+      filtered = filtered.filter((d) => d.bloodType === filterBloodType);
     }
-
-    // Search by name, email, or location
+    if (filterLocation) {
+      filtered = filtered.filter((d) => d.location.toLowerCase().includes(filterLocation.toLowerCase()));
+    }
+    if (filterStatus) {
+      filtered = filtered.filter((d) => d.status.toLowerCase() === filterStatus.toLowerCase());
+    }
+    if (filterGender) {
+      filtered = filtered.filter((d) => d.gender === filterGender);
+    }
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(
-        (donor) =>
-          donor.name.toLowerCase().includes(term) ||
-          donor.email.toLowerCase().includes(term) ||
-          donor.location.toLowerCase().includes(term)
+        (d) =>
+          d.name.toLowerCase().includes(term) ||
+          d.location.toLowerCase().includes(term) ||
+          (d.nationalId && d.nationalId.toLowerCase().includes(term)) ||
+          d.phone.includes(term)
       );
     }
 
     setFilteredDonors(filtered);
   };
 
-  const requestDonor = async (donorId, bloodType) => {
+  // Format phone number for Somalia WhatsApp (e.g. 616408886 -> 252616408886)
+  const formatPhoneForWhatsApp = (rawPhone) => {
+    if (!rawPhone) return "";
+    let cleaned = rawPhone.toString().replace(/[^0-9]/g, "");
+    if (cleaned.startsWith("0")) {
+      cleaned = "252" + cleaned.substring(1);
+    } else if (!cleaned.startsWith("252") && cleaned.length <= 9) {
+      cleaned = "252" + cleaned;
+    }
+    return cleaned;
+  };
+
+  // Unified Send Request Action:
+  // 1. Sends backend request to initiate 2-hour donation window
+  // 2. Automatically triggers WhatsApp with "Asc wll waxa laga raba in add dhiiig shubto"
+  const handleDirectSendRequest = async (donor) => {
+    if (!donor || donor.status !== "Available") return;
+
+    setActionLoadingId(donor._id);
+    const defaultMsg = "Asc wll waxa laga raba in add dhiiig shubto";
+    const cleanedPhone = formatPhoneForWhatsApp(donor.phone);
+    const waUrl = `https://wa.me/${cleanedPhone}?text=${encodeURIComponent(defaultMsg)}`;
+
     try {
       const token = localStorage.getItem("token");
-      const urgency = prompt("Enter urgency level (Routine/Urgent/Emergency):", "Routine");
-      const message = prompt("Enter a message for the donor (optional):", "");
+      if (token) {
+        await axios.post(
+          "/api/requests/create",
+          {
+            donorId: donor._id,
+            bloodType: donor.bloodType,
+            urgency: "Urgent",
+            message: defaultMsg,
+          },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      }
 
-      if (!urgency) return;
+      // Automatically open WhatsApp chat
+      window.open(waUrl, "_blank");
 
-      await axios.post(
-        "http://localhost:3000/api/requests/create",
+      setToastMessage({
+        type: "success",
+        title: "Request Sent & WhatsApp Opened",
+        description: `Request dispatched to ${donor.name} (2-hour arrival window started). WhatsApp chat launched.`,
+      });
+
+      // Refresh donor status to reflect Pending (2h Window)
+      fetchDonors();
+    } catch (err) {
+      console.error("Direct request error:", err);
+      // Still open WhatsApp if urgent
+      window.open(waUrl, "_blank");
+      setToastMessage({
+        type: "warning",
+        title: "WhatsApp Opened",
+        description: err.response?.data?.message || `Opened WhatsApp chat for ${donor.name}.`,
+      });
+      fetchDonors();
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  // Toggle selection for batch requests
+  const toggleSelectDonor = (donorId) => {
+    if (selectedDonorIds.includes(donorId)) {
+      setSelectedDonorIds(selectedDonorIds.filter((id) => id !== donorId));
+    } else {
+      setSelectedDonorIds([...selectedDonorIds, donorId]);
+    }
+  };
+
+  const selectAllFiltered = () => {
+    const eligibleIds = filteredDonors.filter((d) => d.status === "Available").map((d) => d._id);
+    setSelectedDonorIds(eligibleIds);
+  };
+
+  const clearSelection = () => {
+    setSelectedDonorIds([]);
+  };
+
+  // Batch Request Submit
+  const handleBatchRequestSubmit = async (e) => {
+    e.preventDefault();
+    if (selectedDonorIds.length === 0) return;
+
+    setSubmitting(true);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.post(
+        "/api/requests/create-batch",
         {
-          donorId,
-          bloodType,
-          urgency,
-          message,
+          donorIds: selectedDonorIds,
+          bloodType: filterBloodType || undefined,
+          urgency: batchUrgency,
+          message: batchMessage || "Asc wll waxa laga raba in add dhiiig shubto",
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      alert("Donor request sent successfully!");
-      fetchDonors(); // Refresh to update status
+      setToastMessage({
+        type: "success",
+        title: "Batch Request Dispatched",
+        description: `Successfully sent requests to ${res.data.createdCount} donors with 2-hour arrival windows.`,
+      });
+
+      setShowBatchModal(false);
+      setSelectedDonorIds([]);
+      fetchDonors();
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to send request");
+      alert(err.response?.data?.message || "Failed to create batch requests");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const getStatusBadge = (status) => {
-    const badges = {
-      Available: { color: "bg-green-100 text-green-800 border-green-300", icon: CheckCircle },
-      Requested: { color: "bg-yellow-100 text-yellow-800 border-yellow-300", icon: Clock },
-      "Donated Recently": { 
-        color: "bg-red-100 text-red-800 border-red-300", 
-        icon: XCircle,
-        label: "Donated Recently: He will become available after 6 months"
-      },
-      Unavailable: { color: "bg-gray-100 text-gray-800 border-gray-300", icon: AlertCircle },
-    };
-
-    const badge = badges[status] || badges.Available;
-    const Icon = badge.icon;
-
-    return (
-      <span className={`px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-1 ${badge.color}`}>
-        <Icon className="w-3 h-3" />
-        {badge.label || status}
-      </span>
-    );
+    switch (status) {
+      case "Available":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">
+            <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
+            Available
+          </span>
+        );
+      case "Pending":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 shadow-sm">
+            <Clock className="w-3.5 h-3.5 text-amber-600 animate-pulse" />
+            Pending (2h Window)
+          </span>
+        );
+      case "Arrived":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-sky-50 text-sky-800 border border-sky-200 shadow-sm">
+            <Building2 className="w-3.5 h-3.5 text-sky-600" />
+            Arrived at Clinic
+          </span>
+        );
+      case "Donated":
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-red-50 text-red-700 border border-red-200 shadow-sm">
+            <Droplet className="w-3.5 h-3.5 text-red-600" />
+            In Cooldown
+          </span>
+        );
+      default:
+        return (
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200">
+            {status}
+          </span>
+        );
+    }
   };
 
   if (loading) {
     return (
-      <div className="p-6 w-full flex items-center justify-center min-h-screen">
+      <div className="p-8 flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-red-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg">Loading donors...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-6 w-full">
-        <div className="bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-lg">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="w-5 h-5" />
-            <strong>Error:</strong> {error}
-          </div>
+          <div className="animate-spin rounded-full h-14 w-14 border-4 border-red-600 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-slate-600 font-semibold">Loading registered blood donors...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6 w-full bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
-      {/* Header */}
-      <div className="mb-6">
-        <h2 className="text-4xl font-bold text-gray-800 mb-2 flex items-center gap-3">
-          <Droplet className="w-10 h-10 text-red-600" />
-          Available Donors
-        </h2>
-        <p className="text-gray-600">Browse and request blood donors</p>
-      </div>
+    <div className="p-4 sm:p-6 lg:p-8 bg-slate-50 min-h-screen">
+      {/* Toast Alert Banner */}
+      {toastMessage && (
+        <div
+          className={`fixed top-5 right-5 z-50 max-w-md p-4 rounded-2xl shadow-xl border flex items-start gap-3 transition-all ${
+            toastMessage.type === "success"
+              ? "bg-white border-emerald-200 text-emerald-950 shadow-emerald-600/10"
+              : "bg-white border-amber-200 text-amber-950 shadow-amber-600/10"
+          }`}
+        >
+          <div
+            className={`p-2 rounded-xl flex-shrink-0 ${
+              toastMessage.type === "success" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+            }`}
+          >
+            <Sparkles className="w-5 h-5" />
+          </div>
+          <div className="flex-1">
+            <h4 className="font-bold text-sm">{toastMessage.title}</h4>
+            <p className="text-xs text-slate-600 mt-0.5">{toastMessage.description}</p>
+          </div>
+          <button
+            onClick={() => setToastMessage(null)}
+            className="text-slate-400 hover:text-slate-600 p-1"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
-      {/* Filters Section */}
-      <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Filter className="w-5 h-5 text-gray-600" />
-          <h3 className="text-lg font-semibold text-gray-800">Filters</h3>
+      {/* Header & Controls */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-800 flex items-center gap-3">
+            <span className="p-2 rounded-xl bg-red-600 text-white shadow-md shadow-red-600/30">
+              <Droplet className="w-6 h-6" />
+            </span>
+            Available Donors
+          </h1>
+          <p className="text-sm text-slate-600 mt-1">
+            Browse registered donors, send requests, and automatically connect via WhatsApp
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Search */}
+        {/* View Mode Switcher & Batch Action */}
+        <div className="flex items-center gap-3 flex-wrap">
+          {/* View Toggle Buttons */}
+          <div className="flex items-center bg-white border border-slate-200 p-1 rounded-xl shadow-sm">
+            <button
+              onClick={() => setViewMode("list")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                viewMode === "list"
+                  ? "bg-red-600 text-white shadow-sm"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+              }`}
+              title="List View"
+            >
+              <ListIcon className="w-4 h-4" />
+              <span>List View</span>
+            </button>
+            <button
+              onClick={() => setViewMode("grid")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                viewMode === "grid"
+                  ? "bg-red-600 text-white shadow-sm"
+                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+              }`}
+              title="Card View"
+            >
+              <LayoutGrid className="w-4 h-4" />
+              <span>Card View</span>
+            </button>
+          </div>
+
+          {/* Batch action trigger button */}
+          {selectedDonorIds.length > 0 && (
+            <button
+              onClick={() => setShowBatchModal(true)}
+              className="flex items-center gap-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-4 py-2 rounded-xl font-bold text-xs shadow-lg shadow-red-600/30 transition-all"
+            >
+              <Users className="w-4 h-4" />
+              <span>Request {selectedDonorIds.length} Selected</span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Filter Section */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2 text-slate-800 font-bold text-sm">
+            <Filter className="w-4 h-4 text-red-600" />
+            <span>Filter Donors</span>
+          </div>
+          {(filterBloodType || filterLocation || filterGender || filterStatus !== "Available" || searchTerm) && (
+            <button
+              onClick={() => {
+                setFilterBloodType("");
+                setFilterLocation("");
+                setFilterStatus("Available");
+                setFilterGender("");
+                setSearchTerm("");
+              }}
+              className="text-xs text-red-600 hover:text-red-700 font-bold hover:underline"
+            >
+              Reset Filters
+            </button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+          {/* Search Term */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               type="text"
-              placeholder="Search by name, email, or location..."
+              placeholder="Search name, phone, ID..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all"
             />
           </div>
 
-          {/* Blood Type Filter */}
+          {/* Blood Type */}
           <select
             value={filterBloodType}
             onChange={(e) => setFilterBloodType(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-red-500 font-semibold text-slate-700"
           >
             <option value="">All Blood Types</option>
             <option value="A+">A+</option>
@@ -181,104 +424,368 @@ function HospitalDonors() {
             <option value="AB+">AB+</option>
             <option value="AB-">AB-</option>
             <option value="O+">O+</option>
-            <option value="O-">O-</option>
+            <option value="O-">O- (Universal)</option>
+          </select>
+
+          {/* Location */}
+          <input
+            type="text"
+            placeholder="Filter location (e.g. Hodan)..."
+            value={filterLocation}
+            onChange={(e) => setFilterLocation(e.target.value)}
+            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-red-500"
+          />
+
+          {/* Donor Status */}
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-red-500"
+          >
+            <option value="Available">Available Only</option>
+            <option value="Pending">Pending (Requested)</option>
+            <option value="Arrived">Arrived at Clinic</option>
+            <option value="Donated">In Cooldown</option>
+            <option value="">All Statuses</option>
+          </select>
+
+          {/* Gender */}
+          <select
+            value={filterGender}
+            onChange={(e) => setFilterGender(e.target.value)}
+            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-red-500"
+          >
+            <option value="">All Genders</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
           </select>
         </div>
 
-        <div className="mt-4 flex items-center justify-between">
-          <p className="text-sm text-gray-600">
-            Showing <span className="font-semibold text-gray-800">{filteredDonors.length}</span> of{" "}
-            <span className="font-semibold text-gray-800">{donors.length}</span> available donors
-          </p>
-          {(filterBloodType || searchTerm) && (
+        {/* Selection summary bar */}
+        <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-600">
+          <div className="flex items-center gap-2">
+            <span>
+              Showing <strong className="text-slate-900">{filteredDonors.length}</strong> matching donors
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3">
             <button
-              onClick={() => {
-                setFilterBloodType("");
-                setSearchTerm("");
-              }}
-              className="text-sm text-red-600 hover:text-red-700 font-semibold"
+              onClick={selectAllFiltered}
+              className="text-sky-600 hover:text-sky-700 font-bold hover:underline flex items-center gap-1"
             >
-              Clear Filters
+              <CheckSquare className="w-3.5 h-3.5" />
+              Select All Available ({filteredDonors.filter((d) => d.status === "Available").length})
             </button>
-          )}
+            {selectedDonorIds.length > 0 && (
+              <button
+                onClick={clearSelection}
+                className="text-slate-500 hover:text-slate-700 font-bold hover:underline"
+              >
+                Clear Selected ({selectedDonorIds.length})
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Donors Grid */}
+      {/* Main Donor List / Grid Display */}
       {filteredDonors.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-lg p-12 text-center">
-          <AlertCircle className="w-20 h-20 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600 text-xl mb-2">No donors found</p>
-          <p className="text-gray-500">Try adjusting your filters or search criteria</p>
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-12 text-center">
+          <AlertCircle className="w-16 h-16 text-slate-300 mx-auto mb-3" />
+          <h3 className="text-lg font-bold text-slate-700">No Donors Found</h3>
+          <p className="text-sm text-slate-500 max-w-sm mx-auto mt-1">
+            Try adjusting your search criteria, blood type, or location filters.
+          </p>
+        </div>
+      ) : viewMode === "list" ? (
+        /* LIST VIEW / TABLE DESIGN */
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-100/80 border-b border-slate-200 text-[11px] font-black uppercase tracking-wider text-slate-600">
+                  <th className="py-3.5 px-4 w-10 text-center">Select</th>
+                  <th className="py-3.5 px-4">Donor Information</th>
+                  <th className="py-3.5 px-4 text-center">Blood Group</th>
+                  <th className="py-3.5 px-4">Location</th>
+                  <th className="py-3.5 px-4">Phone / WhatsApp</th>
+                  <th className="py-3.5 px-4 text-center">Status</th>
+                  <th className="py-3.5 px-4 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-xs sm:text-sm text-slate-700">
+                {filteredDonors.map((donor) => {
+                  const isSelected = selectedDonorIds.includes(donor._id);
+                  const isAvailable = donor.status === "Available";
+                  const isProcessing = actionLoadingId === donor._id;
+
+                  return (
+                    <tr
+                      key={donor._id}
+                      className={`hover:bg-slate-50/80 transition-colors ${
+                        isSelected ? "bg-red-50/30" : ""
+                      }`}
+                    >
+                      {/* Checkbox */}
+                      <td className="py-3 px-4 text-center">
+                        {isAvailable ? (
+                          <button
+                            onClick={() => toggleSelectDonor(donor._id)}
+                            className="text-slate-400 hover:text-red-600 transition-colors inline-block"
+                            title="Select donor"
+                          >
+                            {isSelected ? (
+                              <CheckSquare className="w-5 h-5 text-red-600" />
+                            ) : (
+                              <Square className="w-5 h-5" />
+                            )}
+                          </button>
+                        ) : (
+                          <span className="text-slate-300">•</span>
+                        )}
+                      </td>
+
+                      {/* Donor Info */}
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 font-black flex items-center justify-center text-xs flex-shrink-0 border border-slate-200">
+                            {donor.name
+                              ? donor.name
+                                  .split(" ")
+                                  .map((n) => n[0])
+                                  .join("")
+                                  .substring(0, 2)
+                                  .toUpperCase()
+                              : "D"}
+                          </div>
+                          <div>
+                            <p className="font-bold text-slate-900 text-sm leading-snug">{donor.name}</p>
+                            <p className="text-[11px] text-slate-500 flex items-center gap-1.5 mt-0.5">
+                              <span>ID: {donor.nationalId || "N/A"}</span>
+                              {donor.gender && <span>• {donor.gender}</span>}
+                              {donor.age && <span>• {donor.age} yrs</span>}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Blood Group */}
+                      <td className="py-3 px-4 text-center">
+                        <span className="inline-block px-3 py-1 rounded-xl bg-red-600 text-white font-black text-xs shadow-sm shadow-red-600/20">
+                          {donor.bloodType}
+                        </span>
+                      </td>
+
+                      {/* Location */}
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-1.5 text-slate-600 font-medium">
+                          <MapPin className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
+                          <span className="truncate max-w-[160px]">{donor.location || "Mogadishu"}</span>
+                        </div>
+                      </td>
+
+                      {/* Phone / WhatsApp */}
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-1.5 font-mono text-xs text-slate-700 font-semibold">
+                          <Phone className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                          <span>{donor.phone}</span>
+                        </div>
+                      </td>
+
+                      {/* Status */}
+                      <td className="py-3 px-4 text-center">{getStatusBadge(donor.status)}</td>
+
+                      {/* Single Unified 'Send Request' Button */}
+                      <td className="py-3 px-4 text-right">
+                        <button
+                          onClick={() => handleDirectSendRequest(donor)}
+                          disabled={!isAvailable || isProcessing}
+                          className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl font-bold text-xs shadow-sm transition-all ${
+                            isAvailable
+                              ? "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-red-600/20 hover:shadow-md cursor-pointer"
+                              : "bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200"
+                          }`}
+                          title={
+                            isAvailable
+                              ? "Send Request & Automatically Open WhatsApp (Asc wll waxa laga raba in add dhiiig shubto)"
+                              : "Donor is not available right now"
+                          }
+                        >
+                          <Send className={`w-3.5 h-3.5 ${isProcessing ? "animate-spin" : ""}`} />
+                          <span>{isProcessing ? "Sending..." : isAvailable ? "Send Request" : donor.status}</span>
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredDonors.map((donor) => (
-            <div
-              key={donor._id}
-              className="bg-white rounded-xl shadow-lg p-6 hover:shadow-2xl transition-all duration-300 border border-gray-100"
-            >
-              {/* Donor Header */}
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center shadow-lg">
-                    <User className="w-7 h-7 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-800">{donor.name}</h3>
-                    <p className="text-sm text-gray-500">{donor.email}</p>
-                  </div>
-                </div>
-              </div>
+        /* GRID / CARDS VIEW */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {filteredDonors.map((donor) => {
+            const isSelected = selectedDonorIds.includes(donor._id);
+            const isAvailable = donor.status === "Available";
+            const isProcessing = actionLoadingId === donor._id;
 
-              {/* Blood Type Badge */}
-              <div className="mb-4">
-                <div className="inline-flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg font-bold text-lg shadow-md">
-                  <Droplet className="w-5 h-5" />
-                  {donor.bloodType}
-                </div>
-              </div>
-
-              {/* Donor Info */}
-              <div className="space-y-3 mb-4">
-                <div className="flex items-center gap-2 text-gray-700">
-                  <Phone className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm">{donor.phone}</span>
-                </div>
-                <div className="flex items-center gap-2 text-gray-700">
-                  <MapPin className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm">{donor.location}</span>
-                </div>
-              </div>
-
-              {/* Status Badge */}
-              <div className="mb-4">{getStatusBadge(donor.status)}</div>
-
-              {/* Cooldown Info */}
-              {donor.status === "Donated Recently" && donor.cooldownEndsAt && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
-                  <p className="text-xs text-red-800 font-semibold flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    Available after: {new Date(donor.cooldownEndsAt).toLocaleDateString()}
-                  </p>
-                </div>
-              )}
-
-              {/* Action Button */}
-              <button
-                onClick={() => requestDonor(donor._id, donor.bloodType)}
-                disabled={donor.status !== "Available"}
-                className={`w-full py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2 ${
-                  donor.status === "Available"
-                    ? "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-lg hover:shadow-xl"
-                    : "bg-gray-200 text-gray-500 cursor-not-allowed"
+            return (
+              <div
+                key={donor._id}
+                className={`bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-200 border relative flex flex-col justify-between ${
+                  isSelected ? "border-red-500 ring-2 ring-red-500/20 bg-red-50/20" : "border-slate-200"
                 }`}
               >
-                <Droplet className="w-4 h-4" />
-                {donor.status === "Available" ? "Request Donor" : "Not Available"}
+                {/* Checkbox for batch select */}
+                {isAvailable && (
+                  <button
+                    onClick={() => toggleSelectDonor(donor._id)}
+                    className="absolute top-4 right-4 text-slate-400 hover:text-red-600 transition-colors"
+                    title="Select for batch request"
+                  >
+                    {isSelected ? (
+                      <CheckSquare className="w-5 h-5 text-red-600" />
+                    ) : (
+                      <Square className="w-5 h-5" />
+                    )}
+                  </button>
+                )}
+
+                <div>
+                  {/* Donor Header */}
+                  <div className="flex items-start gap-3.5 mb-4 pr-7">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-500 to-red-700 text-white flex items-center justify-center font-black text-base shadow-md flex-shrink-0">
+                      {donor.bloodType}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-slate-800 text-base leading-snug">{donor.name}</h3>
+                      <p className="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5">
+                        <span>ID: {donor.nationalId || "N/A"}</span>
+                        {donor.gender && <span>• {donor.gender}</span>}
+                        {donor.age && <span>• {donor.age} yrs</span>}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Details */}
+                  <div className="space-y-2 mb-4 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-3.5 h-3.5 text-red-500 flex-shrink-0" />
+                      <span className="font-medium truncate">{donor.location}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                      <span className="font-medium font-mono">{donor.phone}</span>
+                    </div>
+                  </div>
+
+                  {/* Status Badge */}
+                  <div className="mb-4 flex items-center justify-between">
+                    {getStatusBadge(donor.status)}
+                    {donor.status === "Donated" && donor.cooldownEndsAt && (
+                      <span className="text-[10px] text-red-600 font-semibold">
+                        Eligible: {new Date(donor.cooldownEndsAt).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Unified Single Action Button */}
+                <div className="pt-2 border-t border-slate-100">
+                  <button
+                    onClick={() => handleDirectSendRequest(donor)}
+                    disabled={!isAvailable || isProcessing}
+                    className={`w-full py-2.5 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all ${
+                      isAvailable
+                        ? "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-md shadow-red-600/20 cursor-pointer"
+                        : "bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200"
+                    }`}
+                  >
+                    <Send className={`w-3.5 h-3.5 ${isProcessing ? "animate-spin" : ""}`} />
+                    <span>
+                      {isProcessing
+                        ? "Dispatching Request..."
+                        : isAvailable
+                        ? "Send Request"
+                        : `Status: ${donor.status}`}
+                    </span>
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Modal: Batch Multi-Donor Request */}
+      {showBatchModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 border border-slate-100">
+            <div className="flex justify-between items-start mb-4 pb-3 border-b border-slate-100">
+              <div>
+                <h3 className="text-xl font-black text-slate-800">Dispatch Batch Request</h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Sending request to <strong>{selectedDonorIds.length}</strong> selected donors
+                </p>
+              </div>
+              <button
+                onClick={() => setShowBatchModal(false)}
+                className="text-slate-400 hover:text-slate-600 p-1"
+              >
+                <X className="w-5 h-5" />
               </button>
             </div>
-          ))}
+
+            <div className="bg-amber-50 rounded-xl p-3.5 mb-4 border border-amber-200 text-xs text-amber-900 leading-relaxed">
+              <strong className="block font-bold mb-1">Batch 2-Hour Window:</strong>
+              All selected donors will receive this emergency request. Once any donor completes donation, remaining requests can be resolved.
+            </div>
+
+            <form onSubmit={handleBatchRequestSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Urgency Level *</label>
+                <select
+                  value={batchUrgency}
+                  onChange={(e) => setBatchUrgency(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-red-500"
+                >
+                  <option value="Emergency">🚨 Emergency (Immediate Need)</option>
+                  <option value="Urgent">⚡ Urgent (Within 2 Hours)</option>
+                  <option value="Routine">📋 Routine (Scheduled Need)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">WhatsApp Message Template</label>
+                <textarea
+                  value={batchMessage}
+                  onChange={(e) => setBatchMessage(e.target.value)}
+                  rows="2"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-red-500"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowBatchModal(false)}
+                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-md"
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  {submitting ? "Dispatching..." : `Send to ${selectedDonorIds.length} Donors`}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>

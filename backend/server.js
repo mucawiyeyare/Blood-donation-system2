@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import { fileURLToPath } from "url";
 import connectDB from "./Db/db.js";
 
 // Routes
@@ -9,7 +10,15 @@ import Adminrouter from "./routes/Adminroutes.js";
 import DonorRequestRouter from "./routes/donorRequestRoutes.js"; 
 import ContactRouter from "./routes/contactRoutes.js"; 
 import ActivityLogRouter from "./routes/activityLogRoutes.js"; 
-dotenv.config();
+
+// Always load the environment file next to this server file. This keeps the
+// JWT signing secret identical whether the app is started from this folder or
+// from the project root.
+dotenv.config({ path: fileURLToPath(new URL("./.env", import.meta.url)) });
+
+if (!process.env.JWT_SECRET) {
+  throw new Error("JWT_SECRET is required. Add it to backend/.env before starting the API.");
+}
 
 const app = express();
 
