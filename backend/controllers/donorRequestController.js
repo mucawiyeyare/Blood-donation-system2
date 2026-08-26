@@ -2,6 +2,7 @@ import DonorRequest from "../models/donorRequestModel.js";
 import User from "../models/usermodel.js";
 import Donation from "../models/donationModel.js";
 import { createLog } from "./activityLogController.js";
+import { sendWhatsAppMessage } from "../services/whatsappService.js";
 
 // Helper: Auto-resolve expired requests older than 2 hours
 export const resolveExpiredRequests = async () => {
@@ -99,14 +100,19 @@ export const createRequest = async (req, res) => {
     await donorRequest.populate("hospitalId", "name email phone location");
     await donorRequest.populate("donorId", "name email phone bloodType location nationalId gender age");
 
+    const waMessageText = message || "Asc wll waxa laga raba in add dhiiig shubto";
     const wa = buildWhatsAppLink(donor.phone, hospital?.name, hospital?.location);
 
-    await createLog(req.user._id, "Donation request created", "donation", "success", `To: ${donor.name} (Blood: ${bloodType || donor.bloodType})`);
+    // Automatically send real WhatsApp message from sender number (616408886) to donor
+    const waResult = await sendWhatsAppMessage(donor.phone, waMessageText);
+
+    await createLog(req.user._id, "Donation request created", "donation", "success", `To: ${donor.name} (Blood: ${bloodType || donor.bloodType}). WhatsApp message dispatched.`);
 
     res.status(201).json({
-      message: "Donor request created successfully. 2-hour arrival window started.",
+      message: "Donor request created successfully. WhatsApp message dispatched and 2-hour arrival window started.",
       request: donorRequest,
       whatsapp: wa,
+      whatsappDelivery: waResult,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -180,6 +186,12 @@ export const createBatchRequest = async (req, res) => {
       await reqDoc.populate("donorId", "name email phone bloodType location nationalId");
 
       const wa = buildWhatsAppLink(donor.phone, hospital?.name, hospital?.location);
+      
+      // Automatically send real WhatsApp message to each donor in batch
+      sendWhatsAppMessage(donor.phone, message || "Asc wll waxa laga raba in add dhiiig shubto").catch((e) =>
+        console.error(`Batch WhatsApp send error for ${donor.phone}:`, e)
+      );
+
       createdRequests.push({
         ...reqDoc.toObject(),
         whatsapp: wa,

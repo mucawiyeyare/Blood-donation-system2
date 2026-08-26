@@ -10,10 +10,10 @@ import Adminrouter from "./routes/Adminroutes.js";
 import DonorRequestRouter from "./routes/donorRequestRoutes.js"; 
 import ContactRouter from "./routes/contactRoutes.js"; 
 import ActivityLogRouter from "./routes/activityLogRoutes.js"; 
+import WhatsAppRouter from "./routes/whatsappRoutes.js";
+import { initWhatsApp } from "./services/whatsappService.js"; 
 
-// Always load the environment file next to this server file. This keeps the
-// JWT signing secret identical whether the app is started from this folder or
-// from the project root.
+// Always load the environment file next to this server file
 dotenv.config({ path: fileURLToPath(new URL("./.env", import.meta.url)) });
 
 if (!process.env.JWT_SECRET) {
@@ -22,13 +22,10 @@ if (!process.env.JWT_SECRET) {
 
 const app = express();
 
-
 app.use(cors());
 app.use(express.json());
 
-
 connectDB();
-
 
 app.get("/", (req, res) => {
   res.send(" Blood Donation Management System (BDMS) API is running...");
@@ -36,15 +33,19 @@ app.get("/", (req, res) => {
 
 // API Routes
 app.use("/api/users", Userrouter);
-app.use("/api/admin", Adminrouter); // 
+app.use("/api/admin", Adminrouter); 
 app.use("/api/requests", DonorRequestRouter); 
 app.use("/api/contact", ContactRouter); 
 app.use("/api/activity", ActivityLogRouter); 
+app.use("/api/whatsapp", WhatsAppRouter);
+
+// Initialize WhatsApp Gateway Service
+initWhatsApp().catch((err) => console.error("[WhatsApp Gateway] Startup error:", err));
+
 app.use((err, req, res, next) => {
   console.error(" Server Error:", err.message);
   res.status(500).json({ message: "Internal Server Error", error: err.message });
 });
-
 
 const PORT = process.env.PORT || 3000;
 

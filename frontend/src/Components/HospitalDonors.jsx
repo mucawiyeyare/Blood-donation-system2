@@ -18,13 +18,19 @@ import {
   List as ListIcon,
   X,
   Sparkles,
+  MessageSquare,
 } from "lucide-react";
+import WhatsAppConnectModal from "./WhatsAppConnectModal";
 
 function HospitalDonors() {
   const [donors, setDonors] = useState([]);
   const [filteredDonors, setFilteredDonors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // WhatsApp Gateway Modal state
+  const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
+  const [whatsAppInfo, setWhatsAppInfo] = useState({ status: "disconnected" });
 
   // View Mode: 'list' or 'grid'
   const [viewMode, setViewMode] = useState("list");
@@ -49,8 +55,16 @@ function HospitalDonors() {
   // Toast / notification banner
   const [toastMessage, setToastMessage] = useState(null);
 
+  const fetchWhatsAppStatus = async () => {
+    try {
+      const res = await axios.get("/api/whatsapp/status");
+      setWhatsAppInfo(res.data);
+    } catch (e) {}
+  };
+
   useEffect(() => {
     fetchDonors();
+    fetchWhatsAppStatus();
   }, []);
 
   useEffect(() => {
@@ -326,8 +340,26 @@ function HospitalDonors() {
           </p>
         </div>
 
-        {/* View Mode Switcher & Batch Action */}
+        {/* View Mode Switcher & Batch Action & WhatsApp Gateway */}
         <div className="flex items-center gap-3 flex-wrap">
+          {/* WhatsApp Gateway Status Button */}
+          <button
+            onClick={() => setShowWhatsAppModal(true)}
+            className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl border text-xs font-bold transition-all shadow-sm ${
+              whatsAppInfo.status === "connected"
+                ? "bg-emerald-50 border-emerald-300 text-emerald-800 hover:bg-emerald-100"
+                : "bg-amber-50 border-amber-300 text-amber-800 hover:bg-amber-100 animate-pulse"
+            }`}
+            title="Configure Automatic WhatsApp Sender Bot (616408886)"
+          >
+            <MessageSquare className={`w-4 h-4 ${whatsAppInfo.status === "connected" ? "text-emerald-600" : "text-amber-600"}`} />
+            <span>
+              {whatsAppInfo.status === "connected"
+                ? `WhatsApp Bot Active (${whatsAppInfo.connectedNumber || "616408886"})`
+                : "Link WhatsApp (616408886)"}
+            </span>
+          </button>
+
           {/* View Toggle Buttons */}
           <div className="flex items-center bg-white border border-slate-200 p-1 rounded-xl shadow-sm">
             <button
@@ -783,6 +815,13 @@ function HospitalDonors() {
           </div>
         </div>
       )}
+
+      {/* WhatsApp Connect & Pairing Modal */}
+      <WhatsAppConnectModal
+        isOpen={showWhatsAppModal}
+        onClose={() => setShowWhatsAppModal(false)}
+        onStatusChange={(status) => setWhatsAppInfo(status)}
+      />
     </div>
   );
 }
