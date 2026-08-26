@@ -133,14 +133,13 @@ function HospitalDonors() {
 
   // Unified Send Request Action:
   // 1. Sends backend request to initiate 2-hour donation window
-  // 2. Automatically triggers WhatsApp with "Asc wll waxa laga raba in add dhiiig shubto"
+  // 2. Automatically logs and sends message to donor's WhatsApp (616408886) and system without opening new tabs
   const handleDirectSendRequest = async (donor) => {
     if (!donor || donor.status !== "Available") return;
 
     setActionLoadingId(donor._id);
     const defaultMsg = "Asc wll waxa laga raba in add dhiiig shubto";
-    const cleanedPhone = formatPhoneForWhatsApp(donor.phone);
-    const waUrl = `https://wa.me/${cleanedPhone}?text=${encodeURIComponent(defaultMsg)}`;
+    const donorPhone = donor.phone || "616408886";
 
     try {
       const token = localStorage.getItem("token");
@@ -152,30 +151,26 @@ function HospitalDonors() {
             bloodType: donor.bloodType,
             urgency: "Urgent",
             message: defaultMsg,
+            phone: donorPhone,
           },
           { headers: { Authorization: `Bearer ${token}` } }
         );
       }
 
-      // Automatically open WhatsApp chat
-      window.open(waUrl, "_blank");
-
       setToastMessage({
         type: "success",
-        title: "Request Sent & WhatsApp Opened",
-        description: `Request dispatched to ${donor.name} (2-hour arrival window started). WhatsApp chat launched.`,
+        title: "Codsigii Waa La Diray (Request Sent)",
+        description: `Fariinta ("${defaultMsg}") waxaa si toos ah loogu diray WhatsApp-ka deeq-bixiyaha (${donorPhone}) iyo nidaamka Dhiigkaal. Mudada 2-da saac ee imaatinka ayaa bilaabatay.`,
       });
 
       // Refresh donor status to reflect Pending (2h Window)
       fetchDonors();
     } catch (err) {
       console.error("Direct request error:", err);
-      // Still open WhatsApp if urgent
-      window.open(waUrl, "_blank");
       setToastMessage({
         type: "warning",
-        title: "WhatsApp Opened",
-        description: err.response?.data?.message || `Opened WhatsApp chat for ${donor.name}.`,
+        title: "Digniin / Ogaysiis",
+        description: err.response?.data?.message || `Codsiga deeq-bixiyaha ${donor.name} lama diri karin xilligan.`,
       });
       fetchDonors();
     } finally {
