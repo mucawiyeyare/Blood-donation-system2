@@ -46,6 +46,7 @@ function Home() {
 
   const [currentSlide, setCurrentSlide] = useState(0);
   const [leaderboard, setLeaderboard] = useState([]);
+  const [lightboxImage, setLightboxImage] = useState(null); // { src, name }
   const [reportLoading, setReportLoading] = useState(true);
   const [reportData, setReportData] = useState({
     bloodTypeStats: {
@@ -477,6 +478,36 @@ function Home() {
         </div>
       </section>
 
+      {/* ─── Lightbox overlay ─── */}
+      {lightboxImage && (
+        <div
+          className="fixed inset-0 z-[999] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm"
+          onClick={() => setLightboxImage(null)}
+        >
+          <div
+            className="relative max-w-sm w-full"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setLightboxImage(null)}
+              className="absolute -top-4 -right-4 w-9 h-9 bg-white rounded-full flex items-center justify-center text-slate-700 hover:bg-red-50 hover:text-red-600 shadow-lg text-xl font-bold z-10"
+            >
+              ×
+            </button>
+            <div className="rounded-2xl overflow-hidden shadow-2xl border-4 border-white">
+              <img
+                src={lightboxImage.src}
+                alt={lightboxImage.name}
+                className="w-full h-auto object-cover"
+              />
+            </div>
+            <p className="text-white text-center mt-3 font-bold text-lg tracking-wide drop-shadow">
+              {lightboxImage.name}
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Top 3 Donors Leaderboard (White Background) */}
       <section className="py-20 bg-white border-t border-slate-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -489,30 +520,40 @@ function Home() {
             These amazing donors have saved the most lives on DhiigKaal. Keep going!
           </p>
 
-          {leaderboard.length === 0 ? (
-            <p className="text-slate-400 text-sm">Be the first hero — donate blood today! 🩸</p>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-              {leaderboard.map((donor, index) => {
-                const medals = ["🥇", "🥈", "🥉"];
-                const cardStyles = [
-                  "bg-gradient-to-b from-amber-50/80 to-white border-2 border-amber-300/80 shadow-md shadow-amber-500/10",
-                  "bg-gradient-to-b from-slate-50 to-white border-2 border-slate-300 shadow-md shadow-slate-500/10",
-                  "bg-gradient-to-b from-orange-50/80 to-white border-2 border-orange-300/80 shadow-md shadow-orange-500/10",
-                ];
-                const messages = [
-                  "Absolute Legend! Keep saving lives! 🏆",
-                  "Amazing work! You're a true hero! ⭐",
-                  "Fantastic effort! Keep it up! 💪",
-                ];
-                return (
-                  <div
-                    key={index}
-                    className={`${cardStyles[index]} rounded-2xl p-6 text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300`}
-                  >
-                    {/* Hero Avatar with Medal Overlay */}
-                    <div className="relative w-20 h-20 mx-auto mb-3">
-                      <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-white shadow-lg bg-gradient-to-tr from-red-600 to-rose-500 flex items-center justify-center text-white font-black text-2xl">
+          {/* Always show 3 slots */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+            {[0, 1, 2].map((index) => {
+              const donor = leaderboard[index] || null;
+              const medals = ["🥇", "🥈", "🥉"];
+              const rankLabels = ["1st Place", "2nd Place", "3rd Place"];
+              const cardStyles = [
+                "bg-gradient-to-b from-amber-50/80 to-white border-2 border-amber-300/80 shadow-md shadow-amber-500/10",
+                "bg-gradient-to-b from-slate-50 to-white border-2 border-slate-300 shadow-md shadow-slate-500/10",
+                "bg-gradient-to-b from-orange-50/80 to-white border-2 border-orange-300/80 shadow-md shadow-orange-500/10",
+              ];
+              const messages = [
+                "Absolute Legend! Keep saving lives! 🏆",
+                "Amazing work! You're a true hero! ⭐",
+                "Fantastic effort! Keep it up! 💪",
+              ];
+
+              return (
+                <div
+                  key={index}
+                  className={`${cardStyles[index]} rounded-2xl p-6 text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300`}
+                >
+                  {/* Hero Avatar with Medal Overlay */}
+                  <div className="relative w-20 h-20 mx-auto mb-3">
+                    {donor ? (
+                      <div
+                        onClick={() => {
+                          if (donor.profileImage) {
+                            setLightboxImage({ src: donor.profileImage, name: `${donor.firstName}${donor.lastInitial ? " " + donor.lastInitial + "." : ""}` });
+                          }
+                        }}
+                        className={`w-20 h-20 rounded-full overflow-hidden border-2 border-white shadow-lg bg-gradient-to-tr from-red-600 to-rose-500 flex items-center justify-center text-white font-black text-2xl ${donor.profileImage ? "cursor-pointer hover:opacity-90 hover:scale-105 transition-all" : "cursor-default"}`}
+                        title={donor.profileImage ? "Click to enlarge" : ""}
+                      >
                         {donor.profileImage ? (
                           <img
                             src={donor.profileImage}
@@ -523,39 +564,60 @@ function Home() {
                           <span>{donor.firstName ? donor.firstName.charAt(0).toUpperCase() : "D"}</span>
                         )}
                       </div>
-                      <div className="absolute -top-1.5 -right-1.5 text-2xl drop-shadow-md">
-                        {medals[index]}
+                    ) : (
+                      /* Placeholder empty slot */
+                      <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-slate-300 text-3xl">
+                        ?
                       </div>
+                    )}
+                    <div className="absolute -top-1.5 -right-1.5 text-2xl drop-shadow-md">
+                      {medals[index]}
                     </div>
-
-                    <p className="text-xl font-black text-slate-900">
-                      {donor.firstName}
-                      {donor.lastInitial ? ` ${donor.lastInitial}.` : ""}
-                    </p>
-                    <div className="my-2.5">
-                      <span className="inline-block px-3 py-1 rounded-full bg-red-50 text-red-700 border border-red-200 text-xs font-black">
-                        Blood Type: {donor.bloodType}
-                      </span>
-                    </div>
-                    <p className="text-slate-500 text-xs font-medium">{donor.location}</p>
-                    <div className="mt-4 py-2.5 px-4 bg-slate-50 border border-slate-100 rounded-xl">
-                      <p className="text-2xl font-black text-slate-900">{donor.donationCount}</p>
-                      <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                        donations completed
-                      </p>
-                    </div>
-                    <p className="text-xs text-red-600 mt-3 font-semibold italic">"{messages[index]}"</p>
                   </div>
-                );
-              })}
-            </div>
-          )}
+
+                  {donor ? (
+                    <>
+                      <p className="text-xl font-black text-slate-900">
+                        {donor.firstName}{donor.lastInitial ? ` ${donor.lastInitial}.` : ""}
+                      </p>
+                      <div className="my-2.5">
+                        <span className="inline-block px-3 py-1 rounded-full bg-red-50 text-red-700 border border-red-200 text-xs font-black">
+                          Blood Type: {donor.bloodType}
+                        </span>
+                      </div>
+                      <p className="text-slate-500 text-xs font-medium">{donor.location}</p>
+                      <div className="mt-4 py-2.5 px-4 bg-slate-50 border border-slate-100 rounded-xl">
+                        <p className="text-2xl font-black text-slate-900">{donor.donationCount}</p>
+                        <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                          donations completed
+                        </p>
+                      </div>
+                      <p className="text-xs text-red-600 mt-3 font-semibold italic">"{messages[index]}"</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-base font-bold text-slate-400 mt-1">{rankLabels[index]}</p>
+                      <p className="text-xs text-slate-400 mt-1">No donor yet</p>
+                      <div className="mt-4 py-2.5 px-4 bg-slate-50 border border-dashed border-slate-200 rounded-xl">
+                        <p className="text-2xl font-black text-slate-300">—</p>
+                        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                          donations completed
+                        </p>
+                      </div>
+                      <p className="text-xs text-slate-400 mt-3 italic">Could this be you? 🩸</p>
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
 
           <p className="text-slate-400 text-xs">
             🔒 Only first name shown for privacy. Rankings update in real time.
           </p>
         </div>
       </section>
+
 
       {/* FAQ & Eligibility & Impact Section */}
       <FAQSection stats={reportData} />
