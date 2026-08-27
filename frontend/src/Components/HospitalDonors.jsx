@@ -49,7 +49,7 @@ function HospitalDonors() {
   const [showBatchModal, setShowBatchModal] = useState(false);
   const [batchUrgency, setBatchUrgency] = useState("Urgent");
   const [batchMessage, setBatchMessage] = useState(
-    `Asc Wll,\n\nWaxa kula soo xiriiray Isbitaalka 🏥\n\nWaxaa loo baahan yahay in aad ka qeyb qaadato dhiig-bixin si loogu caawiyo bukaan u baahan dhiig. 🩸❤️\n\nFadlan haddii aad awooddo, booqo Isbitaalka si aad uga qeyb qaadato dhiig-bixinta.\n\nMahadsanid walaal.\nCaawintaadu waxay badbaadin kartaa nolol. ❤️🩸`
+    `Asc Wll,\n\nWaxaan kula soo xiriiraynaa Isbitaalka 🏥\n\n🩸 Waxaa loo baahan yahay dhiig-bixin degdeg ah si loogu caawiyo bukaan u baahan dhiig. ❤️\n\nFadlan haddii aad awooddo, booqo Isbitaalka si aad uga qeyb qaadato dhiig-bixinta.\n\nMahadsanid walaal.\nCaawintaadu waxay badbaadin kartaa nolol Allaha ka ajarsiyo. ❤️🩸\n\n— DhiigKaal System`
   );
 
   // Patient Info Modal state (single request)

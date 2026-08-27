@@ -41,13 +41,12 @@ export const buildWhatsAppLink = (phone, hospitalName = "Isbitaalka", hospitalLo
 
   let patientSection = "";
   if (patientInfo && patientInfo.name) {
-    patientSection = `
-📋 *Macluumaadka Bukaanka:*
-👤 Magac: ${patientInfo.name}${patientInfo.age ? `\n🎂 Da': ${patientInfo.age} sano` : ""}${patientInfo.diagnosis ? `\n🩺 Xaaladda: ${patientInfo.diagnosis}` : ""}${patientInfo.causeOfInjury ? `\n⚠️ Sababta: ${patientInfo.causeOfInjury}` : ""}
+    patientSection = `\n📋 *Macluumaadka Bukaanka:*
+👤 Magac: ${patientInfo.name}${patientInfo.age ? `\n🎂 Da': ${patientInfo.age} sano` : ""}${patientInfo.phone ? `\n📞 Tel: ${patientInfo.phone}` : ""}${patientInfo.diagnosis ? `\n🩺 Xaaladda: ${patientInfo.diagnosis}` : ""}${patientInfo.causeOfInjury ? `\n⚠️ Sababta: ${patientInfo.causeOfInjury}` : ""}
 `;
   }
 
-  const message = `Asc Wll,
+  const message = `Asc Wll ${dName},
 
 Waxaan kula soo xiriiraynaa *${hName}* 🏥
 
@@ -57,7 +56,7 @@ Fadlan haddii aad awooddo, kaalay *${hName}*
 📍 Goobta: ${hLoc}
 
 Mahadsanid walaal ${dName}.
-Caawintaadu waxay badbaadin kartaa nolol. ❤️🩸
+Caawintaadu waxay badbaadin kartaa nolol Allaha ka ajarsiyo. ❤️🩸
 
 — *DhiigKaal System*`;
 

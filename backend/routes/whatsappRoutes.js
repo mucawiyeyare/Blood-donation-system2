@@ -43,9 +43,7 @@ router.post("/pair", async (req, res) => {
 // POST /api/whatsapp/test-send
 router.post("/test-send", async (req, res) => {
   try {
-    const { phone, message } = req.body;
-    if (!phone) return res.status(400).json({ message: "Phone number is required" });
-    const text = message || `Asc Wll,\n\nWaxa kula soo xiriiray Isbitaalka 🏥\n\nWaxaa loo baahan yahay in aad ka qeyb qaadato dhiig-bixin si loogu caawiyo bukaan u baahan dhiig. 🩸❤️\n\nFadlan haddii aad awooddo, booqo Isbitaalka si aad uga qeyb qaadato dhiig-bixinta.\n\nMahadsanid walaal.\nCaawintaadu waxay badbaadin kartaa nolol. ❤️🩸`;
+    const text = message || `Asc Wll,\n\nWaxaan kula soo xiriiraynaa Isbitaalka 🏥\n\n🩸 Waxaa loo baahan yahay dhiig-bixin degdeg ah si loogu caawiyo bukaan u baahan dhiig. ❤️\n\nFadlan haddii aad awooddo, booqo Isbitaalka si aad uga qeyb qaadato dhiig-bixinta.\n\nMahadsanid walaal.\nCaawintaadu waxay badbaadin kartaa nolol Allaha ka ajarsiyo. ❤️🩸\n\n— DhiigKaal System`;
     const result = await sendWhatsAppMessage(phone, text);
     res.json(result);
   } catch (err) {

@@ -64,7 +64,7 @@ function Donors() {
   const [batchHospitalId, setBatchHospitalId] = useState("");
   const [batchUrgency, setBatchUrgency] = useState("Urgent");
   const [batchMessage, setBatchMessage] = useState(
-    `Asc Wll,\n\nWaxa kula soo xiriiray Isbitaalka 🏥\n\nWaxaa loo baahan yahay in aad ka qeyb qaadato dhiig-bixin si loogu caawiyo bukaan u baahan dhiig. 🩸❤️\n\nFadlan haddii aad awooddo, booqo Isbitaalka si aad uga qeyb qaadato dhiig-bixinta.\n\nMahadsanid walaal.\nCaawintaadu waxay badbaadin kartaa nolol. ❤️🩸`
+    `Asc Wll,\n\nWaxaan kula soo xiriiraynaa Isbitaalka 🏥\n\n🩸 Waxaa loo baahan yahay dhiig-bixin degdeg ah si loogu caawiyo bukaan u baahan dhiig. ❤️\n\nFadlan haddii aad awooddo, booqo Isbitaalka si aad uga qeyb qaadato dhiig-bixinta.\n\nMahadsanid walaal.\nCaawintaadu waxay badbaadin kartaa nolol Allaha ka ajarsiyo. ❤️🩸\n\n— DhiigKaal System`
   );
 
   // Single Request Modal (with Patient Info & Hospital Selection)
@@ -255,14 +255,15 @@ function Donors() {
       const hospitalName = chosenHospital?.name || "Isbitaalka";
       const hospitalLoc = chosenHospital?.location || "Mogadishu";
 
-      let dynamicMsg = `Asc Wll,\n\nWaxaan kula soo xiriiraynaa *${hospitalName}* 🏥\n\n🩸 *Waxaa loo baahan yahay dhiig-bixin degdeg ah!*`;
+      let dynamicMsg = `Asc Wll ${pendingDonor.name},\n\nWaxaan kula soo xiriiraynaa *${hospitalName}* 🏥\n\n🩸 *Waxaa loo baahan yahay dhiig-bixin degdeg ah!*`;
       if (patientInfo.name) {
         dynamicMsg += `\n\n📋 *Macluumaadka Bukaanka:*\n👤 Magac: ${patientInfo.name}`;
         if (patientInfo.age) dynamicMsg += `\n🎂 Da': ${patientInfo.age} sano`;
+        if (patientInfo.phone) dynamicMsg += `\n📞 Tel: ${patientInfo.phone}`;
         if (patientInfo.diagnosis) dynamicMsg += `\n🩺 Xaaladda: ${patientInfo.diagnosis}`;
         if (patientInfo.causeOfInjury) dynamicMsg += `\n⚠️ Sababta: ${patientInfo.causeOfInjury}`;
       }
-      dynamicMsg += `\n\nFadlan haddii aad awooddo, kaalay *${hospitalName}*\n📍 Goobta: ${hospitalLoc}\n\nMahadsanid walaal ${pendingDonor.name}.\nCaawintaadu waxay badbaadin kartaa nolol. ❤️🩸\n\n— *DhiigKaal System*`;
+      dynamicMsg += `\n\nFadlan haddii aad awooddo, kaalay *${hospitalName}*\n📍 Goobta: ${hospitalLoc}\n\nMahadsanid walaal ${pendingDonor.name}.\nCaawintaadu waxay badbaadin kartaa nolol Allaha ka ajarsiyo. ❤️🩸\n\n— *DhiigKaal System*`;
 
       await axios.post(
         "/api/requests/create",
