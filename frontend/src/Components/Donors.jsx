@@ -47,6 +47,9 @@ function Donors() {
   const [showWhatsAppModal, setShowWhatsAppModal] = useState(false);
   const [whatsAppInfo, setWhatsAppInfo] = useState({ status: "disconnected" });
 
+  // Lightbox modal for enlarged profile image
+  const [lightboxImage, setLightboxImage] = useState(null);
+
   // Filters
   const [searchName, setSearchName] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("");
@@ -183,20 +186,20 @@ function Donors() {
       const term = searchName.toLowerCase();
       list = list.filter(
         (d) =>
-          d.name.toLowerCase().includes(term) ||
+          d.name?.toLowerCase().includes(term) ||
           d.email?.toLowerCase().includes(term) ||
-          d.phone.includes(term) ||
+          d.phone?.includes(term) ||
           (d.nationalId && d.nationalId.toLowerCase().includes(term))
       );
     }
     if (selectedLocation) {
-      list = list.filter((d) => d.location.toLowerCase().includes(selectedLocation.toLowerCase()));
+      list = list.filter((d) => d.location?.toLowerCase().includes(selectedLocation.toLowerCase()));
     }
     if (selectedBloodType) {
       list = list.filter((d) => d.bloodType === selectedBloodType);
     }
     if (selectedStatus) {
-      list = list.filter((d) => d.status.toLowerCase() === selectedStatus.toLowerCase());
+      list = list.filter((d) => d.status?.toLowerCase() === selectedStatus.toLowerCase());
     }
     if (selectedGender) {
       list = list.filter((d) => d.gender === selectedGender);
@@ -497,6 +500,42 @@ function Donors() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 bg-slate-50 min-h-screen">
+      {/* Lightbox Overlay for Enlarged Donor Profile Photos */}
+      {lightboxImage && (
+        <div
+          className="fixed inset-0 z-[999] bg-black/85 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in"
+          onClick={() => setLightboxImage(null)}
+        >
+          <div
+            className="relative max-w-sm w-full animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setLightboxImage(null)}
+              className="absolute -top-3 -right-3 w-9 h-9 bg-white rounded-full flex items-center justify-center text-slate-700 hover:bg-red-50 hover:text-red-600 shadow-xl text-xl font-bold z-10"
+              title="Close"
+            >
+              ×
+            </button>
+            <div className="rounded-2xl overflow-hidden shadow-2xl border-4 border-white bg-slate-900">
+              <img
+                src={lightboxImage.src}
+                alt={lightboxImage.name}
+                className="w-full h-auto max-h-[70vh] object-cover"
+              />
+            </div>
+            <div className="text-center mt-3 text-white">
+              <p className="font-black text-lg tracking-wide drop-shadow">{lightboxImage.name}</p>
+              {lightboxImage.bloodType && (
+                <p className="text-xs text-red-300 font-semibold mt-0.5">
+                  Blood Group: {lightboxImage.bloodType} {lightboxImage.location ? `• ${lightboxImage.location}` : ""}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Toast Banner */}
       {toastMessage && (
         <div
@@ -529,7 +568,7 @@ function Donors() {
                 Donor Directory & Management
               </h1>
               <p className="text-xs sm:text-sm text-slate-600 mt-0.5">
-                Manage voluntary blood donors, send emergency requests on behalf of hospitals, and monitor real-time availability.
+                Manage voluntary blood donors, view profile photos, and dispatch requests on behalf of hospitals.
               </p>
             </div>
           </div>
@@ -804,8 +843,34 @@ function Donors() {
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-sm border border-slate-200 flex-shrink-0">
-                            {donor.name?.charAt(0)?.toUpperCase() || "D"}
+                          {/* Profile Image with Lightbox Trigger */}
+                          <div
+                            onClick={() => {
+                              if (donor.profileImage) {
+                                setLightboxImage({
+                                  src: donor.profileImage,
+                                  name: donor.name,
+                                  bloodType: donor.bloodType,
+                                  location: donor.location,
+                                });
+                              }
+                            }}
+                            className={`w-10 h-10 rounded-xl overflow-hidden bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-sm border border-slate-200 flex-shrink-0 ${
+                              donor.profileImage
+                                ? "cursor-pointer hover:opacity-90 hover:scale-105 transition-all shadow-sm ring-2 ring-red-500/20"
+                                : ""
+                            }`}
+                            title={donor.profileImage ? "Click to view photo" : ""}
+                          >
+                            {donor.profileImage ? (
+                              <img
+                                src={donor.profileImage}
+                                alt={donor.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <span>{donor.name?.charAt(0)?.toUpperCase() || "D"}</span>
+                            )}
                           </div>
                           <div>
                             <p className="font-bold text-slate-800 text-sm leading-tight">{donor.name}</p>
@@ -907,11 +972,44 @@ function Donors() {
                 <div>
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-600 to-red-700 text-white flex items-center justify-center font-black text-base shadow-md flex-shrink-0">
-                        {donor.bloodType}
+                      {/* Avatar with Clickable Lightbox */}
+                      <div
+                        onClick={() => {
+                          if (donor.profileImage) {
+                            setLightboxImage({
+                              src: donor.profileImage,
+                              name: donor.name,
+                              bloodType: donor.bloodType,
+                              location: donor.location,
+                            });
+                          }
+                        }}
+                        className={`w-12 h-12 rounded-2xl overflow-hidden bg-gradient-to-br from-red-600 to-red-700 text-white flex items-center justify-center font-black text-base shadow-md flex-shrink-0 ${
+                          donor.profileImage
+                            ? "cursor-pointer hover:opacity-90 hover:scale-105 transition-all ring-2 ring-red-500/30"
+                            : ""
+                        }`}
+                        title={donor.profileImage ? "Click to view photo" : ""}
+                      >
+                        {donor.profileImage ? (
+                          <img
+                            src={donor.profileImage}
+                            alt={donor.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span>{donor.bloodType}</span>
+                        )}
                       </div>
                       <div>
-                        <h3 className="font-bold text-slate-800 text-base leading-snug">{donor.name}</h3>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-bold text-slate-800 text-base leading-snug">{donor.name}</h3>
+                          {donor.profileImage && (
+                            <span className="px-1.5 py-0.5 rounded text-[10px] font-black bg-red-100 text-red-700 border border-red-200">
+                              {donor.bloodType}
+                            </span>
+                          )}
+                        </div>
                         <p className="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5">
                           <span>ID: {donor.nationalId || "N/A"}</span>
                           {donor.gender && <span>• {donor.gender}</span>}
