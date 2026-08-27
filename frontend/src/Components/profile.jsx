@@ -28,6 +28,7 @@ import {
   Trash2,
 } from "lucide-react";
 import DhiigKaalLogo from "./DhiigKaalLogo.jsx";
+import ImageCropModal from "./ImageCropModal.jsx";
 
 function Profile() {
   const [profile, setProfile] = useState(null);
@@ -39,6 +40,7 @@ function Profile() {
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState(null);
 
   // Donation history state
   const [donations, setDonations] = useState([]);
@@ -87,32 +89,44 @@ function Profile() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 2 * 1024 * 1024) {
-      setMessage({ type: "error", text: "Image size must be less than 2MB" });
+    if (file.size > 25 * 1024 * 1024) {
+      setMessage({ type: "error", text: "Selected photo is too large (max 25MB). Please choose a smaller image." });
       return;
     }
 
     const reader = new FileReader();
-    reader.onload = async () => {
-      const base64 = reader.result;
-      setUploadingImage(true);
-      try {
-        const token = localStorage.getItem("token");
-        const res = await axios.put(
-          "/api/users/profile",
-          { profileImage: base64 },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setProfile(res.data.user);
-        setEditForm(res.data.user);
-        setMessage({ type: "success", text: "Profile image updated successfully!" });
-      } catch (err) {
-        setMessage({ type: "error", text: err.response?.data?.message || "Failed to update profile image" });
-      } finally {
-        setUploadingImage(false);
+    reader.onload = () => {
+      setCropImageSrc(reader.result);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
       }
     };
+    reader.onerror = () => {
+      setMessage({ type: "error", text: "Failed to read image file from your device." });
+    };
     reader.readAsDataURL(file);
+  };
+
+  const handleCropComplete = async (croppedBase64) => {
+    setUploadingImage(true);
+    setMessage({ type: "", text: "" });
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.put(
+        "/api/users/profile",
+        { profileImage: croppedBase64 },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setProfile(res.data.user);
+      setEditForm(res.data.user);
+      setCropImageSrc(null);
+      setMessage({ type: "success", text: "Profile photo arranged & updated successfully!" });
+    } catch (err) {
+      const errMsg = err.response?.data?.message || err.message || "Failed to update profile photo";
+      setMessage({ type: "error", text: errMsg });
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   const handleRemoveImage = async () => {
@@ -287,33 +301,40 @@ function Profile() {
         </div>
       )}
 
-      {profile?.role === "donor" && (
-        <div className="mb-6 p-6 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white shadow-xl shadow-red-600/20 relative overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-4">
-            <div className="p-4 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 text-white">
-              <Heart className="w-8 h-8 fill-white animate-pulse" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2 text-red-200 text-xs font-bold uppercase tracking-wider mb-1">
-                <Sparkles className="w-4 h-4 text-amber-300" />
-                <span>Life-Saver Impact Dashboard</span>
+      {profile?.role === "donor" && (() => {
+        const savedCount = donorStats ? donorStats.livesHelped : donations.length;
+        return (
+          <div className="mb-6 p-6 rounded-2xl bg-gradient-to-r from-red-600 via-rose-600 to-red-700 text-white shadow-xl shadow-red-600/20 relative overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="p-4 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 text-white">
+                <Heart className="w-8 h-8 fill-white animate-pulse" />
               </div>
-              <h2 className="text-2xl sm:text-3xl font-black">
-                {donorStats ? donorStats.livesHelped : donations.length} Patients Helped! 🩸
-              </h2>
-              <p className="text-red-100 text-xs sm:text-sm mt-1 max-w-xl">
-                {donorStats && donorStats.livesHelped > 0
-                  ? `Incredible contribution! You have completed ${donorStats.livesHelped} life-saving donation(s). Keep saving lives!`
-                  : "Every blood donation you make directly saves up to 3 lives across Somalia. Thank you for your generosity!"}
-              </p>
+              <div>
+                <div className="flex items-center gap-2 text-red-200 text-xs font-bold uppercase tracking-wider mb-1">
+                  <Sparkles className="w-4 h-4 text-amber-300" />
+                  <span>Life-Saver Impact Dashboard</span>
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-black">
+                  {savedCount === 1 ? "1 Person Saved! 🩸" : `${savedCount} People Saved! 🩸`}
+                </h2>
+                <p className="text-red-100 text-xs sm:text-sm mt-1 max-w-xl">
+                  {savedCount === 1
+                    ? "Incredible contribution! You saved 1 person with your life-saving donation. Keep saving lives!"
+                    : savedCount > 1
+                    ? `Incredible contribution! You saved ${savedCount} people across Somalia. Keep saving lives!`
+                    : "Every blood donation you make directly saves lives across Somalia. Thank you for your generosity!"}
+                </p>
+              </div>
+            </div>
+            <div className="flex sm:flex-col items-center justify-center bg-white/10 backdrop-blur-md px-5 py-3 rounded-xl border border-white/20 text-center min-w-[130px]">
+              <span className="text-3xl font-black text-white">{savedCount}</span>
+              <span className="text-[11px] font-bold text-red-200 uppercase tracking-wider">
+                {savedCount === 1 ? "Person Saved" : "People Saved"}
+              </span>
             </div>
           </div>
-          <div className="flex sm:flex-col items-center justify-center bg-white/10 backdrop-blur-md px-5 py-3 rounded-xl border border-white/20 text-center min-w-[130px]">
-            <span className="text-3xl font-black text-white">{donorStats ? donorStats.livesHelped : donations.length}</span>
-            <span className="text-[11px] font-bold text-red-200 uppercase tracking-wider">Lives Saved</span>
-          </div>
-        </div>
-      )}
+        );
+      })()}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Summary Card */}
@@ -694,6 +715,16 @@ function Profile() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Image Crop & Arrange Modal */}
+      {cropImageSrc && (
+        <ImageCropModal
+          imageSrc={cropImageSrc}
+          isSaving={uploadingImage}
+          onCancel={() => setCropImageSrc(null)}
+          onCropComplete={handleCropComplete}
+        />
       )}
     </div>
   );

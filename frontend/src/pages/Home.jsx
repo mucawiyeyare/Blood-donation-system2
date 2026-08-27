@@ -536,11 +536,23 @@ function Home() {
                 "bg-gradient-to-b from-slate-50 to-white border-2 border-slate-300 shadow-md shadow-slate-500/10",
                 "bg-gradient-to-b from-orange-50/80 to-white border-2 border-orange-300/80 shadow-md shadow-orange-500/10",
               ];
-              const messages = [
-                "Absolute Legend! Keep saving lives! 🏆",
-                "Amazing work! You're a true hero! ⭐",
-                "Fantastic effort! Keep it up! 💪",
-              ];
+              const getMessage = (d, idx) => {
+                if (!d) return "";
+                if (d.donationCount === 1) {
+                  const singleQuotes = [
+                    "You saved 1 person! Keep saving lives! 🏆",
+                    "Saved 1 person! You're a true hero! ⭐",
+                    "Saved 1 person! Fantastic effort! 💪",
+                  ];
+                  return singleQuotes[idx] || "You saved 1 person! Keep it up! 🏆";
+                }
+                const multiQuotes = [
+                  `Saved ${d.donationCount} people! Keep saving lives! 🏆`,
+                  `Saved ${d.donationCount} people! You're a true hero! ⭐`,
+                  `Saved ${d.donationCount} people! Fantastic effort! 💪`,
+                ];
+                return multiQuotes[idx] || `Saved ${d.donationCount} people! 🏆`;
+              };
 
               return (
                 <div
@@ -594,10 +606,14 @@ function Home() {
                       <div className="mt-4 py-2.5 px-4 bg-slate-50 border border-slate-100 rounded-xl">
                         <p className="text-2xl font-black text-slate-900">{donor.donationCount}</p>
                         <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                          donations completed
+                          {donor.donationCount === 1 ? "Donation Completed" : "Donations Completed"}
                         </p>
+                        <div className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/70 px-2.5 py-0.5 rounded-full">
+                          <span>❤️</span>
+                          <span>{donor.donationCount === 1 ? "1 Person Saved" : `${donor.donationCount} People Saved`}</span>
+                        </div>
                       </div>
-                      <p className="text-xs text-red-600 mt-3 font-semibold italic">"{messages[index]}"</p>
+                      <p className="text-xs text-red-600 mt-3 font-semibold italic">"{getMessage(donor, index)}"</p>
                     </>
                   ) : (
                     <>
@@ -606,7 +622,10 @@ function Home() {
                       <div className="mt-4 py-2.5 px-4 bg-slate-50 border border-dashed border-slate-200 rounded-xl">
                         <p className="text-2xl font-black text-slate-300">—</p>
                         <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                          donations completed
+                          Donations Completed
+                        </p>
+                        <p className="text-[11px] font-medium text-slate-400 mt-1">
+                          0 People Saved
                         </p>
                       </div>
                       <p className="text-xs text-slate-400 mt-3 italic">Could this be you? 🩸</p>

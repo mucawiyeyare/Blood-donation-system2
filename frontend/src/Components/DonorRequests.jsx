@@ -206,11 +206,15 @@ function DonorRequests() {
               <span>Life-Saver Dashboard</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-black">
-              {donorStats?.livesHelped || 0} Patients Helped! 🩸
+              {donorStats?.livesHelped === 1
+                ? "1 Person Saved! 🩸"
+                : `${donorStats?.livesHelped || 0} Patients Helped! 🩸`}
             </h2>
             <p className="text-red-100 text-xs sm:text-sm mt-1 max-w-xl">
-              {donorStats && donorStats.livesHelped > 0
-                ? `You have answered the call and saved lives ${donorStats.livesHelped} time(s). Somalia thanks you! 💪`
+              {donorStats?.livesHelped === 1
+                ? "You answered the call and saved 1 person with your donation. Somalia thanks you! 💪"
+                : donorStats && donorStats.livesHelped > 1
+                ? `You have answered the call and saved ${donorStats.livesHelped} people. Somalia thanks you! 💪`
                 : "When hospitals urgently need blood, you'll receive requests right here. Ready to save lives!"}
             </p>
           </div>
