@@ -105,12 +105,21 @@ export const createRequest = async (req, res) => {
       });
     }
 
-    const hospital = await User.findById(req.user._id);
+    // Determine requesting hospital (Admin can specify hospitalId)
+    let hospital = null;
+    if (req.user.role === "admin" && req.body.hospitalId) {
+      hospital = await User.findById(req.body.hospitalId);
+    }
+    if (!hospital) {
+      hospital = await User.findById(req.user._id);
+    }
+    const targetHospitalId = hospital?._id || req.user._id;
+
     const requestedAt = new Date();
     const pendingUntil = new Date(requestedAt.getTime() + 2 * 60 * 60 * 1000); // 2 hours
 
     const donorRequest = new DonorRequest({
-      hospitalId: req.user._id,
+      hospitalId: targetHospitalId,
       donorId,
       bloodType: bloodType || donor.bloodType,
       urgency: urgency || "Routine",
@@ -130,7 +139,13 @@ export const createRequest = async (req, res) => {
     // Automatically send real WhatsApp message from sender number (616408886) to donor
     const waResult = await sendWhatsAppMessage(donor.phone, waMessageText);
 
-    await createLog(req.user._id, "Donation request created", "donation", "success", `To: ${donor.name} (Blood: ${bloodType || donor.bloodType}). WhatsApp message dispatched.`);
+    await createLog(
+      req.user._id,
+      "Donation request created",
+      "donation",
+      "success",
+      `To: ${donor.name} (Blood: ${bloodType || donor.bloodType}) on behalf of ${hospital?.name || "System"}. WhatsApp dispatched.`
+    );
 
     res.status(201).json({
       message: "Donor request created successfully. WhatsApp message dispatched and 2-hour arrival window started.",
@@ -147,7 +162,7 @@ export const createRequest = async (req, res) => {
 export const createBatchRequest = async (req, res) => {
   try {
     await resolveExpiredRequests();
-    const { donorIds, bloodType, urgency, message } = req.body;
+    const { donorIds, bloodType, urgency, message, hospitalId: customHospitalId } = req.body;
 
     if (req.user.role !== "hospital" && req.user.role !== "admin") {
       return res.status(403).json({ message: "Only hospitals or admins can send batch requests" });
@@ -157,7 +172,16 @@ export const createBatchRequest = async (req, res) => {
       return res.status(400).json({ message: "Please select at least one donor" });
     }
 
-    const hospital = await User.findById(req.user._id);
+    // Determine target hospital (Admin can specify hospitalId)
+    let hospital = null;
+    if (req.user.role === "admin" && customHospitalId) {
+      hospital = await User.findById(customHospitalId);
+    }
+    if (!hospital) {
+      hospital = await User.findById(req.user._id);
+    }
+    const targetHospitalId = hospital?._id || req.user._id;
+
     const batchId = "BATCH-" + Date.now() + "-" + Math.random().toString(36).substring(2, 7).toUpperCase();
     const requestedAt = new Date();
     const pendingUntil = new Date(requestedAt.getTime() + 2 * 60 * 60 * 1000); // 2 hours
@@ -194,7 +218,7 @@ export const createBatchRequest = async (req, res) => {
       }
 
       const reqDoc = new DonorRequest({
-        hospitalId: req.user._id,
+        hospitalId: targetHospitalId,
         donorId,
         bloodType: bloodType || donor.bloodType,
         urgency: urgency || "Routine",
@@ -228,13 +252,13 @@ export const createBatchRequest = async (req, res) => {
       "Batch donation requests created",
       "donation",
       "success",
-      `Sent ${createdRequests.length} requests (Batch ID: ${batchId})`
+      `Sent ${createdRequests.length} requests for ${hospital?.name || "System"} (Batch ID: ${batchId})`
     );
 
     res.status(201).json({
       message: `Successfully created ${createdRequests.length} donor requests with 2-hour arrival window.`,
       batchId,
-      createdCount: createdRequests.length,
+      count: createdRequests.length,
       requests: createdRequests,
       skipped: skippedDonors,
     });
