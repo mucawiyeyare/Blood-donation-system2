@@ -5,7 +5,7 @@ import Contact from "../models/contactModel.js";
 // @access  Public
 export const createMessage = async (req, res) => {
   try {
-    const { fullName, email, phone, subject, message } = req.body;
+    const { fullName, email, phone, carrier, carrierCode, formattedPhone, subject, message, urgency, attachments } = req.body;
 
     if (!fullName || !email || !subject || !message) {
       return res.status(400).json({ message: "Please fill in all required fields" });
@@ -15,8 +15,13 @@ export const createMessage = async (req, res) => {
       fullName,
       email,
       phone,
+      carrier: carrier || "Hormuud",
+      carrierCode: carrierCode || "+252 61",
+      formattedPhone: formattedPhone || (phone ? `${carrierCode || "+252 61"} ${phone}` : ""),
       subject,
-      message
+      message,
+      urgency: urgency || "Normal",
+      attachments: Array.isArray(attachments) ? attachments : []
     });
 
     const savedMessage = await newMessage.save();

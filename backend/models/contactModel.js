@@ -17,6 +17,20 @@ const contactSchema = new mongoose.Schema(
       type: String,
       trim: true
     },
+    carrier: {
+      type: String,
+      trim: true,
+      default: "Hormuud"
+    },
+    carrierCode: {
+      type: String,
+      trim: true,
+      default: "+252 61"
+    },
+    formattedPhone: {
+      type: String,
+      trim: true
+    },
     subject: {
       type: String,
       required: true,
@@ -26,6 +40,20 @@ const contactSchema = new mongoose.Schema(
       type: String,
       required: true
     },
+    urgency: {
+      type: String,
+      enum: ["Normal", "Urgent", "Emergency"],
+      default: "Normal"
+    },
+    attachments: [
+      {
+        name: { type: String, required: true },
+        type: { type: String },
+        size: { type: Number },
+        category: { type: String, default: "Medical Justification" },
+        data: { type: String, required: true } // base64 data URI
+      }
+    ],
     status: {
       type: String,
       enum: ["New", "Read", "Replied"],
