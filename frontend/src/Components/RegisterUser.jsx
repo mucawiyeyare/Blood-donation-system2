@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { UserPlus, Mail, Lock, Phone, MapPin, Droplet, User, Shield } from "lucide-react";
+import { UserPlus, Mail, Lock, Phone, MapPin, Droplet, User, Shield, AlertCircle } from "lucide-react";
+import { validateFullName } from "../utils/nameValidator.js";
 
 function RegisterUser() {
   const [formData, setFormData] = useState({
@@ -13,15 +14,28 @@ function RegisterUser() {
     role: "donor"
   });
   const [loading, setLoading] = useState(false);
+  const [nameError, setNameError] = useState("");
   const [message, setMessage] = useState({ type: "", text: "" });
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    if (name === "name") {
+      const check = validateFullName(value);
+      setNameError(value ? check.error : "");
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const nameCheck = validateFullName(formData.name);
+    if (!nameCheck.isValid) {
+      setNameError(nameCheck.error);
+      setMessage({ type: "error", text: nameCheck.error });
+      return;
+    }
     setLoading(true);
+    setNameError("");
     setMessage({ type: "", text: "" });
 
     try {
@@ -94,9 +108,19 @@ function RegisterUser() {
                   placeholder="Enter full name"
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-red-500 transition-all ${
+                    nameError
+                      ? "border-red-500 focus:border-red-500 bg-red-50/20"
+                      : "border-gray-300 focus:border-red-500"
+                  }`}
                   required
                 />
+                {nameError && (
+                  <p className="text-xs font-semibold text-red-600 mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                    {nameError}
+                  </p>
+                )}
               </div>
 
               {/* Email */}

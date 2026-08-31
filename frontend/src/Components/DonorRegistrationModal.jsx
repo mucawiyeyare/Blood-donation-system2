@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import DhiigKaalLogo from "./DhiigKaalLogo.jsx";
 import { SOMALIA_REGIONS } from "../utils/somaliaLocations.js";
+import { validateFullName } from "../utils/nameValidator.js";
 
 function DonorRegistrationModal({ isOpen, onClose }) {
   const [formData, setFormData] = useState({
@@ -35,12 +36,14 @@ function DonorRegistrationModal({ isOpen, onClose }) {
 
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [nameError, setNameError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
     const handleOpenModal = () => {
       setErrorMessage("");
+      setNameError("");
       setSuccessMessage("");
     };
     window.addEventListener("open-donor-register", handleOpenModal);
@@ -50,7 +53,12 @@ function DonorRegistrationModal({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    if (name === "name") {
+      const nameCheck = validateFullName(value);
+      setNameError(value ? nameCheck.error : "");
+    }
   };
 
   const handleRegionChange = (e) => {
@@ -64,6 +72,12 @@ function DonorRegistrationModal({ isOpen, onClose }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const nameCheck = validateFullName(formData.name);
+    if (!nameCheck.isValid) {
+      setNameError(nameCheck.error);
+      setErrorMessage(nameCheck.error);
+      return;
+    }
     if (!formData.region) {
       setErrorMessage("Please select your region.");
       return;
@@ -73,6 +87,7 @@ function DonorRegistrationModal({ isOpen, onClose }) {
       return;
     }
     setErrorMessage("");
+    setNameError("");
     setSuccessMessage("");
     setLoading(true);
 
@@ -179,8 +194,18 @@ function DonorRegistrationModal({ isOpen, onClose }) {
                 value={formData.name}
                 onChange={handleChange}
                 placeholder="e.g. Ahmed Mohamed Ali"
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                className={`w-full px-3.5 py-2.5 bg-slate-50 border rounded-xl text-sm focus:bg-white focus:ring-2 transition-all ${
+                  nameError
+                    ? "border-red-500 focus:ring-red-500 focus:border-red-500 bg-red-50/20"
+                    : "border-slate-200 focus:ring-red-500 focus:border-transparent"
+                }`}
               />
+              {nameError && (
+                <p className="text-[11px] font-semibold text-red-600 mt-1 flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                  {nameError}
+                </p>
+              )}
             </div>
 
             {/* Blood Type */}

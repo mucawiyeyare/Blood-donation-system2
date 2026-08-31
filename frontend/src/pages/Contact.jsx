@@ -8,6 +8,7 @@ import {
   File, Trash2, Check, Sparkles, AlertTriangle
 } from "lucide-react";
 import ChatBot from "../Components/ChatBot.jsx";
+import { validateFullName } from "../utils/nameValidator.js";
 
 const SOMALI_CARRIERS = [
   { id: "hormuud", name: "Hormuud", code: "+252 61", label: "Hormuud (+252 61 / 061)", prefix: "61" },
@@ -55,6 +56,7 @@ function Contact() {
   const [isDragging, setIsDragging] = useState(false);
   const [formStatus, setFormStatus] = useState(null); // 'success', 'error', or null
   const [statusMessage, setStatusMessage] = useState("");
+  const [nameError, setNameError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [previewFile, setPreviewFile] = useState(null); // for lightbox / modal
   
@@ -71,6 +73,11 @@ function Contact() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+
+    if (name === "fullName") {
+      const check = validateFullName(value);
+      setNameError(value ? check.error : "");
+    }
     
     if (name === "phone") {
       let cleanVal = value.replace(/\D/g, "");
@@ -188,6 +195,13 @@ function Contact() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const nameCheck = validateFullName(formData.fullName);
+    if (!nameCheck.isValid) {
+      setNameError(nameCheck.error);
+      setFormStatus("error");
+      setStatusMessage(nameCheck.error);
+      return;
+    }
     setSubmitting(true);
     setFormStatus(null);
 
@@ -423,9 +437,19 @@ function Contact() {
                   value={formData.fullName}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-4 py-3.5 bg-slate-50/50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all font-medium text-slate-800 placeholder:text-slate-400 text-sm sm:text-base shadow-sm"
+                  className={`w-full px-4 py-3.5 bg-slate-50/50 border rounded-2xl focus:bg-white focus:ring-2 transition-all font-medium text-slate-800 placeholder:text-slate-400 text-sm sm:text-base shadow-sm ${
+                    nameError
+                      ? "border-red-500 focus:ring-red-500 focus:border-red-500 bg-red-50/20"
+                      : "border-slate-200 focus:ring-red-500 focus:border-red-500"
+                  }`}
                   placeholder="e.g. Dr. Ali Mohamed"
                 />
+                {nameError && (
+                  <p className="text-xs font-semibold text-red-600 mt-1.5 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                    {nameError}
+                  </p>
+                )}
               </div>
 
               <div>
