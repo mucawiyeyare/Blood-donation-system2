@@ -193,10 +193,11 @@ function HospitalDonors() {
 
       setShowPatientModal(false);
       setPendingDonor(null);
+      const carrier = res.data.sms?.carrier || "Hormuud / Somtel";
       setToastMessage({
         type: "success",
-        title: "Request Sent ✅",
-        description: `Blood request sent to ${pendingDonor.name}. WhatsApp message dispatched with patient details. 2-hour window started.`,
+        title: "Direct Mobile SMS & WhatsApp Dispatched ✅",
+        description: `Emergency blood request sent to ${pendingDonor.name}'s ${carrier} SIM card. 2-hour arrival window started.`,
       });
       fetchDonors();
     } catch (err) {

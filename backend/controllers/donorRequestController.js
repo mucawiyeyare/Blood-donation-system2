@@ -3,6 +3,7 @@ import User from "../models/usermodel.js";
 import Donation from "../models/donationModel.js";
 import { createLog } from "./activityLogController.js";
 import { sendWhatsAppMessage } from "../services/whatsappService.js";
+import { sendDirectSMS, buildEmergencySMSText, identifySomaliCarrier } from "../services/smsService.js";
 
 // Helper: Auto-resolve expired requests older than 2 hours
 export const resolveExpiredRequests = async () => {
@@ -132,10 +133,16 @@ export const createRequest = async (req, res) => {
 
     await donorRequest.save();
     await donorRequest.populate("hospitalId", "name email phone location");
+    
+    // Build direct emergency SMS text
+    const smsMessageText = buildEmergencySMSText(donor.name, hospital?.name, hospital?.location, patientInfo);
+    const smsResult = await sendDirectSMS(donor.phone, smsMessageText);
+
+    // Build WhatsApp message
     const wa = buildWhatsAppLink(donor.phone, hospital?.name, hospital?.location, donor.name, patientInfo);
     const waMessageText = message || wa.message;
 
-    // Automatically send real WhatsApp message from sender number (616408886) to donor
+    // Send real WhatsApp message if gateway is connected
     const waResult = await sendWhatsAppMessage(donor.phone, waMessageText);
 
     await createLog(
@@ -143,12 +150,13 @@ export const createRequest = async (req, res) => {
       "Donation request created",
       "donation",
       "success",
-      `To: ${donor.name} (Blood: ${bloodType || donor.bloodType}) on behalf of ${hospital?.name || "System"}. WhatsApp dispatched.`
+      `To: ${donor.name} (${donor.phone} - ${smsResult.carrier}) on behalf of ${hospital?.name || "System"}. Direct SMS & WhatsApp dispatched.`
     );
 
     res.status(201).json({
-      message: "Donor request created successfully. WhatsApp message dispatched and 2-hour arrival window started.",
+      message: `Donor request created successfully. Direct Mobile SMS (${smsResult.carrier}) & WhatsApp dispatched. 2-hour arrival window started.`,
       request: donorRequest,
+      sms: smsResult,
       whatsapp: wa,
       whatsappDelivery: waResult,
     });
@@ -234,6 +242,10 @@ export const createBatchRequest = async (req, res) => {
 
       const wa = buildWhatsAppLink(donor.phone, hospital?.name, hospital?.location, donor.name);
       const waMessageText = message || wa.message;
+      const smsText = buildEmergencySMSText(donor.name, hospital?.name, hospital?.location);
+
+      // Direct Mobile SMS to Hormuud / Somtel SIM
+      const smsResult = await sendDirectSMS(donor.phone, smsText);
       
       // Automatically send real WhatsApp message to each donor in batch
       sendWhatsAppMessage(donor.phone, waMessageText).catch((e) =>
@@ -243,6 +255,7 @@ export const createBatchRequest = async (req, res) => {
       createdRequests.push({
         ...reqDoc.toObject(),
         whatsapp: wa,
+        sms: smsResult,
       });
     }
 
