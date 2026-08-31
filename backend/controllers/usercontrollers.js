@@ -12,13 +12,20 @@ const generateToken = (user) => {
   });
 };
 
-/** Register Donor */
+/** Register User (Donor or Hospital) */
 export const registerDonor = async (req, res) => {
   try {
-    const { nationalId, gender, name, email, password, phone, location, bloodType, age, dateOfBirth } = req.body;
+    const { nationalId, gender, name, email, password, phone, location, bloodType, age, dateOfBirth, role, hospitalLicense } = req.body;
+    const userRole = role === "hospital" ? "hospital" : "donor";
 
-    if (!nationalId || !gender || !name || !email || !password || !phone || !location || !bloodType) {
-      return res.status(400).json({ message: "Government ID, Full Name, Gender, Phone, Location, Blood Type, Email, and Password are all required." });
+    if (userRole === "hospital") {
+      if (!name || !email || !password || !phone || !location) {
+        return res.status(400).json({ message: "Hospital Name, Official Email, Password, Emergency Phone, and Location are all required." });
+      }
+    } else {
+      if (!nationalId || !gender || !name || !email || !password || !phone || !location || !bloodType) {
+        return res.status(400).json({ message: "Government ID, Full Name, Gender, Phone, Location, Blood Type, Email, and Password are all required." });
+      }
     }
 
     const userExists = await User.findOne({ email: email.toLowerCase().trim() });
@@ -27,45 +34,52 @@ export const registerDonor = async (req, res) => {
     const phoneExists = await User.findOne({ phone: phone.trim() });
     if (phoneExists) return res.status(400).json({ message: "Phone number is already registered" });
 
-    const nationalIdExists = await User.findOne({ nationalId: nationalId.trim() });
-    if (nationalIdExists) return res.status(400).json({ message: "Government / National ID is already registered" });
+    if (userRole === "donor" && nationalId) {
+      const nationalIdExists = await User.findOne({ nationalId: nationalId.trim() });
+      if (nationalIdExists) return res.status(400).json({ message: "Government / National ID is already registered" });
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const donor = await User.create({
-      nationalId: nationalId.trim(),
-      gender,
+    const newUser = await User.create({
+      nationalId: userRole === "donor" && nationalId ? nationalId.trim() : undefined,
+      gender: userRole === "donor" ? gender : undefined,
       name: name.trim(),
       email: email.toLowerCase().trim(),
       password: hashedPassword,
       phone: phone.trim(),
       location: location.trim(),
-      bloodType,
-      age: age ? Number(age) : undefined,
-      dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : undefined,
-      role: "donor",
+      bloodType: userRole === "donor" ? bloodType : (bloodType || "O+"),
+      age: userRole === "donor" && age ? Number(age) : undefined,
+      dateOfBirth: userRole === "donor" && dateOfBirth ? new Date(dateOfBirth) : undefined,
+      hospitalLicense: userRole === "hospital" && hospitalLicense ? hospitalLicense.trim() : undefined,
+      role: userRole,
       isAvailable: true,
     });
 
-    await createLog(donor._id, "New donor registered", "user", "success", `Donor: ${donor.name} (Blood: ${donor.bloodType})`);
+    await createLog(
+      newUser._id,
+      userRole === "hospital" ? "New hospital registered" : "New donor registered",
+      "user",
+      "success",
+      userRole === "hospital" ? `Hospital: ${newUser.name}` : `Donor: ${newUser.name} (${newUser.bloodType})`
+    );
 
-    const token = generateToken(donor);
+    const token = generateToken(newUser);
 
     res.status(201).json({
-      message: "Donor registered successfully in DHIIG KAAL system",
+      message: userRole === "hospital" ? "Hospital registered successfully in DHIIG KAAL system" : "Donor registered successfully in DHIIG KAAL system",
       token,
-      donor: {
-        id: donor._id,
-        nationalId: donor.nationalId,
-        gender: donor.gender,
-        name: donor.name,
-        email: donor.email,
-        phone: donor.phone,
-        location: donor.location,
-        bloodType: donor.bloodType,
-        age: donor.age,
-        role: donor.role,
-        isAvailable: donor.isAvailable,
+      user: {
+        id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        phone: newUser.phone,
+        location: newUser.location,
+        bloodType: newUser.bloodType,
+        role: newUser.role,
+        nationalId: newUser.nationalId,
+        hospitalLicense: newUser.hospitalLicense,
       },
     });
   } catch (error) {

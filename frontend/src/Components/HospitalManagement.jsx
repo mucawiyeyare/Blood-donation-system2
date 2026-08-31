@@ -52,22 +52,30 @@ function HospitalManagement() {
     fetchHospitals();
   }, []);
 
+  const [approvalFilter, setApprovalFilter] = useState("all"); // 'all' | 'pending' | 'approved'
+
   useEffect(() => {
+    let result = hospitals;
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      setFilteredHospitals(
-        hospitals.filter(
-          (h) =>
-            h.name.toLowerCase().includes(term) ||
-            h.location.toLowerCase().includes(term) ||
-            h.email.toLowerCase().includes(term) ||
-            (h.hospitalLicense && h.hospitalLicense.toLowerCase().includes(term))
-        )
+      result = result.filter(
+        (h) =>
+          h.name.toLowerCase().includes(term) ||
+          h.location.toLowerCase().includes(term) ||
+          h.email.toLowerCase().includes(term) ||
+          (h.hospitalLicense && h.hospitalLicense.toLowerCase().includes(term))
       );
-    } else {
-      setFilteredHospitals(hospitals);
     }
-  }, [hospitals, searchTerm]);
+    if (approvalFilter === "pending") {
+      result = result.filter((h) => h.isApproved === false);
+    } else if (approvalFilter === "approved") {
+      result = result.filter((h) => h.isApproved !== false);
+    }
+    setFilteredHospitals(result);
+  }, [hospitals, searchTerm, approvalFilter]);
+
+  const pendingHospitalsCount = hospitals.filter((h) => h.isApproved === false).length;
+  const approvedHospitalsCount = hospitals.filter((h) => h.isApproved !== false).length;
 
   const fetchHospitals = async () => {
     try {
@@ -147,6 +155,22 @@ function HospitalManagement() {
     }
   };
 
+  const handleToggleApproval = async (id, currentStatus) => {
+    const newStatus = !currentStatus;
+    try {
+      const token = localStorage.getItem("token");
+      const res = await axios.put(
+        `/api/admin/approve-hospital/${id}`,
+        { isApproved: newStatus },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      alert(res.data.message || `Hospital ${newStatus ? "approved" : "suspended"} successfully!`);
+      fetchHospitals();
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to update approval status");
+    }
+  };
+
   const handleDelete = async (id, name) => {
     if (!window.confirm(`Are you sure you want to delete hospital "${name}"? This action cannot be undone.`)) {
       return;
@@ -201,8 +225,8 @@ function HospitalManagement() {
         </button>
       </div>
 
-      {/* Search Bar */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 mb-6 flex items-center justify-between gap-4">
+      {/* Search Bar & Approval Filter Tabs */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
@@ -213,9 +237,45 @@ function HospitalManagement() {
             className="w-full pl-9 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-red-500"
           />
         </div>
-        <span className="text-xs text-slate-500 font-medium">
-          Total: <strong className="text-slate-900">{filteredHospitals.length}</strong> Hospitals
-        </span>
+
+        {/* Approval Filter Pills */}
+        <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl">
+          <button
+            onClick={() => setApprovalFilter("all")}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              approvalFilter === "all"
+                ? "bg-white text-slate-900 shadow-sm"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+          >
+            All ({hospitals.length})
+          </button>
+          <button
+            onClick={() => setApprovalFilter("pending")}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all ${
+              approvalFilter === "pending"
+                ? "bg-amber-600 text-white shadow-sm"
+                : "text-amber-800 hover:bg-amber-50"
+            }`}
+          >
+            <span>Pending Approval</span>
+            {pendingHospitalsCount > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full bg-white text-amber-800 text-[10px] font-black">
+                {pendingHospitalsCount}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setApprovalFilter("approved")}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              approvalFilter === "approved"
+                ? "bg-emerald-600 text-white shadow-sm"
+                : "text-emerald-800 hover:bg-emerald-50"
+            }`}
+          >
+            Approved ({approvedHospitalsCount})
+          </button>
+        </div>
       </div>
 
       {/* Hospitals Grid */}
@@ -224,7 +284,7 @@ function HospitalManagement() {
           <AlertCircle className="w-16 h-16 text-slate-300 mx-auto mb-3" />
           <h3 className="text-lg font-bold text-slate-700">No Hospitals Found</h3>
           <p className="text-sm text-slate-500 max-w-sm mx-auto mt-1">
-            Add a new hospital or adjust your search filter.
+            Add a new hospital or adjust your search / approval filter.
           </p>
         </div>
       ) : (
@@ -232,7 +292,11 @@ function HospitalManagement() {
           {filteredHospitals.map((hospital) => (
             <div
               key={hospital._id}
-              className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition-all border border-slate-200 flex flex-col justify-between"
+              className={`bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition-all border flex flex-col justify-between ${
+                hospital.isApproved === false
+                  ? "border-amber-300 ring-1 ring-amber-300/40 bg-amber-50/10"
+                  : "border-slate-200"
+              }`}
             >
               <div>
                 <div className="flex items-start justify-between gap-3 mb-3">
@@ -245,6 +309,17 @@ function HospitalManagement() {
                       <p className="text-xs text-slate-500">{hospital.email}</p>
                     </div>
                   </div>
+
+                  {/* Status Badge */}
+                  <span
+                    className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black border ${
+                      hospital.isApproved === false
+                        ? "bg-amber-100 text-amber-800 border-amber-200 animate-pulse"
+                        : "bg-emerald-100 text-emerald-800 border-emerald-200"
+                    }`}
+                  >
+                    {hospital.isApproved === false ? "Pending ⏳" : "Approved ✅"}
+                  </span>
                 </div>
 
                 <div className="space-y-2 mb-4 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100">
@@ -282,10 +357,28 @@ function HospitalManagement() {
               </div>
 
               {/* Actions */}
-              <div className="flex gap-2 pt-3 border-t border-slate-100">
+              <div className="flex items-center gap-2 pt-3 border-t border-slate-100">
+                {hospital.isApproved === false ? (
+                  <button
+                    onClick={() => handleToggleApproval(hospital._id, false)}
+                    className="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1 shadow-sm transition-colors"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>Approve Hospital</span>
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleToggleApproval(hospital._id, true)}
+                    className="py-2 px-3 bg-slate-100 hover:bg-amber-50 hover:text-amber-800 text-slate-600 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition-colors"
+                    title="Suspend Hospital Access"
+                  >
+                    <span>Suspend</span>
+                  </button>
+                )}
+
                 <button
                   onClick={() => handleEditClick(hospital)}
-                  className="flex-1 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-colors"
+                  className="py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs flex items-center justify-center gap-1 transition-colors"
                 >
                   <Edit className="w-3.5 h-3.5 text-slate-600" />
                   <span>Edit</span>

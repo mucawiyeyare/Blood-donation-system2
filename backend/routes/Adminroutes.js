@@ -208,10 +208,6 @@ router.get("/stats", protect, adminOnly, async (req, res) => {
     // Blood type distribution of registered donors
     const bloodTypes = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
     const bloodTypeCounts = {};
-    for (const bt of bloodTypes) {
-      bloodTypeCounts[bt] = await User.countDocuments({ role: "donor", bloodType: bt });
-    }
-
     res.json({
       totalUsers,
       totalDonors,
@@ -219,6 +215,37 @@ router.get("/stats", protect, adminOnly, async (req, res) => {
       totalDonations,
       activeRequests,
       bloodTypeCounts,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// 8. Admin Approve / Suspend Hospital
+router.put("/approve-hospital/:id", protect, adminOnly, async (req, res) => {
+  try {
+    const { isApproved } = req.body;
+    const hospital = await User.findById(req.params.id);
+    if (!hospital) return res.status(404).json({ message: "Hospital not found" });
+
+    hospital.isApproved = typeof isApproved === "boolean" ? isApproved : true;
+    await hospital.save();
+
+    await createLog(
+      req.user._id,
+      hospital.isApproved ? "Hospital Approved" : "Hospital Suspended",
+      "user",
+      hospital.isApproved ? "success" : "warning",
+      `Hospital: ${hospital.name} (Approval: ${hospital.isApproved})`
+    );
+
+    res.json({
+      message: `Hospital ${hospital.isApproved ? "approved and activated" : "placed on pending/suspended"} successfully`,
+      hospital: {
+        id: hospital._id,
+        name: hospital.name,
+        isApproved: hospital.isApproved,
+      },
     });
   } catch (err) {
     res.status(500).json({ message: err.message });

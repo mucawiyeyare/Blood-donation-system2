@@ -27,18 +27,17 @@ const userSchema = new mongoose.Schema(
 
     phone: { 
       type: String,
-       required: true },
+      required: true 
+    },
     location: {
-       type: String, 
-      type: String,
-       required: true },
-    location: {
-       type: String, 
-       required: true }, // Text location (city/area)
+      type: String, 
+      required: true 
+    }, // Text location (city/area)
     bloodType: {
       type: String,
-      required: true,
+      required: false,
       enum: ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"],
+      default: "O+",
     },
     role: {
       type: String,
