@@ -239,9 +239,16 @@ function Reports() {
               <FileText className="w-7 h-7" />
             </div>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-                Blood Donation Reporting Module
-              </h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                  Blood Donation Reporting Module
+                </h1>
+                {userRole === "health_institution" && (
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-100 text-purple-800 border border-purple-200">
+                    Ministry / Health Institution Portal
+                  </span>
+                )}
+              </div>
               <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
                 Comprehensive reporting connecting hospitals with blood donors • Real-time emergency analytics
               </p>

@@ -171,7 +171,7 @@ function App() {
         <Route
           path="hospitals"
           element={
-            <ProtectedRoute allowedRoles={["admin"]}>
+            <ProtectedRoute allowedRoles={["admin", "health_institution"]}>
               <HospitalManagement />
             </ProtectedRoute>
           }

@@ -33,6 +33,8 @@ function Signin({ setUser }) {
         navigate("/dashboard/donor-requests");
       } else if (res.data.user.role === "hospital") {
         navigate("/dashboard/hospital-donors");
+      } else if (res.data.user.role === "health_institution") {
+        navigate("/dashboard/reports");
       } else {
         navigate("/dashboard");
       }

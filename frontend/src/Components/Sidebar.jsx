@@ -151,24 +151,28 @@ function Sidebar({ isOpen, onClose }) {
           </>
         )}
 
-        {/* HEALTH INSTITUTION / MINISTRY */}
+        {/* HEALTH INSTITUTION / MINISTRY OF HEALTH */}
         {role === "health_institution" && (
           <>
             <NavLink to="/dashboard" end className={linkClass} onClick={handleLinkClick}>
               <LayoutDashboard className="w-5 h-5 text-sky-400" />
               <span>National Dashboard</span>
             </NavLink>
-            <NavLink to="/dashboard/analytics" className={linkClass} onClick={handleLinkClick}>
-              <BarChart3 className="w-5 h-5 text-sky-400" />
-              <span>System Analytics</span>
+            <NavLink to="/dashboard/reports" className={linkClass} onClick={handleLinkClick}>
+              <FileText className="w-5 h-5 text-amber-400" />
+              <span>National Reports & Export</span>
             </NavLink>
             <NavLink to="/dashboard/donors" className={linkClass} onClick={handleLinkClick}>
               <Droplet className="w-5 h-5 text-red-500" />
-              <span>National Donors</span>
+              <span>National Donors Registry</span>
             </NavLink>
-            <NavLink to="/dashboard/reports" className={linkClass} onClick={handleLinkClick}>
-              <FileText className="w-5 h-5 text-amber-400" />
-              <span>Reports & Exports</span>
+            <NavLink to="/dashboard/hospitals" className={linkClass} onClick={handleLinkClick}>
+              <Building2 className="w-5 h-5 text-indigo-400" />
+              <span>Hospitals Directory</span>
+            </NavLink>
+            <NavLink to="/dashboard/analysis" className={linkClass} onClick={handleLinkClick}>
+              <BarChart3 className="w-5 h-5 text-sky-400" />
+              <span>Health Analytics</span>
             </NavLink>
             <NavLink to="/dashboard/activity" className={linkClass} onClick={handleLinkClick}>
               <Activity className="w-5 h-5 text-rose-400" />
@@ -176,7 +180,7 @@ function Sidebar({ isOpen, onClose }) {
             </NavLink>
             <NavLink to="/dashboard/profile" className={linkClass} onClick={handleLinkClick}>
               <UserCircle className="w-5 h-5 text-gray-400" />
-              <span>Ministry Profile</span>
+              <span>Institution Profile</span>
             </NavLink>
           </>
         )}

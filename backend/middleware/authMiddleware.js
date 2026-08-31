@@ -43,6 +43,20 @@ export const adminOrHospital = (req, res, next) => {
   }
 };
 
+//  Health Institution or Admin (For National Reporting and Health Audits)
+export const healthInstitutionOrAdmin = (req, res, next) => {
+  if (
+    req.user &&
+    (req.user.role === "admin" ||
+      req.user.role === "health_institution" ||
+      req.user.role === "hospital")
+  ) {
+    next();
+  } else {
+    res.status(403).json({ message: "Access denied. Health Institutions, Hospitals, and Admins only." });
+  }
+};
+
 //  Admin or Health Institution (Ministry)
 export const adminOrHealthInstitution = (req, res, next) => {
   if (req.user && (req.user.role === "admin" || req.user.role === "health_institution")) {

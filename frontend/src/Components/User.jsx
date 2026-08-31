@@ -32,7 +32,7 @@ function Users() {
   const [locations, setLocations] = useState([]);
   
   const bloodTypes = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
-  const roles = ["admin", "donor", "hospital"];
+  const roles = ["admin", "donor", "hospital", "health_institution"];
 
   useEffect(() => {
     fetchUsers();
@@ -333,12 +333,13 @@ function Users() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                           user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
-                           user.role === 'donor' ? 'bg-green-100 text-green-800' :
-                           'bg-blue-100 text-blue-800'
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                            user.role === 'admin' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
+                            user.role === 'health_institution' ? 'bg-purple-100 text-purple-800 border border-purple-200' :
+                            user.role === 'hospital' ? 'bg-indigo-100 text-indigo-800 border border-indigo-200' :
+                            'bg-emerald-100 text-emerald-800 border border-emerald-200'
                         }`}>
-                          {user.role ? user.role.toUpperCase() : 'UNKNOWN'}
+                          {user.role === 'health_institution' ? 'MINISTRY / HEALTH INST' : user.role ? user.role.toUpperCase() : 'UNKNOWN'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
