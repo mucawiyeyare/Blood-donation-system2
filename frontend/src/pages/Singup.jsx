@@ -5,7 +5,7 @@ import { Droplet, User, Mail, Lock, Phone, MapPin, ShieldCheck, HeartHandshake, 
 import DhiigKaalLogo from "../Components/DhiigKaalLogo.jsx";
 import { SOMALIA_REGIONS } from "../utils/somaliaLocations.js";
 import { validateFullName } from "../utils/nameValidator.js";
-import { SOMALI_CARRIERS, parseSomaliPhone } from "../utils/carrierUtils.js";
+import GlobalPhoneInput from "../Components/GlobalPhoneInput.jsx";
 
 function Signup() {
   const [formData, setFormData] = useState({
@@ -232,51 +232,24 @@ function Signup() {
               )}
             </div>
 
-            {/* Telephone (WhatsApp Capable with Somali Carrier Selector) */}
+            {/* Telephone (WhatsApp Capable with Global Country Selector) */}
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  WhatsApp Phone Number *
-                </label>
-                <span className="text-[10px] font-bold text-red-600 uppercase tracking-wider bg-red-50 px-2 py-0.5 rounded-md border border-red-100">
-                  Carrier: {formData.carrierName}
-                </span>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-2">
-                {/* Carrier dropdown */}
-                <div className="sm:w-52 flex-shrink-0">
-                  <select
-                    name="carrierSelect"
-                    value={formData.carrierCode}
-                    onChange={handleChange}
-                    className="w-full px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-red-500 font-bold text-slate-800 text-xs shadow-sm cursor-pointer"
-                  >
-                    {SOMALI_CARRIERS.map((c) => (
-                      <option key={c.id} value={c.code}>
-                        {c.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* 7-digit subscriber input */}
-                <div className="flex-1">
-                  <input
-                    type="tel"
-                    name="phone"
-                    placeholder="e.g. 6408886, 0771007272, or 1007272"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm transition-all font-semibold text-slate-800"
-                    required
-                  />
-                </div>
-              </div>
-
-              <p className="text-[11px] text-slate-500 mt-1.5 flex items-center justify-between">
-                <span>Formatted for direct WhatsApp messaging: <strong className="text-slate-800 font-bold">{formData.carrierCode} {formData.phone || "XXXXXXX"}</strong></span>
-              </p>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                WhatsApp Phone Number *
+              </label>
+              <GlobalPhoneInput
+                value={formData.phone}
+                countryCode="SO"
+                onChange={({ dialCode, phone }) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    phone,
+                    carrierCode: dialCode,
+                  }));
+                }}
+                placeholder="615000000 or 0771007272"
+                required
+              />
             </div>
 
             {/* Blood Type */}

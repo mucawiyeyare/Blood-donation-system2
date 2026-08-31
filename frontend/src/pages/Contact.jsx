@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import ChatBot from "../Components/ChatBot.jsx";
 import { validateFullName } from "../utils/nameValidator.js";
+import GlobalPhoneInput from "../Components/GlobalPhoneInput.jsx";
 
 const SOMALI_CARRIERS = [
   { id: "hormuud", name: "Hormuud", code: "+252 61", label: "Hormuud (+252 61 / 061)", prefix: "61" },
@@ -469,52 +470,25 @@ function Contact() {
               </div>
             </div>
 
-            {/* Phone Number with Somali Carrier selector */}
+            {/* Phone Number with Global Country Selector */}
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <label htmlFor="phone" className="block text-xs font-black text-slate-700 uppercase tracking-wider">
-                  PHONE / WHATSAPP NUMBER <span className="text-red-600">*</span>
-                </label>
-                <span className="text-xs font-bold text-slate-500 lowercase tracking-wide">
-                  carrier: <strong className="text-slate-800 font-extrabold">{formData.carrier.toLowerCase()}</strong>
-                </span>
-              </div>
+              <label htmlFor="phone" className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2">
+                PHONE / WHATSAPP NUMBER <span className="text-red-600">*</span>
+              </label>
 
-              <div className="flex flex-col sm:flex-row gap-2">
-                {/* Carrier dropdown */}
-                <div className="sm:w-56 flex-shrink-0">
-                  <select
-                    name="carrierSelect"
-                    value={formData.carrierCode}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3.5 bg-slate-100 border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all font-bold text-slate-800 text-sm shadow-sm cursor-pointer"
-                  >
-                    {SOMALI_CARRIERS.map((c) => (
-                      <option key={c.id} value={c.code}>
-                        {c.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* 7-digit input */}
-                <div className="flex-1">
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-4 py-3.5 bg-slate-50/50 border border-slate-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all font-semibold text-slate-800 placeholder:text-slate-400 text-sm sm:text-base shadow-sm"
-                    placeholder="e.g. 0771007272, 616408886, or 1007272"
-                  />
-                </div>
-              </div>
-
-              <p className="text-xs font-medium text-slate-500 mt-2">
-                Formatted for direct WhatsApp messaging: <strong className="text-slate-800 font-bold">{formattedDisplayPhone}</strong>
-              </p>
+              <GlobalPhoneInput
+                value={formData.phone}
+                countryCode="SO"
+                onChange={({ dialCode, phone }) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    phone,
+                    carrierCode: dialCode,
+                  }));
+                }}
+                placeholder="615000000 or 0771007272"
+                required
+              />
             </div>
 
             {/* Subject / Inquiry Type */}
