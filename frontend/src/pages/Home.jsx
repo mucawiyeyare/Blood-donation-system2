@@ -22,7 +22,6 @@ import {
 } from "lucide-react";
 import ChatBot from "../Components/ChatBot.jsx";
 import FAQSection from "../Components/FAQSection.jsx";
-import { useTranslation } from "../context/LanguageContext.jsx";
 
 function FeatureCard({ icon: Icon, title, description, color, iconColor }) {
   return (
@@ -37,7 +36,6 @@ function FeatureCard({ icon: Icon, title, description, color, iconColor }) {
 }
 
 function Home() {
-  const { t } = useTranslation();
   const heroImages = [
     { src: "/hero1.jpg", alt: "Blood bags with blood types" },
     { src: "/hero2.jpg", alt: "Blood storage facility" },
@@ -109,18 +107,18 @@ function Home() {
             <div className="lg:col-span-7 text-center lg:text-left">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-sky-300 text-xs font-semibold mb-6">
                 <Sparkles className="w-4 h-4 text-sky-400" />
-                <span>{t("home.heroBadge", "National Blood Donation Network • Somalia")}</span>
+                <span>National Blood Donation Network • Somalia</span>
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight mb-6">
-                {t("home.heroTitle", "Every Drop Counts, Every Hero Saves.")} <br />
+                Save Lives with <br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-red-400 to-sky-400">
                   DHIIG KAAL
                 </span>
               </h1>
 
               <p className="text-base sm:text-lg text-slate-300 mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-                {t("home.heroSubtitle", "DhiigKaal connects hospitals directly with voluntary blood donors in real time during critical emergencies.")}
+                A modern blood donation management system directly connecting hospitals with registered donors across Somalia. Real-time availability, WhatsApp emergency requests, and automated 2-hour workflow tracking.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
@@ -129,7 +127,7 @@ function Home() {
                   className="flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-7 py-3.5 rounded-xl font-bold text-base shadow-lg shadow-red-600/40 hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5"
                 >
                   <Droplet className="w-5 h-5" />
-                  <span>{t("home.registerAsDonorBtn", "Register as Donor")}</span>
+                  <span>Register as Donor</span>
                 </Link>
 
                 <Link
@@ -137,7 +135,7 @@ function Home() {
                   className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white px-7 py-3.5 rounded-xl font-bold text-base border border-white/20 transition-all duration-200"
                 >
                   <Building2 className="w-5 h-5 text-sky-400" />
-                  <span>{t("sidebar.portalHospital", "Hospital Portal")}</span>
+                  <span>Hospital Portal</span>
                   <ArrowRight className="w-4 h-4 text-slate-400" />
                 </Link>
               </div>
@@ -515,16 +513,16 @@ function Home() {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold mb-4 shadow-sm">
             <Trophy className="w-4 h-4 text-amber-500" />
-            <span>{t("auth.heroVisibilityTitle", "Hall of Heroes — Top Donors")}</span>
+            <span>Hall of Heroes — Top Donors</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 mb-3">{t("home.heroesTitle", "Our Blood Heroes 🏆")}</h2>
+          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 mb-3">Our Blood Heroes 🏆</h2>
           <p className="text-slate-600 text-sm max-w-xl mx-auto mb-12">
-            {t("home.heroesSubtitle", "These amazing donors have saved the most lives on DhiigKaal. Keep going!")}
+            These amazing donors have saved the most lives on DhiigKaal. Keep going!
           </p>
 
           {/* Show up to 3 real donors; only pad with placeholder slots if fewer than 3 donated */}
           {leaderboard.length === 0 ? (
-            <p className="text-slate-400 text-sm py-4">{t("home.beFirstHero", "Be the first hero — donate blood today! 🩸")}</p>
+            <p className="text-slate-400 text-sm py-4">Be the first hero — donate blood today! 🩸</p>
           ) : (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
             {Array.from({ length: Math.max(leaderboard.length, 3) }).map((_, index) => {
@@ -532,7 +530,7 @@ function Home() {
               if (index >= 3) return null;
               const donor = leaderboard[index] || null;
               const medals = ["🥇", "🥈", "🥉"];
-              const rankLabels = [t("home.firstPlace", "1st Place 🥇"), t("home.secondPlace", "2nd Place 🥈"), t("home.thirdPlace", "3rd Place 🥉")];
+              const rankLabels = ["1st Place", "2nd Place", "3rd Place"];
               const cardStyles = [
                 "bg-gradient-to-b from-amber-50/80 to-white border-2 border-amber-300/80 shadow-md shadow-amber-500/10",
                 "bg-gradient-to-b from-slate-50 to-white border-2 border-slate-300 shadow-md shadow-slate-500/10",

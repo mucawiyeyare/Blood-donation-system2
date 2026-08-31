@@ -10,12 +10,9 @@ import DhiigKaalLogo from "../Components/DhiigKaalLogo.jsx";
 import { SOMALIA_REGIONS } from "../utils/somaliaLocations.js";
 import { validateFullName } from "../utils/nameValidator.js";
 import GlobalPhoneInput from "../Components/GlobalPhoneInput.jsx";
-import LanguageSwitcher from "../Components/LanguageSwitcher.jsx";
-import { useTranslation } from "../context/LanguageContext.jsx";
 
 function Signup() {
   const [role, setRole] = useState("donor"); // 'donor' | 'hospital'
-  const { t } = useTranslation();
 
   // Donor form fields
   const [donorData, setDonorData] = useState({
@@ -269,12 +266,7 @@ function Signup() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-80px)] bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center relative">
-      {/* Top right language switcher */}
-      <div className="absolute top-4 right-4 sm:top-6 sm:right-8">
-        <LanguageSwitcher variant="dropdown" />
-      </div>
-
+    <div className="min-h-[calc(100vh-80px)] bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
       <div className="w-full max-w-3xl">
         {/* Top Centered Branding Logo */}
         <div className="text-center mb-6 flex flex-col items-center">
@@ -283,8 +275,8 @@ function Signup() {
           </Link>
           <p className="text-sm font-medium text-slate-600 max-w-md mx-auto text-center">
             {role === "donor"
-              ? t("auth.donorSignup", "Register as a voluntary blood donor to save lives in emergency hospital cases")
-              : t("auth.hospitalSignup", "Register medical facility to request blood donors and connect in real time")}
+              ? "Register as a voluntary blood donor to save lives in emergency hospital cases"
+              : "Register medical facility to request blood donors and connect in real time"}
           </p>
         </div>
 
@@ -298,14 +290,14 @@ function Signup() {
                 setErrorMessage("");
                 setNameError("");
               }}
-              className={`flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-black flex items-center justify-center gap-2 transition-all cursor-pointer ${
+              className={`flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-black flex items-center justify-center gap-2 transition-all ${
                 role === "donor"
                   ? "bg-red-600 text-white shadow-lg shadow-red-600/30 scale-[1.02]"
                   : "text-slate-400 hover:text-white"
               }`}
             >
               <Droplet className="w-4 h-4" />
-              <span>{t("auth.voluntaryDonor", "Blood Donor")}</span>
+              <span>Blood Donor</span>
             </button>
             <button
               type="button"
@@ -314,14 +306,14 @@ function Signup() {
                 setErrorMessage("");
                 setNameError("");
               }}
-              className={`flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-black flex items-center justify-center gap-2 transition-all cursor-pointer ${
+              className={`flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-black flex items-center justify-center gap-2 transition-all ${
                 role === "hospital"
                   ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 scale-[1.02]"
                   : "text-slate-400 hover:text-white"
               }`}
             >
               <Building2 className="w-4 h-4" />
-              <span>{t("auth.medicalFacility", "Hospital")}</span>
+              <span>Hospital</span>
             </button>
           </div>
         </div>

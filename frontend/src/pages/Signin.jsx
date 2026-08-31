@@ -3,8 +3,6 @@ import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import { LogIn, Mail, Lock, AlertCircle, ShieldCheck, Heart } from "lucide-react";
 import DhiigKaalLogo from "../Components/DhiigKaalLogo.jsx";
-import LanguageSwitcher from "../Components/LanguageSwitcher.jsx";
-import { useTranslation } from "../context/LanguageContext.jsx";
 
 function Signin({ setUser }) {
   const [email, setEmail] = useState("");
@@ -12,7 +10,6 @@ function Signin({ setUser }) {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const navigate = useNavigate();
-  const { t } = useTranslation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -49,12 +46,7 @@ function Signin({ setUser }) {
   };
 
   return (
-    <div className="min-h-[calc(100vh-80px)] bg-slate-50 py-12 px-4 flex items-center justify-center relative">
-      {/* Top right language switcher */}
-      <div className="absolute top-4 right-4 sm:top-6 sm:right-8">
-        <LanguageSwitcher variant="dropdown" />
-      </div>
-
+    <div className="min-h-[calc(100vh-80px)] bg-slate-50 py-12 px-4 flex items-center justify-center">
       <div className="w-full max-w-md">
         {/* Top Centered Branding Logo */}
         <div className="text-center mb-8 flex flex-col items-center">
@@ -62,7 +54,7 @@ function Signin({ setUser }) {
             <DhiigKaalLogo size="lg" />
           </Link>
           <p className="text-sm font-medium text-slate-600">
-            {t("footer.tagline", "Blood Donation Management System")}
+            Blood Donation Management System
           </p>
         </div>
 
@@ -72,8 +64,8 @@ function Signin({ setUser }) {
           <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-red-600 via-rose-500 to-red-600"></div>
 
           <div className="mb-6">
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-900">{t("auth.welcomeBack", "Welcome Back")}</h2>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1">{t("auth.signInSubtitle", "Sign in to access your portal")}</p>
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900">Welcome Back</h2>
+            <p className="text-xs sm:text-sm text-slate-500 mt-1">Sign in to access your portal</p>
           </div>
 
           {errorMessage && (
@@ -87,7 +79,7 @@ function Signin({ setUser }) {
             {/* Email Input */}
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                {t("auth.emailAddress", "Email Address")}
+                Email Address
               </label>
               <div className="relative">
                 <input
@@ -104,7 +96,7 @@ function Signin({ setUser }) {
             {/* Password Input */}
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                {t("auth.password", "Password")}
+                Password
               </label>
               <div className="relative">
                 <input
@@ -122,20 +114,20 @@ function Signin({ setUser }) {
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 py-3 px-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-xl shadow-lg shadow-red-600/30 hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 text-sm cursor-pointer"
+              className="w-full mt-2 py-3 px-4 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white font-bold rounded-xl shadow-lg shadow-red-600/30 hover:shadow-xl transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 text-sm"
             >
               <LogIn className="w-4 h-4" />
-              {loading ? t("auth.signingIn", "Signing in...") : t("auth.signInBtn", "Sign In to Portal")}
+              {loading ? "Signing in..." : "Sign In to Portal"}
             </button>
           </form>
 
           {/* Quick Role Notice */}
           <div className="mt-6 pt-5 border-t border-slate-100 flex items-center justify-center gap-4 text-xs text-slate-500">
             <span className="flex items-center gap-1 font-medium">
-              <span className="w-2 h-2 rounded-full bg-red-600"></span> {t("auth.voluntaryDonor", "Donor")}
+              <span className="w-2 h-2 rounded-full bg-red-600"></span> Donor
             </span>
             <span className="flex items-center gap-1 font-medium">
-              <span className="w-2 h-2 rounded-full bg-sky-500"></span> {t("auth.medicalFacility", "Hospital")}
+              <span className="w-2 h-2 rounded-full bg-sky-500"></span> Hospital
             </span>
             <span className="flex items-center gap-1 font-medium">
               <span className="w-2 h-2 rounded-full bg-slate-700"></span> Admin
@@ -145,9 +137,9 @@ function Signin({ setUser }) {
           {/* Sign Up Link */}
           <div className="mt-5 pt-4 border-t border-slate-100 text-center">
             <p className="text-sm text-slate-600">
-              {t("auth.dontHaveAccount", "Don't have an account?")}{" "}
+              New blood donor?{" "}
               <Link to="/signup" className="text-red-600 hover:text-red-700 font-bold hover:underline">
-                {t("auth.createAccount", "Register as a Donor")}
+                Register as a Donor
               </Link>
             </p>
           </div>

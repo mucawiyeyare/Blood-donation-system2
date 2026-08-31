@@ -16,12 +16,9 @@ import {
   History,
 } from "lucide-react";
 import DhiigKaalLogo from "./DhiigKaalLogo.jsx";
-import LanguageSwitcher from "./LanguageSwitcher.jsx";
-import { useTranslation } from "../context/LanguageContext.jsx";
 
 function Sidebar({ isOpen, onClose }) {
   const role = localStorage.getItem("role"); // admin / donor / hospital / health_institution
-  const { t } = useTranslation();
 
   // Navigation link style helper
   const linkClass = ({ isActive }) =>
@@ -69,43 +66,43 @@ function Sidebar({ isOpen, onClose }) {
           <>
             <NavLink to="/dashboard" end className={linkClass} onClick={handleLinkClick}>
               <LayoutDashboard className="w-5 h-5 text-sky-400" />
-              <span>{t("sidebar.dashboard", "Dashboard")}</span>
+              <span>Dashboard</span>
             </NavLink>
             <NavLink to="/dashboard/hospitals" className={linkClass} onClick={handleLinkClick}>
               <Building2 className="w-5 h-5 text-red-400" />
-              <span>{t("sidebar.hospitals", "Hospitals")}</span>
+              <span>Hospitals</span>
             </NavLink>
             <NavLink to="/dashboard/donors" className={linkClass} onClick={handleLinkClick}>
               <Droplet className="w-5 h-5 text-red-500" />
-              <span>{t("sidebar.allDonors", "Donors")}</span>
+              <span>Donors</span>
             </NavLink>
             <NavLink to="/dashboard/users" className={linkClass} onClick={handleLinkClick}>
               <Users className="w-5 h-5 text-sky-400" />
-              <span>{t("sidebar.users", "System Users")}</span>
+              <span>System Users</span>
             </NavLink>
             <NavLink to="/dashboard/register-user" className={linkClass} onClick={handleLinkClick}>
               <UserPlus className="w-5 h-5 text-emerald-400" />
-              <span>{t("sidebar.registerUser", "Register User")}</span>
+              <span>Register User</span>
             </NavLink>
             <NavLink to="/dashboard/reports" className={linkClass} onClick={handleLinkClick}>
               <FileText className="w-5 h-5 text-amber-400" />
-              <span>{t("sidebar.reports", "Reports")}</span>
+              <span>Reports</span>
             </NavLink>
             <NavLink to="/dashboard/analysis" className={linkClass} onClick={handleLinkClick}>
               <BarChart3 className="w-5 h-5 text-sky-400" />
-              <span>{t("sidebar.analytics", "Analytics")}</span>
+              <span>Analytics</span>
             </NavLink>
             <NavLink to="/dashboard/activity" className={linkClass} onClick={handleLinkClick}>
               <Activity className="w-5 h-5 text-rose-400" />
-              <span>{t("sidebar.activityLog", "Activity Log")}</span>
+              <span>Activity Log</span>
             </NavLink>
             <NavLink to="/dashboard/messages" className={linkClass} onClick={handleLinkClick}>
               <MessageSquare className="w-5 h-5 text-indigo-400" />
-              <span>{t("sidebar.messages", "Messages")}</span>
+              <span>Messages</span>
             </NavLink>
             <NavLink to="/dashboard/profile" className={linkClass} onClick={handleLinkClick}>
               <UserCircle className="w-5 h-5 text-gray-400" />
-              <span>{t("sidebar.profile", "My Profile")}</span>
+              <span>My Profile</span>
             </NavLink>
           </>
         )}
@@ -115,27 +112,27 @@ function Sidebar({ isOpen, onClose }) {
           <>
             <NavLink to="/dashboard" end className={linkClass} onClick={handleLinkClick}>
               <LayoutDashboard className="w-5 h-5 text-sky-400" />
-              <span>{t("sidebar.dashboard", "Dashboard")}</span>
+              <span>Dashboard</span>
             </NavLink>
             <NavLink to="/dashboard/hospital-donors" className={linkClass} onClick={handleLinkClick}>
               <Droplet className="w-5 h-5 text-red-500" />
-              <span>{t("sidebar.hospitalDonors", "Available Donors")}</span>
+              <span>Available Donors</span>
             </NavLink>
             <NavLink to="/dashboard/hospital-requests" className={linkClass} onClick={handleLinkClick}>
               <Inbox className="w-5 h-5 text-amber-400" />
-              <span>{t("sidebar.hospitalRequests", "Active Requests")}</span>
+              <span>Active Requests</span>
             </NavLink>
             <NavLink to="/dashboard/hospital-history" className={linkClass} onClick={handleLinkClick}>
               <History className="w-5 h-5 text-emerald-400" />
-              <span>{t("sidebar.myDonations", "Donations History")}</span>
+              <span>Donations History</span>
             </NavLink>
             <NavLink to="/dashboard/reports" className={linkClass} onClick={handleLinkClick}>
               <FileText className="w-5 h-5 text-sky-400" />
-              <span>{t("sidebar.reports", "Reports")}</span>
+              <span>Reports</span>
             </NavLink>
             <NavLink to="/dashboard/profile" className={linkClass} onClick={handleLinkClick}>
               <UserCircle className="w-5 h-5 text-gray-400" />
-              <span>{t("sidebar.profile", "Hospital Profile")}</span>
+              <span>Hospital Profile</span>
             </NavLink>
           </>
         )}
@@ -145,11 +142,11 @@ function Sidebar({ isOpen, onClose }) {
           <>
             <NavLink to="/dashboard/donor-requests" className={linkClass} onClick={handleLinkClick}>
               <Inbox className="w-5 h-5 text-red-400" />
-              <span>{t("sidebar.donorRequests", "My Status & Requests")}</span>
+              <span>My Status & Requests</span>
             </NavLink>
             <NavLink to="/dashboard/profile" className={linkClass} onClick={handleLinkClick}>
               <UserCircle className="w-5 h-5 text-sky-400" />
-              <span>{t("sidebar.profile", "Profile & History")}</span>
+              <span>Profile & History</span>
             </NavLink>
           </>
         )}
@@ -159,45 +156,40 @@ function Sidebar({ isOpen, onClose }) {
           <>
             <NavLink to="/dashboard" end className={linkClass} onClick={handleLinkClick}>
               <LayoutDashboard className="w-5 h-5 text-sky-400" />
-              <span>{t("sidebar.dashboard", "National Dashboard")}</span>
+              <span>National Dashboard</span>
             </NavLink>
             <NavLink to="/dashboard/reports" className={linkClass} onClick={handleLinkClick}>
               <FileText className="w-5 h-5 text-amber-400" />
-              <span>{t("sidebar.reports", "National Reports & Export")}</span>
+              <span>National Reports & Export</span>
             </NavLink>
             <NavLink to="/dashboard/donors" className={linkClass} onClick={handleLinkClick}>
               <Droplet className="w-5 h-5 text-red-500" />
-              <span>{t("sidebar.allDonors", "National Donors Registry")}</span>
+              <span>National Donors Registry</span>
             </NavLink>
             <NavLink to="/dashboard/hospitals" className={linkClass} onClick={handleLinkClick}>
               <Building2 className="w-5 h-5 text-indigo-400" />
-              <span>{t("sidebar.hospitals", "Hospitals Directory")}</span>
+              <span>Hospitals Directory</span>
             </NavLink>
             <NavLink to="/dashboard/analysis" className={linkClass} onClick={handleLinkClick}>
               <BarChart3 className="w-5 h-5 text-sky-400" />
-              <span>{t("sidebar.analytics", "Health Analytics")}</span>
+              <span>Health Analytics</span>
             </NavLink>
             <NavLink to="/dashboard/activity" className={linkClass} onClick={handleLinkClick}>
               <Activity className="w-5 h-5 text-rose-400" />
-              <span>{t("sidebar.activityLog", "Activity Log")}</span>
+              <span>Activity Log</span>
             </NavLink>
             <NavLink to="/dashboard/profile" className={linkClass} onClick={handleLinkClick}>
               <UserCircle className="w-5 h-5 text-gray-400" />
-              <span>{t("sidebar.profile", "Institution Profile")}</span>
+              <span>Institution Profile</span>
             </NavLink>
           </>
         )}
       </nav>
 
-      {/* Language Selector & Footer System Info */}
-      <div className="pt-4 mt-auto border-t border-slate-800 text-center space-y-3">
-        <div className="flex justify-center">
-          <LanguageSwitcher variant="pills" />
-        </div>
-        <div>
-          <p className="text-[11px] text-slate-400 font-medium">DHIIG KAAL BDMS v2.0</p>
-          <p className="text-[10px] text-slate-500">Ministry of Health & Healthcare Partners</p>
-        </div>
+      {/* Footer System Info */}
+      <div className="pt-4 mt-auto border-t border-slate-800 text-center">
+        <p className="text-[11px] text-slate-400 font-medium">DHIIG KAAL BDMS v2.0</p>
+        <p className="text-[10px] text-slate-500">Ministry of Health & Healthcare Partners</p>
       </div>
     </div>
   );
