@@ -172,6 +172,12 @@ function Contact() {
     }
   };
 
+  const handlePaste = (e) => {
+    if (e.clipboardData && e.clipboardData.files && e.clipboardData.files.length > 0) {
+      processFiles(e.clipboardData.files);
+    }
+  };
+
   const removeAttachment = (id) => {
     setAttachments(prev => prev.filter(att => att.id !== id));
   };
