@@ -74,6 +74,11 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    // Top Heroes / Leaderboard visibility preference (Public vs Private)
+    allowPublicLeaderboard: {
+      type: Boolean,
+      default: true,
+    },
   },
   { timestamps: true }
 );

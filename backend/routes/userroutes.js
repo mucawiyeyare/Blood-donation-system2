@@ -20,7 +20,7 @@ router.get("/profile", protect, getProfile);
 // Update profile
 router.put("/profile", protect, async (req, res) => {
   try {
-    const { name, phone, location, bloodType, nationalId, gender, age, profileImage } = req.body;
+    const { name, phone, location, bloodType, nationalId, gender, age, profileImage, allowPublicLeaderboard } = req.body;
     
     const user = await User.findById(req.user._id);
     if (!user) {
@@ -36,6 +36,7 @@ router.put("/profile", protect, async (req, res) => {
     if (gender) user.gender = gender;
     if (age !== undefined) user.age = Number(age);
     if (profileImage !== undefined) user.profileImage = profileImage;
+    if (allowPublicLeaderboard !== undefined) user.allowPublicLeaderboard = Boolean(allowPublicLeaderboard);
 
     await user.save();
 
@@ -55,6 +56,7 @@ router.put("/profile", protect, async (req, res) => {
         isAvailable: user.isAvailable,
         lastDonationDate: user.lastDonationDate,
         profileImage: user.profileImage,
+        allowPublicLeaderboard: user.allowPublicLeaderboard,
       }
     });
   } catch (err) {

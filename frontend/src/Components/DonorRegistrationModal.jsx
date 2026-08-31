@@ -15,6 +15,7 @@ import {
   Droplet,
   ArrowRight,
   Sparkles,
+  Trophy,
 } from "lucide-react";
 import DhiigKaalLogo from "./DhiigKaalLogo.jsx";
 import { SOMALIA_REGIONS } from "../utils/somaliaLocations.js";
@@ -35,6 +36,7 @@ function DonorRegistrationModal({ isOpen, onClose }) {
     district: "",
     bloodType: "O+",
     age: "",
+    allowPublicLeaderboard: true,
   });
 
   const [loading, setLoading] = useState(false);
@@ -382,6 +384,71 @@ function DonorRegistrationModal({ isOpen, onClose }) {
                 placeholder="Minimum 6 characters"
                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
               />
+            </div>
+
+            {/* 🏆 Hall of Heroes Leaderboard Visibility Preference */}
+            <div className="sm:col-span-2 p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200">
+              <div className="flex items-start gap-2.5">
+                <div className="p-1.5 bg-amber-500 text-white rounded-lg shadow-sm mt-0.5">
+                  <Trophy className="w-4 h-4" />
+                </div>
+                <div className="flex-1">
+                  <label className="block text-[11px] font-black text-slate-900 uppercase tracking-wider mb-0.5">
+                    Hall of Heroes Visibility *
+                  </label>
+                  <p className="text-[11px] text-slate-600 mb-2 leading-tight">
+                    Do you allow your profile to appear on the public <strong>Top Blood Heroes</strong> leaderboard on the homepage?
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setFormData((prev) => ({ ...prev, allowPublicLeaderboard: true }))}
+                      className={`p-2.5 rounded-xl border text-left text-xs font-bold flex items-center gap-2 transition-all ${
+                        formData.allowPublicLeaderboard !== false
+                          ? "bg-white border-amber-500 ring-2 ring-amber-500/20 text-slate-900 shadow-sm"
+                          : "bg-white/60 border-slate-200 text-slate-500 hover:bg-white"
+                      }`}
+                    >
+                      <div
+                        className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${
+                          formData.allowPublicLeaderboard !== false ? "border-amber-600 bg-amber-600" : "border-slate-300"
+                        }`}
+                      >
+                        {formData.allowPublicLeaderboard !== false && (
+                          <span className="w-1 h-1 rounded-full bg-white"></span>
+                        )}
+                      </div>
+                      <div>
+                        <span className="block text-slate-900 font-bold text-[11px]">⭐ Yes, Show in Top Heroes</span>
+                      </div>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setFormData((prev) => ({ ...prev, allowPublicLeaderboard: false }))}
+                      className={`p-2.5 rounded-xl border text-left text-xs font-bold flex items-center gap-2 transition-all ${
+                        formData.allowPublicLeaderboard === false
+                          ? "bg-white border-slate-700 ring-2 ring-slate-700/20 text-slate-900 shadow-sm"
+                          : "bg-white/60 border-slate-200 text-slate-500 hover:bg-white"
+                      }`}
+                    >
+                      <div
+                        className={`w-3.5 h-3.5 rounded-full border-2 flex items-center justify-center ${
+                          formData.allowPublicLeaderboard === false ? "border-slate-800 bg-slate-800" : "border-slate-300"
+                        }`}
+                      >
+                        {formData.allowPublicLeaderboard === false && (
+                          <span className="w-1 h-1 rounded-full bg-white"></span>
+                        )}
+                      </div>
+                      <div>
+                        <span className="block text-slate-900 font-bold text-[11px]">🔒 No, Keep Me Private</span>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Submit Button */}

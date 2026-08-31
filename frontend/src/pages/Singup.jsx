@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   Droplet, Building2, User, Mail, Lock, Phone, MapPin,
   ShieldCheck, HeartHandshake, Calendar, AlertCircle, CheckCircle2,
-  FileCheck2, Sparkles, Activity
+  FileCheck2, Sparkles, Activity, Trophy, Award
 } from "lucide-react";
 import DhiigKaalLogo from "../Components/DhiigKaalLogo.jsx";
 import { SOMALIA_REGIONS } from "../utils/somaliaLocations.js";
@@ -27,6 +27,7 @@ function Signup() {
     district: "",
     bloodType: "O+",
     age: "",
+    allowPublicLeaderboard: true,
   });
 
   // Hospital form fields
@@ -120,6 +121,7 @@ function Signup() {
           location: `${donorData.district}, ${donorData.region}`,
           bloodType: donorData.bloodType,
           age: donorData.age,
+          allowPublicLeaderboard: donorData.allowPublicLeaderboard !== false,
         };
 
         const res = await axios.post("/api/users/register", payload);
@@ -559,6 +561,73 @@ function Signup() {
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm transition-all"
                       required
                     />
+                  </div>
+                </div>
+
+                {/* 🏆 Hall of Heroes Leaderboard Visibility Preference */}
+                <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/90 shadow-sm">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-amber-500 text-white rounded-xl shadow-sm mt-0.5">
+                      <Trophy className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-xs font-black text-slate-900 uppercase tracking-wider mb-1">
+                        Hall of Heroes Leaderboard Visibility *
+                      </label>
+                      <p className="text-xs text-slate-600 mb-3 leading-relaxed">
+                        Do you allow your name and donation achievements to be publicly featured on the <strong>Top Blood Heroes</strong> leaderboard on the homepage?
+                      </p>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <button
+                          type="button"
+                          onClick={() => setDonorData((prev) => ({ ...prev, allowPublicLeaderboard: true }))}
+                          className={`p-3 rounded-xl border text-left text-xs font-bold flex items-center gap-2.5 transition-all ${
+                            donorData.allowPublicLeaderboard !== false
+                              ? "bg-white border-amber-500 ring-2 ring-amber-500/20 text-slate-900 shadow-sm"
+                              : "bg-white/60 border-slate-200 text-slate-500 hover:bg-white"
+                          }`}
+                        >
+                          <div
+                            className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                              donorData.allowPublicLeaderboard !== false ? "border-amber-600 bg-amber-600" : "border-slate-300"
+                            }`}
+                          >
+                            {donorData.allowPublicLeaderboard !== false && (
+                              <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
+                            )}
+                          </div>
+                          <div>
+                            <span className="block text-slate-900 font-bold">⭐ Yes, Feature My Profile</span>
+                            <span className="block text-[10px] text-slate-500 font-normal">Show me in Top Heroes if I rank</span>
+                          </div>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setDonorData((prev) => ({ ...prev, allowPublicLeaderboard: false }))}
+                          className={`p-3 rounded-xl border text-left text-xs font-bold flex items-center gap-2.5 transition-all ${
+                            donorData.allowPublicLeaderboard === false
+                              ? "bg-white border-slate-700 ring-2 ring-slate-700/20 text-slate-900 shadow-sm"
+                              : "bg-white/60 border-slate-200 text-slate-500 hover:bg-white"
+                          }`}
+                        >
+                          <div
+                            className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                              donorData.allowPublicLeaderboard === false ? "border-slate-800 bg-slate-800" : "border-slate-300"
+                            }`}
+                          >
+                            {donorData.allowPublicLeaderboard === false && (
+                              <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
+                            )}
+                          </div>
+                          <div>
+                            <span className="block text-slate-900 font-bold">🔒 No, Keep Me Private</span>
+                            <span className="block text-[10px] text-slate-500 font-normal">Never show me on leaderboard</span>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </>

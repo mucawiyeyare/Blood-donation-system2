@@ -718,6 +718,13 @@ export const getLeaderboard = async (req, res) => {
         },
       },
       { $unwind: "$donor" },
+      // Exclude donors who opted out of public leaderboard visibility
+      {
+        $match: {
+          "donor.allowPublicLeaderboard": { $ne: false },
+          "donor.role": "donor",
+        },
+      },
       {
         $project: {
           _id: 0,

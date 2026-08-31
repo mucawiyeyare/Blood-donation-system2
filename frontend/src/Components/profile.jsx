@@ -26,6 +26,7 @@ import {
   Camera,
   Upload,
   Trash2,
+  Trophy,
 } from "lucide-react";
 import DhiigKaalLogo from "./DhiigKaalLogo.jsx";
 import ImageCropModal from "./ImageCropModal.jsx";
@@ -544,6 +545,68 @@ function Profile() {
               </select>
             </div>
           </div>
+
+          {/* 🏆 Hall of Heroes Leaderboard Visibility Setting (For Donors) */}
+          {profile?.role === "donor" && (
+            <div className="mt-6 p-4 rounded-2xl bg-amber-50/70 border border-amber-200">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-amber-500 text-white rounded-xl shadow-sm mt-0.5">
+                    <Trophy className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm text-slate-900">Hall of Heroes Leaderboard Visibility</h4>
+                    <p className="text-xs text-slate-600 mt-0.5">
+                      Allow your name and donation rank to be publicly displayed on the homepage Top Heroes board.
+                    </p>
+                    <span className="inline-block mt-1 text-[11px] font-bold text-slate-700">
+                      Current Setting:{" "}
+                      <strong className={profile?.allowPublicLeaderboard !== false ? "text-emerald-700" : "text-slate-600"}>
+                        {profile?.allowPublicLeaderboard !== false ? "⭐ Public (Visible on Leaderboard)" : "🔒 Private (Hidden from Leaderboard)"}
+                      </strong>
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const nextVal = !(profile?.allowPublicLeaderboard !== false);
+                    try {
+                      const token = localStorage.getItem("token");
+                      const res = await axios.put(
+                        "/api/users/profile",
+                        { allowPublicLeaderboard: nextVal },
+                        { headers: { Authorization: `Bearer ${token}` } }
+                      );
+                      setProfile(res.data.user);
+                      setMessage({
+                        type: "success",
+                        text: `Leaderboard visibility updated to: ${nextVal ? "Public ⭐" : "Private 🔒"}`,
+                      });
+                    } catch (err) {
+                      setMessage({ type: "error", text: "Failed to update visibility setting." });
+                    }
+                  }}
+                  className={`px-4 py-2.5 rounded-xl font-bold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5 ${
+                    profile?.allowPublicLeaderboard !== false
+                      ? "bg-amber-600 hover:bg-amber-700 text-white"
+                      : "bg-slate-800 hover:bg-slate-900 text-white"
+                  }`}
+                >
+                  {profile?.allowPublicLeaderboard !== false ? (
+                    <>
+                      <span>Switch to Private 🔒</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Make Public ⭐</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Change Password Sub-form */}
           {showPasswordForm && (

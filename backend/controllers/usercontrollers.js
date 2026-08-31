@@ -15,7 +15,7 @@ const generateToken = (user) => {
 /** Register User (Donor or Hospital) */
 export const registerDonor = async (req, res) => {
   try {
-    const { nationalId, gender, name, email, password, phone, location, bloodType, age, dateOfBirth, role, hospitalLicense } = req.body;
+    const { nationalId, gender, name, email, password, phone, location, bloodType, age, dateOfBirth, role, hospitalLicense, allowPublicLeaderboard } = req.body;
     const userRole = role === "hospital" ? "hospital" : "donor";
 
     if (userRole === "hospital") {
@@ -58,6 +58,7 @@ export const registerDonor = async (req, res) => {
       role: userRole,
       isAvailable: true,
       isApproved,
+      allowPublicLeaderboard: typeof allowPublicLeaderboard === "boolean" ? allowPublicLeaderboard : true,
     });
 
     await createLog(
@@ -161,6 +162,7 @@ export const loginUser = async (req, res) => {
         isAvailable: user.isAvailable,
         lastDonationDate: user.lastDonationDate,
         isApproved: user.isApproved,
+        allowPublicLeaderboard: user.allowPublicLeaderboard,
       },
     });
   } catch (error) {
