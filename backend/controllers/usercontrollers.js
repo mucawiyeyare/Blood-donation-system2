@@ -41,6 +41,8 @@ export const registerDonor = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    const isApproved = userRole === "hospital" ? false : true;
+
     const newUser = await User.create({
       nationalId: userRole === "donor" && nationalId ? nationalId.trim() : undefined,
       gender: userRole === "donor" ? gender : undefined,
@@ -55,20 +57,38 @@ export const registerDonor = async (req, res) => {
       hospitalLicense: userRole === "hospital" && hospitalLicense ? hospitalLicense.trim() : undefined,
       role: userRole,
       isAvailable: true,
+      isApproved,
     });
 
     await createLog(
       newUser._id,
-      userRole === "hospital" ? "New hospital registered" : "New donor registered",
+      userRole === "hospital" ? "New hospital registered (Pending Approval)" : "New donor registered",
       "user",
       "success",
-      userRole === "hospital" ? `Hospital: ${newUser.name}` : `Donor: ${newUser.name} (${newUser.bloodType})`
+      userRole === "hospital" ? `Hospital: ${newUser.name} (Waiting for Admin Approval)` : `Donor: ${newUser.name} (${newUser.bloodType})`
     );
+
+    // If hospital, do not provide login token yet since admin approval is required
+    if (userRole === "hospital") {
+      return res.status(201).json({
+        message: "Hospital registration submitted successfully! Your account is currently PENDING ADMINISTRATOR APPROVAL. Please wait for the admin to verify and activate your facility before logging in.",
+        isPendingApproval: true,
+        user: {
+          id: newUser._id,
+          name: newUser.name,
+          email: newUser.email,
+          phone: newUser.phone,
+          location: newUser.location,
+          role: newUser.role,
+          isApproved: false,
+        },
+      });
+    }
 
     const token = generateToken(newUser);
 
     res.status(201).json({
-      message: userRole === "hospital" ? "Hospital registered successfully in DHIIG KAAL system" : "Donor registered successfully in DHIIG KAAL system",
+      message: "Donor registered successfully in DHIIG KAAL system",
       token,
       user: {
         id: newUser._id,
@@ -79,7 +99,6 @@ export const registerDonor = async (req, res) => {
         bloodType: newUser.bloodType,
         role: newUser.role,
         nationalId: newUser.nationalId,
-        hospitalLicense: newUser.hospitalLicense,
       },
     });
   } catch (error) {
@@ -113,6 +132,14 @@ export const loginUser = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: "Invalid email or password" });
 
+    // Block unapproved hospitals from logging in
+    if (user.role === "hospital" && user.isApproved === false) {
+      return res.status(403).json({
+        message: "Your hospital account is currently pending administrator verification and approval. Please wait for an administrator to review and activate your facility before signing in.",
+        isPendingApproval: true,
+      });
+    }
+
     const token = generateToken(user);
 
     await createLog(user._id, "User signed in", "user", "success", `Role: ${user.role}`);
@@ -133,6 +160,7 @@ export const loginUser = async (req, res) => {
         role: user.role,
         isAvailable: user.isAvailable,
         lastDonationDate: user.lastDonationDate,
+        isApproved: user.isApproved,
       },
     });
   } catch (error) {

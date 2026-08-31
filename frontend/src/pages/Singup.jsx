@@ -41,6 +41,8 @@ function Signup() {
     district: "",
   });
 
+  const [hospitalPendingSubmitted, setHospitalPendingSubmitted] = useState(null);
+
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [nameError, setNameError] = useState("");
@@ -163,10 +165,13 @@ function Signup() {
         };
 
         const res = await axios.post("/api/users/register", payload);
-        setSuccessMessage(res.data.message || "Hospital registration successful! Redirecting to login...");
-        setTimeout(() => {
-          navigate("/signin");
-        }, 1500);
+        setHospitalPendingSubmitted({
+          name: hospitalData.name,
+          email: hospitalData.email,
+          phone: formattedPhone,
+          location: `${hospitalData.district}, ${hospitalData.region}`,
+          license: hospitalData.hospitalLicense,
+        });
       } catch (error) {
         setErrorMessage(error.response?.data?.message || "Hospital registration failed. Please check your information.");
       } finally {
@@ -177,6 +182,86 @@ function Signup() {
 
   const donorDistricts = SOMALIA_REGIONS[donorData.region] || [];
   const hospitalDistricts = SOMALIA_REGIONS[hospitalData.region] || [];
+
+  // If a hospital just registered, show the dedicated Pending Admin Approval notice
+  if (hospitalPendingSubmitted) {
+    return (
+      <div className="min-h-[calc(100vh-80px)] bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+        <div className="w-full max-w-xl">
+          {/* Top Centered Branding Logo */}
+          <div className="text-center mb-6 flex flex-col items-center">
+            <Link to="/" className="inline-block transform hover:scale-105 transition-transform duration-200 mb-3 bg-white p-3.5 rounded-2xl shadow-sm border border-slate-200/80">
+              <DhiigKaalLogo size="lg" />
+            </Link>
+          </div>
+
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 p-8 sm:p-10 relative overflow-hidden text-center">
+            {/* Top Amber Accent Bar */}
+            <div className="absolute top-0 left-0 right-0 h-2.5 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600"></div>
+
+            <div className="w-20 h-20 bg-amber-100 text-amber-700 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner border border-amber-200 animate-pulse">
+              <Building2 className="w-10 h-10 text-amber-600" />
+            </div>
+
+            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-black bg-amber-100 text-amber-800 border border-amber-300 uppercase tracking-wider mb-4">
+              ⏳ Pending Administrator Approval
+            </span>
+
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 mb-2">
+              Registration Received!
+            </h2>
+            <p className="text-slate-600 text-sm mb-6 max-w-md mx-auto">
+              Your hospital registration for <strong className="text-slate-900 font-bold">{hospitalPendingSubmitted.name}</strong> has been submitted. In accordance with healthcare protocols, all medical facilities must be reviewed and approved by an administrator before access is granted.
+            </p>
+
+            {/* Hospital Summary Box */}
+            <div className="bg-slate-50 rounded-2xl p-4 mb-6 border border-slate-200 text-left text-xs space-y-2">
+              <div className="flex justify-between border-b border-slate-200 pb-2">
+                <span className="text-slate-500 font-medium">Hospital Name:</span>
+                <span className="font-bold text-slate-900">{hospitalPendingSubmitted.name}</span>
+              </div>
+              <div className="flex justify-between border-b border-slate-200 pb-2">
+                <span className="text-slate-500 font-medium">Location:</span>
+                <span className="font-bold text-slate-900">{hospitalPendingSubmitted.location}</span>
+              </div>
+              <div className="flex justify-between border-b border-slate-200 pb-2">
+                <span className="text-slate-500 font-medium">Official Email:</span>
+                <span className="font-bold text-slate-900">{hospitalPendingSubmitted.email}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-medium">Approval Status:</span>
+                <span className="font-black text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full text-[10px]">
+                  Awaiting Admin Verification
+                </span>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs text-left mb-6 flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <p>
+                <strong>Next Step:</strong> Our administrative team will verify your facility details. You will not be able to log in to dispatch donor requests until your account is approved.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Link
+                to="/"
+                className="flex-1 py-3 px-4 rounded-xl border border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors"
+              >
+                Return to Homepage
+              </Link>
+              <Link
+                to="/signin"
+                className="flex-1 py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md transition-colors"
+              >
+                Go to Sign In
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[calc(100vh-80px)] bg-slate-50 py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
