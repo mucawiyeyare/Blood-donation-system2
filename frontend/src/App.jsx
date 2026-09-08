@@ -32,6 +32,8 @@ import HospitalManagement from "./Components/HospitalManagement.jsx";
 import DashboardMessages from "./Components/DashboardMessages.jsx";
 import DonorRegistrationModal from "./Components/DonorRegistrationModal.jsx";
 import ScrollToTop from "./Components/ScrollToTop.jsx";
+import { NotificationProvider } from "./context/NotificationContext.jsx";
+import MobileNotificationBanner from "./Components/MobileNotificationBanner.jsx";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -81,9 +83,11 @@ function App() {
   };
 
   return (
-    <>
-    <ScrollToTop />
-    <Routes>
+    <NotificationProvider>
+      <ScrollToTop />
+      {/* Heads-up Mobile Push Notification Banner (WhatsApp / Phone Top Notification) */}
+      <MobileNotificationBanner />
+      <Routes>
       {/* Public Routes with Navbar and Footer */}
       <Route
         path="/"
@@ -304,7 +308,7 @@ function App() {
       isOpen={isRegisterModalOpen}
       onClose={() => setIsRegisterModalOpen(false)}
     />
-    </>
+    </NotificationProvider>
   );
 }
 

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Routes, Route, Outlet, Navigate, useNavigate } from "react-router-dom";
 import Sidebar from "../Components/Sidebar.jsx";
+import NotificationDropdown from "../Components/NotificationDropdown.jsx";
 import { LogOut, Menu, X, UserCheck, Shield, Droplet, Building2 } from "lucide-react";
 
 function Dashboard({ setUser }) {
@@ -95,7 +96,10 @@ function Dashboard({ setUser }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            {/* Notification Center Bell */}
+            <NotificationDropdown />
+
             {getRoleBadge()}
 
             {/* Logout Button */}

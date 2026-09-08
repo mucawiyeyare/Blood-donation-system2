@@ -24,6 +24,7 @@ router.post("/create", protect, createRequest);
 
 // Hospital creates batch requests for multiple donors (Option B)
 router.post("/create-batch", protect, createBatchRequest);
+router.post("/batch-create", protect, createBatchRequest);
 
 // Get all requests made by a hospital
 router.get("/hospital", protect, getHospitalRequests);

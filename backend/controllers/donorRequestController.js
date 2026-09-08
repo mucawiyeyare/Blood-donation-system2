@@ -4,6 +4,7 @@ import Donation from "../models/donationModel.js";
 import { createLog } from "./activityLogController.js";
 import { sendWhatsAppMessage } from "../services/whatsappService.js";
 import { sendDirectSMS, buildEmergencySMSText, identifySomaliCarrier } from "../services/smsService.js";
+import { createNotification } from "./notificationController.js";
 
 // Helper: Auto-resolve expired requests older than 2 hours
 export const resolveExpiredRequests = async () => {
@@ -145,6 +146,25 @@ export const createRequest = async (req, res) => {
     // Send real WhatsApp message if gateway is connected
     const waResult = await sendWhatsAppMessage(donor.phone, waMessageText);
 
+    // Send in-system notification to donor
+    const sysNotification = await createNotification({
+      recipient: donor._id,
+      sender: targetHospitalId,
+      title: `🩸 Codsi Dhiig-bixin Degdeg ah (${urgency || "Routine"})`,
+      message: `${hospital?.name || "Isbitaalka"} wuxuu kuu soo diray codsi dhiig-bixin degdeg ah (${bloodType || donor.bloodType}). Fadlan fur si aad uga jawaabto.`,
+      type: "blood_request",
+      channel: "both",
+      data: {
+        requestId: donorRequest._id,
+        bloodType: bloodType || donor.bloodType,
+        urgency: urgency || "Routine",
+        hospitalName: hospital?.name || "Isbitaalka",
+        hospitalLocation: hospital?.location || "Mogadishu",
+        patientInfo: patientInfo || {},
+        actionUrl: "/dashboard/donor-requests",
+      },
+    });
+
     await createLog(
       req.user._id,
       "Donation request created",
@@ -154,11 +174,12 @@ export const createRequest = async (req, res) => {
     );
 
     res.status(201).json({
-      message: `Donor request created successfully. Direct Mobile SMS (${smsResult.carrier}) & WhatsApp dispatched. 2-hour arrival window started.`,
+      message: `Donor request created successfully. Direct Mobile SMS (${smsResult.carrier}), WhatsApp & In-System notification dispatched. 2-hour arrival window started.`,
       request: donorRequest,
       sms: smsResult,
       whatsapp: wa,
       whatsappDelivery: waResult,
+      notification: sysNotification,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -251,6 +272,24 @@ export const createBatchRequest = async (req, res) => {
       sendWhatsAppMessage(donor.phone, waMessageText).catch((e) =>
         console.error(`Batch WhatsApp send error for ${donor.phone}:`, e)
       );
+
+      // Send in-system notification to donor
+      createNotification({
+        recipient: donor._id,
+        sender: targetHospitalId,
+        title: `🩸 Codsi Dhiig-bixin Degdeg ah (${urgency || "Routine"})`,
+        message: `${hospital?.name || "Isbitaalka"} wuxuu kuu soo diray codsi dhiig-bixin degdeg ah (${bloodType || donor.bloodType}). Fadlan fur si aad uga jawaabto.`,
+        type: "batch_request",
+        channel: "both",
+        data: {
+          requestId: reqDoc._id,
+          bloodType: bloodType || donor.bloodType,
+          urgency: urgency || "Routine",
+          hospitalName: hospital?.name || "Isbitaalka",
+          hospitalLocation: hospital?.location || "Mogadishu",
+          actionUrl: "/dashboard/donor-requests",
+        },
+      }).catch((e) => console.error("[Batch Notification Error]", e));
 
       createdRequests.push({
         ...reqDoc.toObject(),
@@ -401,6 +440,26 @@ export const respondToRequest = async (req, res) => {
     await donorRequest.populate("hospitalId", "name email phone location");
     await donorRequest.populate("donorId", "name email phone bloodType location");
 
+    // Notify requesting hospital in system
+    await createNotification({
+      recipient: donorRequest.hospitalId._id,
+      sender: req.user._id,
+      title: response === "accept" ? "✅ Qof dhiig-bixiye ah ayaa aqbalay codsigaagii" : "⚠️ Qof dhiig-bixiye ah wuu cudur-daartay",
+      message: response === "accept"
+        ? `${donorRequest.donorId?.name || "Donor"} (${donorRequest.donorId?.bloodType || ""}) wuxuu aqbalay codsigaaga. Xilliga imaatinka: ${donorRequest.availabilityTime}.`
+        : `${donorRequest.donorId?.name || "Donor"} wuxuu cudur-daartay codsiga. Sababta: ${donorRequest.declineReason}.`,
+      type: response === "accept" ? "request_accepted" : "request_declined",
+      channel: "system",
+      data: {
+        requestId: donorRequest._id,
+        donorName: donorRequest.donorId?.name,
+        donorPhone: donorRequest.donorId?.phone,
+        bloodType: donorRequest.bloodType,
+        response,
+        actionUrl: "/dashboard/hospital-requests",
+      },
+    });
+
     res.json({
       message: `Request ${response}ed successfully`,
       request: donorRequest,
@@ -438,6 +497,21 @@ export const markArrived = async (req, res) => {
     await donorRequest.populate("donorId", "name email phone bloodType location");
 
     await createLog(req.user._id, "Donor arrived at hospital", "donation", "success", `Donor: ${donorRequest.donorId?.name}`);
+
+    // In-system notification for donor
+    createNotification({
+      recipient: donorRequest.donorId._id,
+      sender: req.user._id,
+      title: "🏥 Ku soo dhawaaw Isbitaalka!",
+      message: `${donorRequest.hospitalId?.name || "Isbitaalka"} wuxuu xaqiijiyay imaatinkaada. Mahadsanid dadaalkaada!`,
+      type: "donor_arrived",
+      channel: "system",
+      data: {
+        requestId: donorRequest._id,
+        hospitalName: donorRequest.hospitalId?.name,
+        actionUrl: "/dashboard/donor-requests",
+      },
+    }).catch((e) => console.error("[Notification Error]", e));
 
     res.json({
       message: "Donor marked as Arrived successfully",
@@ -519,6 +593,22 @@ export const markCompleted = async (req, res) => {
       "success",
       `Donor: ${donorRequest.donorId?.name} (Blood: ${donorRequest.bloodType})`
     );
+
+    // In-system notification for donor
+    createNotification({
+      recipient: donorRequest.donorId._id,
+      sender: req.user._id,
+      title: "🩸 Dhiig-shubiddii waa la dhammeystiray! Mahadsanid!",
+      message: `Mahadsanid ${donorRequest.donorId?.name}! Waxaad maanta badbaadisay nolol adiga oo dhiig u shubay ${donorRequest.hospitalId?.name || "Isbitaalka"}. Allaha ka ajarsiiyo!`,
+      type: "donation_completed",
+      channel: "both",
+      data: {
+        requestId: donorRequest._id,
+        donationId: donation._id,
+        hospitalName: donorRequest.hospitalId?.name,
+        actionUrl: "/dashboard/profile",
+      },
+    }).catch((e) => console.error("[Notification Error]", e));
 
     res.json({
       message: `Donation completed successfully! Donor is now in medical cooldown.${releasedCount > 0 ? ` Released ${releasedCount} other pending requests in batch.` : ""}`,

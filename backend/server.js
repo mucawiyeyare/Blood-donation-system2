@@ -13,6 +13,7 @@ import ContactRouter from "./routes/contactRoutes.js";
 import ActivityLogRouter from "./routes/activityLogRoutes.js"; 
 import WhatsAppRouter from "./routes/whatsappRoutes.js";
 import ReportRouter from "./routes/reportRoutes.js";
+import NotificationRouter from "./routes/notificationRoutes.js";
 import { initWhatsApp } from "./services/whatsappService.js"; 
 
 // Always load the environment file next to this server file
@@ -38,6 +39,7 @@ app.use("/api/contact", ContactRouter);
 app.use("/api/activity", ActivityLogRouter); 
 app.use("/api/whatsapp", WhatsAppRouter);
 app.use("/api/reports", ReportRouter);
+app.use("/api/notifications", NotificationRouter);
 
 app.get("/", (req, res) => {
   res.send("🩸 DHIIG KAAL — Blood Donation Management System API is running...");

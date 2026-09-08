@@ -173,7 +173,7 @@ function HospitalDonors() {
     setSubmitting(true);
     try {
       const token = localStorage.getItem("token");
-      await axios.post(
+      const res = await axios.post(
         "/api/requests/create",
         {
           donorId: pendingDonor._id,
@@ -196,8 +196,8 @@ function HospitalDonors() {
       const carrier = res.data.sms?.carrier || "Hormuud / Somtel";
       setToastMessage({
         type: "success",
-        title: "Direct Mobile SMS & WhatsApp Dispatched ✅",
-        description: `Emergency blood request sent to ${pendingDonor.name}'s ${carrier} SIM card. 2-hour arrival window started.`,
+        title: "WhatsApp & System Notification Dispatched ✅",
+        description: `Emergency blood request dispatched to ${pendingDonor.name} via WhatsApp, Direct SMS (${carrier}), and In-System Mobile Notification.`,
       });
       fetchDonors();
     } catch (err) {
