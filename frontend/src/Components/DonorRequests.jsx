@@ -20,7 +20,11 @@ import {
   User,
   Users,
   Trophy,
+  Bell,
+  Smartphone,
+  AlertTriangle,
 } from "lucide-react";
+import { useNotifications } from "../context/NotificationContext.jsx";
 
 function DonorRequests() {
   const [requests, setRequests] = useState([]);
@@ -40,6 +44,29 @@ function DonorRequests() {
 
   // Live timer tick
   const [now, setNow] = useState(Date.now());
+
+  // Web Push Notifications & YouTube Alert Testing
+  const { permissionStatus, requestNotificationPermission, triggerDelayedPushTest } = useNotifications();
+  const [testingPush, setTestingPush] = useState(false);
+  const [testStatusMessage, setTestStatusMessage] = useState("");
+
+  const handleTestPush = async () => {
+    try {
+      setTestingPush(true);
+      setTestStatusMessage(
+        "🚨 Digniinta waxaa la soo diri doonaa 4 ilbiriqsi ka dib. Hadda taleefankaaga u beddel YouTube ama app kale si aad u aragto!"
+      );
+      await triggerDelayedPushTest(4);
+      setTimeout(() => {
+        setTestingPush(false);
+        setTestStatusMessage("");
+      }, 7000);
+    } catch (err) {
+      alert(err.response?.data?.message || err.message || "Failed to trigger test push");
+      setTestingPush(false);
+      setTestStatusMessage("");
+    }
+  };
 
   useEffect(() => {
     fetchRequests();
@@ -229,6 +256,68 @@ function DonorRequests() {
             <p className="text-[10px] font-bold text-red-200 uppercase">Pending</p>
           </div>
         </div>
+      </div>
+
+      {/* Emergency OS-Level Push Alert Card (YouTube / Background Notifications) */}
+      <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border border-slate-700 text-white shadow-lg">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-start sm:items-center gap-3.5">
+            <div className="p-2.5 rounded-xl bg-red-500/20 text-red-400 border border-red-500/30 flex-shrink-0">
+              <Smartphone className="w-6 h-6 animate-pulse" />
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-sm sm:text-base font-bold text-white">
+                  Digniinta Taleefanka ee Dusha Sare (Over YouTube & Apps)
+                </h3>
+                <span
+                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold ${
+                    permissionStatus === "granted"
+                      ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
+                      : "bg-amber-500/20 text-amber-300 border border-amber-500/40"
+                  }`}
+                >
+                  {permissionStatus === "granted"
+                    ? "✅ Active / Diyaar ah"
+                    : "⚠️ Lama Oggolaan (Disabled)"}
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
+                Marka isbitaal dhiig degdeg ah kuu soo diro, digniintani waxay dusha sare kaga soo muuqanaysaa shaashadda taleefankaaga (heads-up warning) xitaa haddii aad YouTube daawaneyso ama apps kale isticmaaleyso.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5 w-full sm:w-auto flex-shrink-0">
+            {permissionStatus !== "granted" ? (
+              <button
+                onClick={requestNotificationPermission}
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 active:scale-95"
+              >
+                <Bell className="w-4 h-4" />
+                <span>Ogolow Digniinta (Enable Alerts)</span>
+              </button>
+            ) : (
+              <button
+                onClick={handleTestPush}
+                disabled={testingPush}
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:opacity-50 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 active:scale-95"
+              >
+                <Smartphone className="w-4 h-4" />
+                <span>
+                  {testingPush ? "Iska sug 4 ilbiriqsi..." : "Tijaabi Digniinta YouTube"}
+                </span>
+              </button>
+            )}
+          </div>
+        </div>
+
+        {testStatusMessage && (
+          <div className="mt-3 pt-3 border-t border-slate-700/80 flex items-center gap-2 text-xs text-emerald-300 font-semibold animate-pulse">
+            <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0" />
+            <span>{testStatusMessage}</span>
+          </div>
+        )}
       </div>
 
       {/* 1. Real-Time Status Workflow Stepper Banner */}

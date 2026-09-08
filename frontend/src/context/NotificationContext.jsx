@@ -6,16 +6,79 @@ const NotificationContext = createContext();
 
 export const useNotifications = () => useContext(NotificationContext);
 
+// Utility to convert VAPID base64 string to Uint8Array for PushManager
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
 export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [activeTopBanner, setActiveTopBanner] = useState(null);
   const [permissionStatus, setPermissionStatus] = useState("default");
+  const [isPushSubscribed, setIsPushSubscribed] = useState(false);
+  const [isSubscribing, setIsSubscribing] = useState(false);
 
   const knownIdsRef = useRef(new Set());
   const isInitialLoadRef = useRef(true);
   const pollTimerRef = useRef(null);
   const swRegistrationRef = useRef(null);
+
+  // Subscribe device to native OS-level Web Push (VAPID)
+  const subscribeToWebPush = useCallback(async () => {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+      console.debug("Web Push not supported on this browser");
+      return false;
+    }
+
+    const token = localStorage.getItem("token");
+    if (!token) return false;
+
+    try {
+      setIsSubscribing(true);
+      const reg = await navigator.serviceWorker.ready;
+      swRegistrationRef.current = reg;
+
+      // 1. Fetch server's public VAPID key
+      const keyRes = await axios.get("/api/notifications/vapid-key");
+      const vapidPublicKey = keyRes.data?.publicKey;
+      if (!vapidPublicKey) {
+        throw new Error("No VAPID public key received from server");
+      }
+
+      // 2. Check existing subscription or subscribe
+      let subscription = await reg.pushManager.getSubscription();
+      if (!subscription) {
+        subscription = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
+        });
+      }
+
+      // 3. Send subscription to backend
+      await axios.post(
+        "/api/notifications/subscribe",
+        subscription.toJSON(),
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setIsPushSubscribed(true);
+      console.log("[WebPush] Device successfully subscribed to OS emergency alerts");
+      return true;
+    } catch (err) {
+      console.error("[WebPush] Subscription error:", err);
+      return false;
+    } finally {
+      setIsSubscribing(false);
+    }
+  }, []);
 
   // Register service worker on mount
   useEffect(() => {
@@ -24,6 +87,10 @@ export const NotificationProvider = ({ children }) => {
         .register("/sw.js")
         .then((reg) => {
           swRegistrationRef.current = reg;
+          // If already granted, ensure device subscription is active
+          if (Notification.permission === "granted") {
+            subscribeToWebPush();
+          }
         })
         .catch((err) => {
           console.debug("Service worker registration failed:", err);
@@ -33,7 +100,7 @@ export const NotificationProvider = ({ children }) => {
     if ("Notification" in window) {
       setPermissionStatus(Notification.permission);
     }
-  }, []);
+  }, [subscribeToWebPush]);
 
   // Request browser push notification permission
   const requestNotificationPermission = async () => {
@@ -42,10 +109,38 @@ export const NotificationProvider = ({ children }) => {
     try {
       const permission = await Notification.requestPermission();
       setPermissionStatus(permission);
+
+      if (permission === "granted") {
+        await subscribeToWebPush();
+      }
       return permission;
     } catch (err) {
       console.error("Error requesting notification permission:", err);
       return "denied";
+    }
+  };
+
+  // Trigger delayed push test (delays 4 seconds so user can switch to YouTube)
+  const triggerDelayedPushTest = async (delaySeconds = 4) => {
+    const token = localStorage.getItem("token");
+    if (!token) return { success: false, message: "Please login first" };
+
+    try {
+      // Ensure subscribed
+      if (!isPushSubscribed) {
+        await subscribeToWebPush();
+      }
+
+      const res = await axios.post(
+        "/api/notifications/test-push",
+        { delaySeconds },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      return res.data;
+    } catch (err) {
+      console.error("Error triggering test push:", err);
+      throw err;
     }
   };
 
@@ -55,19 +150,19 @@ export const NotificationProvider = ({ children }) => {
       return;
     }
 
-    const title = notification.title || "🩸 Dhiig Kaal Notification";
+    const title = notification.title || "🚨 DIGIIN DEGDEG AH: Dhiig Baa Loo Baahan Yahay!";
     const options = {
-      body: notification.message || "Waxaad heshay codsi cusub.",
+      body: notification.message || "Waxaad heshay codsi dhiig-bixin degdeg ah.",
       icon: "/logo.png",
       badge: "/logo.png",
-      vibrate: [200, 100, 200],
+      vibrate: [400, 200, 400, 200, 400],
+      requireInteraction: true,
       tag: `dhiigkaal-${notification._id || Date.now()}`,
       data: {
         url: notification.data?.actionUrl || "/dashboard/donor-requests",
       },
     };
 
-    // Prefer service worker showNotification on mobile Android/Chrome
     if (swRegistrationRef.current && "showNotification" in swRegistrationRef.current) {
       swRegistrationRef.current.showNotification(title, options).catch(() => {
         try {
@@ -91,13 +186,8 @@ export const NotificationProvider = ({ children }) => {
   // Trigger mobile top notification heads-up banner & audio chime
   const notifyUser = useCallback(
     (notification) => {
-      // 1. Play realistic phone push notification chime
       playNotificationChime();
-
-      // 2. Set active in-app top mobile floating banner
       setActiveTopBanner(notification);
-
-      // 3. Fire native OS notification on mobile/desktop
       triggerNativeNotification(notification);
     },
     [triggerNativeNotification]
@@ -119,21 +209,16 @@ export const NotificationProvider = ({ children }) => {
         setUnreadCount(res.data.unreadCount || 0);
 
         if (isInitialLoadRef.current) {
-          // On first load, record existing IDs without firing loud banner alerts
           incoming.forEach((n) => knownIdsRef.current.add(n._id));
           isInitialLoadRef.current = false;
         } else {
-          // Check for newly arrived unread notifications
           const newItems = incoming.filter(
             (n) => !knownIdsRef.current.has(n._id) && !n.isRead
           );
 
           if (newItems.length > 0) {
-            // New notification arrived! Alert user with top mobile banner
             const latest = newItems[0];
             notifyUser(latest);
-
-            // Add new IDs to known set
             newItems.forEach((n) => knownIdsRef.current.add(n._id));
           }
         }
@@ -153,8 +238,6 @@ export const NotificationProvider = ({ children }) => {
     }
 
     fetchNotifications();
-
-    // Poll every 8 seconds for real-time notification sync
     pollTimerRef.current = setInterval(fetchNotifications, 8000);
 
     return () => {
@@ -162,7 +245,6 @@ export const NotificationProvider = ({ children }) => {
     };
   }, [fetchNotifications]);
 
-  // Mark single notification as read
   const markAsRead = async (id) => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -183,7 +265,6 @@ export const NotificationProvider = ({ children }) => {
     }
   };
 
-  // Mark all notifications as read
   const markAllAsRead = async () => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -202,7 +283,6 @@ export const NotificationProvider = ({ children }) => {
     }
   };
 
-  // Delete notification
   const deleteNotification = async (id) => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -224,7 +304,6 @@ export const NotificationProvider = ({ children }) => {
     }
   };
 
-  // Dismiss top mobile heads-up banner
   const dismissTopBanner = () => {
     setActiveTopBanner(null);
   };
@@ -236,12 +315,16 @@ export const NotificationProvider = ({ children }) => {
         unreadCount,
         activeTopBanner,
         permissionStatus,
+        isPushSubscribed,
+        isSubscribing,
         fetchNotifications,
         markAsRead,
         markAllAsRead,
         deleteNotification,
         dismissTopBanner,
         requestNotificationPermission,
+        subscribeToWebPush,
+        triggerDelayedPushTest,
         notifyUser,
       }}
     >

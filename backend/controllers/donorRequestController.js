@@ -5,6 +5,7 @@ import { createLog } from "./activityLogController.js";
 import { sendWhatsAppMessage } from "../services/whatsappService.js";
 import { sendDirectSMS, buildEmergencySMSText, identifySomaliCarrier } from "../services/smsService.js";
 import { createNotification } from "./notificationController.js";
+import { sendUrgentPushToUser } from "../services/pushNotificationService.js";
 
 // Helper: Auto-resolve expired requests older than 2 hours
 export const resolveExpiredRequests = async () => {
@@ -165,6 +166,19 @@ export const createRequest = async (req, res) => {
       },
     });
 
+    // Send OS-level warning push notification (pops up on top of YouTube / other apps)
+    sendUrgentPushToUser(donor._id, {
+      title: `🚨 DIGIIN DEGDEG AH: Waxaa loo baahan yahay dhiig ${bloodType || donor.bloodType}!`,
+      body: `${hospital?.name || "Isbitaalka"} wuxuu si degdeg ah ugu baahan yahay dhiig-bixin. Guji halkan si aad u aragto una badbaadiso nolol!`,
+      urgency: urgency === "Emergency" || urgency === "Urgent" ? "high" : "normal",
+      data: {
+        requestId: donorRequest._id,
+        bloodType: bloodType || donor.bloodType,
+        urgency: urgency || "Routine",
+        actionUrl: "/dashboard/donor-requests",
+      },
+    }).catch((e) => console.error("[Push Notification Error]", e));
+
     await createLog(
       req.user._id,
       "Donation request created",
@@ -290,6 +304,19 @@ export const createBatchRequest = async (req, res) => {
           actionUrl: "/dashboard/donor-requests",
         },
       }).catch((e) => console.error("[Batch Notification Error]", e));
+
+      // Send OS-level warning push notification (pops up over YouTube & other apps)
+      sendUrgentPushToUser(donor._id, {
+        title: `🚨 DIGIIN DEGDEG AH: Waxaa loo baahan yahay dhiig ${bloodType || donor.bloodType}!`,
+        body: `${hospital?.name || "Isbitaalka"} wuxuu si degdeg ah ugu baahan yahay dhiig-bixin. Guji halkan si aad u aragto una badbaadiso nolol!`,
+        urgency: urgency === "Emergency" || urgency === "Urgent" ? "high" : "normal",
+        data: {
+          requestId: reqDoc._id,
+          bloodType: bloodType || donor.bloodType,
+          urgency: urgency || "Routine",
+          actionUrl: "/dashboard/donor-requests",
+        },
+      }).catch((e) => console.error("[Batch Push Error]", e));
 
       createdRequests.push({
         ...reqDoc.toObject(),

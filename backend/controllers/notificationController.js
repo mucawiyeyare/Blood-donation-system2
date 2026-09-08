@@ -1,4 +1,6 @@
 import Notification from "../models/notificationModel.js";
+import PushSubscription from "../models/pushSubscriptionModel.js";
+import { sendUrgentPushToUser } from "../services/pushNotificationService.js";
 
 /**
  * Reusable helper to create in-system notification
@@ -142,6 +144,102 @@ export const deleteNotification = async (req, res) => {
       message: "Notification deleted",
       unreadCount,
     });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * GET /api/notifications/vapid-key
+ * Returns the public VAPID key so frontend can subscribe to push notifications
+ */
+export const getVapidPublicKey = async (req, res) => {
+  try {
+    const key =
+      process.env.VAPID_PUBLIC_KEY ||
+      "BPujmoXAqNxiD7WW-5HZSoPFpGXlxI0C8L37Vh-O7XrBwcwEvnTQodYaYNG-fMSI5z6IH9kygseS6qr5krEQ41M";
+    res.json({ success: true, publicKey: key });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * POST /api/notifications/subscribe
+ * Registers or updates a client Web Push Subscription
+ */
+export const savePushSubscription = async (req, res) => {
+  try {
+    const { endpoint, keys } = req.body;
+    const userId = req.user._id;
+
+    if (!endpoint || !keys?.p256dh || !keys?.auth) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid push subscription data" });
+    }
+
+    const sub = await PushSubscription.findOneAndUpdate(
+      { endpoint },
+      {
+        user: userId,
+        endpoint,
+        keys: {
+          p256dh: keys.p256dh,
+          auth: keys.auth,
+        },
+        userAgent: req.headers["user-agent"] || "",
+      },
+      { upsert: true, new: true }
+    );
+
+    res.json({
+      success: true,
+      message: "Device registered for emergency push notifications",
+      subscriptionId: sub._id,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * POST /api/notifications/test-push
+ * Allows a user to test their push notification.
+ * Delays by 4 seconds so the user can switch to YouTube or another app on their phone.
+ */
+export const testPushNotification = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const delaySeconds = parseInt(req.body.delaySeconds, 10) || 4;
+
+    const count = await PushSubscription.countDocuments({ user: userId });
+    if (count === 0) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Taleefankaaga weli looma diwaangelin ogeysiisyada. Fadlan guji 'Ogolow Digniinta' marka hore.",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `Digniinta tijaabada ah waxaa la soo diri doonaa ${delaySeconds} ilbiriqsi ka dib. Hadda u beddel YouTube ama app kale si aad u aragto!`,
+      delaySeconds,
+    });
+
+    // Send after delay so user can switch to YouTube or lock phone
+    setTimeout(async () => {
+      await sendUrgentPushToUser(userId, {
+        title: "🚨 TIJAABO: Digniin Dhiig-bixin Degdeg ah!",
+        body: "Hambalyo! Digniintani waxay dusha sare kaga soo muuqanaysaa YouTube iyo apps-ka kale marka loo baahdo dhiig.",
+        urgency: "high",
+        data: {
+          actionUrl: "/dashboard/donor-requests",
+          test: true,
+        },
+      });
+    }, delaySeconds * 1000);
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
