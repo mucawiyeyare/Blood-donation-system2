@@ -1,7 +1,7 @@
-import axios from "axios";
+
 
 /**
- * Somali Telecom Carriers & Prefixes for Direct SIM SMS:
+ * Somali Telecom Carriers & Prefixes:
  * - Hormuud: 61, 77 (061, 077, +252 61, +252 77)
  * - Somtel: 62, 65, 66 (062, 065, 066, +252 62, +252 65, +252 66)
  */
@@ -27,7 +27,7 @@ export const identifySomaliCarrier = (phone) => {
 };
 
 /**
- * Format phone for Somali Telecom SMS: `25261XXXXXXX` or `25262XXXXXXX`
+ * Format phone for Somali Telecom: `25261XXXXXXX`
  */
 export const formatForSomaliSMS = (phone) => {
   if (!phone) return "";
@@ -57,64 +57,17 @@ export const buildEmergencySMSText = (donorName = "Walaal", hospitalName = "Isbi
 };
 
 /**
- * Send Direct Mobile SMS to donor SIM card (Hormuud / Somtel)
+ * Build SMS metadata for a donor (no external API call — SMS is handled via WhatsApp).
  *
  * @param {string} phone
  * @param {string} messageText
- * @param {object} metadata
  */
-export const sendDirectSMS = async (phone, messageText, metadata = {}) => {
+export const sendDirectSMS = async (phone, messageText) => {
   const cleanedPhone = formatForSomaliSMS(phone);
   const carrierInfo = identifySomaliCarrier(phone);
-
   const nativeSmsUrl = `sms:${cleanedPhone}?body=${encodeURIComponent(messageText)}`;
 
-  console.log(`[Mobile SMS Dispatch] Sending SMS to ${cleanedPhone} (${carrierInfo.carrier})...`);
-
-  let apiSuccess = false;
-  let apiResponse = null;
-
-  // 1. Hormuud Bulk SMS API integration (if configured in .env)
-  if (carrierInfo.carrier === "Hormuud" && process.env.HORMUUD_SMS_API_URL && process.env.HORMUUD_SMS_API_KEY) {
-    try {
-      const response = await axios.post(
-        process.env.HORMUUD_SMS_API_URL,
-        {
-          sender: process.env.HORMUUD_SMS_SENDER_ID || "DHIIGKAAL",
-          recipient: cleanedPhone,
-          message: messageText,
-          apikey: process.env.HORMUUD_SMS_API_KEY,
-        },
-        { timeout: 8000 }
-      );
-      apiSuccess = true;
-      apiResponse = response.data;
-      console.log(`[Hormuud SMS] Successfully delivered to ${cleanedPhone}:`, response.data);
-    } catch (err) {
-      console.error(`[Hormuud SMS Error] Failed to send via API to ${cleanedPhone}:`, err.message);
-    }
-  }
-
-  // 2. Somtel SMS Gateway API integration (if configured in .env)
-  else if (carrierInfo.carrier === "Somtel" && process.env.SOMTEL_SMS_API_URL && process.env.SOMTEL_SMS_API_KEY) {
-    try {
-      const response = await axios.post(
-        process.env.SOMTEL_SMS_API_URL,
-        {
-          sender_id: process.env.SOMTEL_SMS_SENDER_ID || "DHIIGKAAL",
-          mobile: cleanedPhone,
-          text: messageText,
-          api_key: process.env.SOMTEL_SMS_API_KEY,
-        },
-        { timeout: 8000 }
-      );
-      apiSuccess = true;
-      apiResponse = response.data;
-      console.log(`[Somtel SMS] Successfully delivered to ${cleanedPhone}:`, response.data);
-    } catch (err) {
-      console.error(`[Somtel SMS Error] Failed to send via API to ${cleanedPhone}:`, err.message);
-    }
-  }
+  console.log(`[SMS] Prepared message for ${cleanedPhone} (${carrierInfo.carrier}) — delivered via WhatsApp.`);
 
   return {
     success: true,
@@ -123,7 +76,7 @@ export const sendDirectSMS = async (phone, messageText, metadata = {}) => {
     formattedPhone: cleanedPhone,
     messageText,
     smsUrl: nativeSmsUrl,
-    apiDelivered: apiSuccess,
-    apiDetails: apiResponse,
+    apiDelivered: false,
+    apiDetails: null,
   };
 };

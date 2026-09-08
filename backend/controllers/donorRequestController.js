@@ -279,7 +279,7 @@ export const createBatchRequest = async (req, res) => {
       const waMessageText = message || wa.message;
       const smsText = buildEmergencySMSText(donor.name, hospital?.name, hospital?.location);
 
-      // Direct Mobile SMS to Hormuud / Somtel SIM
+      // Build SMS text (sent via WhatsApp — no external SMS API)
       const smsResult = await sendDirectSMS(donor.phone, smsText);
       
       // Automatically send real WhatsApp message to each donor in batch
