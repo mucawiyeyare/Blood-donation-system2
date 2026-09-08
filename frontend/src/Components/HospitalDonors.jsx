@@ -193,18 +193,31 @@ function HospitalDonors() {
 
       setShowPatientModal(false);
       setPendingDonor(null);
-      const carrier = res.data.sms?.carrier || "Hormuud / Somtel";
+      const carrier = res.data.sms?.carrier || "Network";
       setToastMessage({
         type: "success",
-        title: "WhatsApp & System Notification Dispatched ✅",
-        description: `Emergency blood request dispatched to ${pendingDonor.name} via WhatsApp, Direct SMS (${carrier}), and In-System Mobile Notification.`,
+        title: "Request Dispatched ✅",
+        description: `Blood request sent to ${pendingDonor.name} via WhatsApp & In-System Notification.`,
       });
       fetchDonors();
     } catch (err) {
+      const serverMsg = err.response?.data?.message;
+      let friendlyMsg;
+      if (!err.response) {
+        friendlyMsg = "Server unreachable. Check your connection and try again.";
+      } else if (serverMsg?.toLowerCase().includes("cooldown")) {
+        friendlyMsg = `${pendingDonor?.name} recently donated and is in a 90-day cooldown period.`;
+      } else if (serverMsg?.toLowerCase().includes("active")) {
+        friendlyMsg = `${pendingDonor?.name} already has an active pending request.`;
+      } else if (serverMsg?.toLowerCase().includes("not found")) {
+        friendlyMsg = `Donor not found or is no longer registered.`;
+      } else {
+        friendlyMsg = serverMsg || `Could not send request to ${pendingDonor?.name}. Please try again.`;
+      }
       setToastMessage({
         type: "warning",
         title: "Request Failed",
-        description: err.response?.data?.message || `Could not send request to ${pendingDonor?.name}.`,
+        description: friendlyMsg,
       });
     } finally {
       setSubmitting(false);

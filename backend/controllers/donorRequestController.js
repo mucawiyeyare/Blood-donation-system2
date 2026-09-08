@@ -144,8 +144,11 @@ export const createRequest = async (req, res) => {
     const wa = buildWhatsAppLink(donor.phone, hospital?.name, hospital?.location, donor.name, patientInfo);
     const waMessageText = message || wa.message;
 
-    // Send real WhatsApp message if gateway is connected
-    const waResult = await sendWhatsAppMessage(donor.phone, waMessageText);
+    // Send real WhatsApp message — fire-and-forget so a disconnected gateway never crashes the request
+    let waResult = { status: "queued" };
+    sendWhatsAppMessage(donor.phone, waMessageText)
+      .then((r) => { waResult = r; })
+      .catch((e) => console.error(`[WhatsApp Send Error] ${donor.name} (${donor.phone}):`, e.message));
 
     // Send in-system notification to donor
     const sysNotification = await createNotification({

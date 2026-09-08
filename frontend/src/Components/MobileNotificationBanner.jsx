@@ -1,56 +1,52 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Bell,
-  X,
-  Droplet,
-  Building2,
-  CheckCircle2,
-  ExternalLink,
-  MessageCircle,
-  AlertTriangle,
-  Smartphone,
-} from "lucide-react";
 import { useNotifications } from "../context/NotificationContext";
 
+/* ─────────────────────────────────────────────────────────────
+   WhatsApp-style native Android heads-up notification banner
+   Slides down from the top of the screen, dark frosted card
+───────────────────────────────────────────────────────────── */
 export default function MobileNotificationBanner() {
   const navigate = useNavigate();
   const { activeTopBanner, dismissTopBanner, markAsRead } = useNotifications();
+  const [visible, setVisible] = useState(false);
   const [touchStartY, setTouchStartY] = useState(null);
+  const timerRef = useRef(null);
 
-  // Auto-dismiss banner after 7 seconds
+  /* Slide-in when a new banner appears, auto-dismiss after 6s */
   useEffect(() => {
-    if (!activeTopBanner) return;
+    if (!activeTopBanner) {
+      setVisible(false);
+      return;
+    }
+    // Trigger CSS transition
+    requestAnimationFrame(() => setVisible(true));
 
-    const timer = setTimeout(() => {
-      dismissTopBanner();
-    }, 7000);
+    timerRef.current = setTimeout(() => {
+      setVisible(false);
+      setTimeout(dismissTopBanner, 320); // wait for slide-out
+    }, 6000);
 
-    return () => clearTimeout(timer);
+    return () => clearTimeout(timerRef.current);
   }, [activeTopBanner, dismissTopBanner]);
 
   if (!activeTopBanner) return null;
 
-  const handleOpenAction = () => {
-    if (activeTopBanner._id) {
-      markAsRead(activeTopBanner._id);
-    }
-    const targetUrl = activeTopBanner.data?.actionUrl || "/dashboard/donor-requests";
-    dismissTopBanner();
-    navigate(targetUrl);
+  /* Tap anywhere on the card to open the action */
+  const handleTap = () => {
+    if (activeTopBanner._id) markAsRead(activeTopBanner._id);
+    const url = activeTopBanner.data?.actionUrl || "/dashboard/donor-requests";
+    setVisible(false);
+    setTimeout(() => { dismissTopBanner(); navigate(url); }, 280);
   };
 
-  // Support swipe-up to dismiss on mobile touchscreens
-  const handleTouchStart = (e) => {
-    setTouchStartY(e.touches[0].clientY);
-  };
-
+  /* Swipe-up to dismiss */
+  const handleTouchStart = (e) => setTouchStartY(e.touches[0].clientY);
   const handleTouchEnd = (e) => {
     if (touchStartY === null) return;
-    const diffY = touchStartY - e.changedTouches[0].clientY;
-    if (diffY > 30) {
-      // Swiped upwards
-      dismissTopBanner();
+    if (touchStartY - e.changedTouches[0].clientY > 30) {
+      setVisible(false);
+      setTimeout(dismissTopBanner, 320);
     }
     setTouchStartY(null);
   };
@@ -59,112 +55,177 @@ export default function MobileNotificationBanner() {
     activeTopBanner.data?.urgency === "Emergency" ||
     activeTopBanner.type === "blood_request";
 
+  /* Time string like "9:52 AM" */
+  const timeLabel = activeTopBanner.createdAt
+    ? new Date(activeTopBanner.createdAt).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "Just now";
+
+  /* ── Inline styles so nothing fights Tailwind purge ── */
+  const card = {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 9999,
+    padding: "8px 10px 4px",
+    transform: visible ? "translateY(0)" : "translateY(-115%)",
+    transition: "transform 0.32s cubic-bezier(0.22,1,0.36,1)",
+    pointerEvents: visible ? "auto" : "none",
+  };
+
+  const innerCard = {
+    background: "rgba(28,28,30,0.97)",
+    backdropFilter: "blur(18px)",
+    WebkitBackdropFilter: "blur(18px)",
+    borderRadius: "16px",
+    padding: "10px 12px",
+    boxShadow: "0 8px 36px rgba(0,0,0,0.6)",
+    display: "flex",
+    alignItems: "flex-start",
+    gap: "10px",
+    cursor: "pointer",
+    userSelect: "none",
+    WebkitTapHighlightColor: "transparent",
+  };
+
+  const iconCircle = {
+    width: 42,
+    height: 42,
+    borderRadius: "50%",
+    background: isEmergency ? "#c62828" : "#25D366",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+    fontSize: "21px",
+    lineHeight: 1,
+    boxShadow: isEmergency
+      ? "0 2px 12px rgba(198,40,40,0.55)"
+      : "0 2px 12px rgba(37,211,102,0.4)",
+  };
+
   return (
     <aside
-      aria-label="Mobile heads-up notification"
+      aria-live="assertive"
+      aria-label="Notification"
+      style={card}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
-      className="fixed top-2 left-2 right-2 sm:top-4 sm:right-4 sm:left-auto sm:max-w-md z-[9999] animate-in slide-in-from-top-6 duration-300"
     >
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900/98 to-slate-950 text-white p-3.5 sm:p-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-slate-700/80 backdrop-blur-xl">
-        {/* Accent glow on top */}
-        <div
-          className={`absolute top-0 left-0 right-0 h-1 ${
-            isEmergency
-              ? "bg-gradient-to-r from-red-500 via-rose-500 to-amber-500"
-              : "bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500"
-          }`}
-        />
+      {/* ── WhatsApp-style card ── */}
+      <div style={innerCard} onClick={handleTap}>
+        {/* Left green/red circle icon */}
+        <div style={iconCircle}>{isEmergency ? "🩸" : "🏥"}</div>
 
-        {/* Mobile Header Pill (like WhatsApp / LinkedIn top notification) */}
-        <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-800/80">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-[11px] font-bold text-emerald-300">
-              <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
-              <span>WHATSAPP & SYSTEM</span>
-            </div>
-            <span className="text-[11px] text-slate-400 font-medium">
-              Dhiig Kaal BDMS • Just now
+        {/* Center content */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {/* App label row + time — exactly like WhatsApp */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: "2px",
+            }}
+          >
+            <span
+              style={{
+                fontSize: "11px",
+                color: "#8e8e93",
+                fontWeight: 500,
+                letterSpacing: "0.1px",
+              }}
+            >
+              Dhiig Kaal
+              {isEmergency && (
+                <span style={{ color: "#ff453a", fontWeight: 700 }}>
+                  {" "}• EMERGENCY
+                </span>
+              )}
+            </span>
+            <span
+              style={{ fontSize: "11px", color: "#8e8e93", flexShrink: 0 }}
+            >
+              {timeLabel}
             </span>
           </div>
 
-          <button
-            onClick={dismissTopBanner}
-            className="p-1 text-slate-400 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
-            title="Dismiss"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* Main Body */}
-        <div className="flex items-start gap-3">
-          {/* Icon Badge */}
+          {/* Sender name — bold, like WhatsApp contact name */}
           <div
-            className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center shadow-lg ${
-              isEmergency
-                ? "bg-gradient-to-tr from-red-600 to-rose-600 text-white shadow-red-900/40"
-                : "bg-gradient-to-tr from-sky-600 to-indigo-600 text-white shadow-sky-900/40"
-            }`}
+            style={{
+              fontSize: "14px",
+              fontWeight: 700,
+              color: "#ffffff",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              lineHeight: "1.3",
+            }}
           >
-            {isEmergency ? (
-              <Droplet className="w-5 h-5 animate-pulse fill-current" />
-            ) : (
-              <Building2 className="w-5 h-5" />
-            )}
+            {activeTopBanner.title}
           </div>
 
-          {/* Texts */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between gap-1">
-              <h4 className="text-sm font-bold text-white truncate">
-                {activeTopBanner.title}
-              </h4>
-              {activeTopBanner.data?.urgency && (
-                <span
-                  className={`text-[10px] px-1.5 py-0.5 rounded-md font-extrabold uppercase tracking-wide flex-shrink-0 ${
-                    activeTopBanner.data.urgency === "Emergency"
-                      ? "bg-red-500 text-white animate-pulse"
-                      : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-                  }`}
-                >
-                  {activeTopBanner.data.urgency}
-                </span>
-              )}
-            </div>
-
-            <p className="mt-1 text-xs text-slate-300 line-clamp-2 leading-relaxed">
-              {activeTopBanner.message}
-            </p>
-
-            {/* Quick Action Footer */}
-            <div className="mt-3 flex items-center gap-2">
-              <button
-                onClick={handleOpenAction}
-                className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 ${
-                  isEmergency
-                    ? "bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white shadow-red-900/30"
-                    : "bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white shadow-sky-900/30"
-                }`}
-              >
-                <span>View & Respond</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </button>
-
-              <button
-                onClick={dismissTopBanner}
-                className="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-700 transition-colors"
-              >
-                Dismiss
-              </button>
-            </div>
+          {/* Message preview — 2 lines, grey like WhatsApp */}
+          <div
+            style={{
+              fontSize: "13px",
+              color: "#aeaeb2",
+              lineHeight: "1.4",
+              marginTop: "1px",
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+            }}
+          >
+            {activeTopBanner.message}
           </div>
         </div>
 
-        {/* Mobile drag-up pill hint */}
-        <div className="sm:hidden mt-2 pt-1 flex justify-center">
-          <div className="w-10 h-1 rounded-full bg-slate-700/80" />
-        </div>
+        {/* Dismiss button */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setVisible(false);
+            setTimeout(dismissTopBanner, 320);
+          }}
+          style={{
+            background: "none",
+            border: "none",
+            color: "#636366",
+            fontSize: "15px",
+            lineHeight: 1,
+            cursor: "pointer",
+            padding: "0 2px",
+            flexShrink: 0,
+            marginTop: "1px",
+          }}
+          aria-label="Dismiss"
+        >
+          ✕
+        </button>
+      </div>
+
+      {/* Swipe-up hint pill (visible on mobile) */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          paddingTop: "5px",
+          paddingBottom: "2px",
+        }}
+      >
+        <div
+          style={{
+            width: 36,
+            height: 4,
+            borderRadius: 4,
+            background: "rgba(255,255,255,0.15)",
+          }}
+        />
       </div>
     </aside>
   );

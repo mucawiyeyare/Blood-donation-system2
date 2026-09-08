@@ -30,6 +30,7 @@ import HospitalDonors from "./Components/HospitalDonors.jsx";
 import HospitalDonationHistory from "./Components/HospitalDonationHistory.jsx";
 import HospitalManagement from "./Components/HospitalManagement.jsx";
 import DashboardMessages from "./Components/DashboardMessages.jsx";
+import AdminMessageSender from "./Components/AdminMessageSender.jsx";
 import DonorRegistrationModal from "./Components/DonorRegistrationModal.jsx";
 import ScrollToTop from "./Components/ScrollToTop.jsx";
 import { NotificationProvider } from "./context/NotificationContext.jsx";
@@ -297,6 +298,14 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
               <DashboardMessages />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="send-messages"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <AdminMessageSender />
             </ProtectedRoute>
           }
         />

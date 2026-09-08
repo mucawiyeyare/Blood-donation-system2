@@ -58,34 +58,38 @@ export default function NotificationDropdown() {
   };
 
   const getNotificationIcon = (type) => {
-    switch (type) {
-      case "blood_request":
-      case "batch_request":
-        return (
-          <div className="w-8 h-8 rounded-xl bg-red-500/20 text-red-400 flex items-center justify-center">
-            <Droplet className="w-4 h-4 fill-current" />
-          </div>
-        );
-      case "request_accepted":
-      case "donation_completed":
-        return (
-          <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-            <CheckCircle2 className="w-4 h-4" />
-          </div>
-        );
-      case "request_declined":
-        return (
-          <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
-            <AlertCircle className="w-4 h-4" />
-          </div>
-        );
-      default:
-        return (
-          <div className="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center">
-            <Building2 className="w-4 h-4" />
-          </div>
-        );
-    }
+    const isBloodReq = type === "blood_request" || type === "batch_request";
+    const isAccepted = type === "request_accepted" || type === "donation_completed";
+    const isDeclined = type === "request_declined";
+
+    const bg = isBloodReq
+      ? "#c62828"
+      : isAccepted
+      ? "#25D366"
+      : isDeclined
+      ? "#e65100"
+      : "#1565c0";
+
+    const emoji = isBloodReq ? "🩸" : isAccepted ? "✅" : isDeclined ? "❌" : "🏥";
+
+    return (
+      <div
+        style={{
+          width: 38,
+          height: 38,
+          borderRadius: "50%",
+          background: bg,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+          fontSize: "18px",
+          lineHeight: 1,
+        }}
+      >
+        {emoji}
+      </div>
+    );
   };
 
   const handleNotificationClick = (item) => {
