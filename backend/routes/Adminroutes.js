@@ -3,6 +3,7 @@ import { protect, adminOnly } from "../middleware/authMiddleware.js";
 import User from "../models/usermodel.js";
 import DonorRequest from "../models/donorRequestModel.js";
 import Donation from "../models/donationModel.js";
+import Partner from "../models/partnerModel.js";
 import bcrypt from "bcryptjs";
 import { createLog } from "../controllers/activityLogController.js";
 
@@ -247,6 +248,79 @@ router.put("/approve-hospital/:id", protect, adminOnly, async (req, res) => {
         isApproved: hospital.isApproved,
       },
     });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// 9. Admin: Get all partners (including inactive), for the management screen
+router.get("/partners", protect, adminOnly, async (req, res) => {
+  try {
+    const partners = await Partner.find({}).sort({ order: 1, createdAt: 1 });
+    res.json(partners);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// 10. Admin: Add a partner (name, logo, website link)
+router.post("/partners", protect, adminOnly, async (req, res) => {
+  try {
+    const { name, logo, websiteUrl, order } = req.body;
+
+    if (!name || !logo || !websiteUrl) {
+      return res.status(400).json({ message: "Name, logo, and website URL are required" });
+    }
+
+    const partner = new Partner({
+      name: name.trim(),
+      logo,
+      websiteUrl: websiteUrl.trim(),
+      order: order || 0,
+    });
+    await partner.save();
+
+    await createLog(req.user._id, "Admin added partner", "system", "success", `Partner: ${partner.name}`);
+
+    res.status(201).json({ message: "Partner added successfully", partner });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// 11. Admin: Update a partner
+router.put("/partners/:id", protect, adminOnly, async (req, res) => {
+  try {
+    const { name, logo, websiteUrl, order, isActive } = req.body;
+
+    const partner = await Partner.findById(req.params.id);
+    if (!partner) return res.status(404).json({ message: "Partner not found" });
+
+    if (name) partner.name = name.trim();
+    if (logo) partner.logo = logo;
+    if (websiteUrl) partner.websiteUrl = websiteUrl.trim();
+    if (order !== undefined) partner.order = order;
+    if (typeof isActive === "boolean") partner.isActive = isActive;
+
+    await partner.save();
+
+    await createLog(req.user._id, "Admin updated partner", "system", "success", `Partner: ${partner.name}`);
+
+    res.json({ message: "Partner updated successfully", partner });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// 12. Admin: Delete a partner
+router.delete("/partners/:id", protect, adminOnly, async (req, res) => {
+  try {
+    const partner = await Partner.findByIdAndDelete(req.params.id);
+    if (!partner) return res.status(404).json({ message: "Partner not found" });
+
+    await createLog(req.user._id, "Admin deleted partner", "system", "warning", `Partner: ${partner.name}`);
+
+    res.json({ message: "Partner deleted successfully" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

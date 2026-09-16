@@ -15,6 +15,7 @@ import {
   CheckCircle2,
   History,
   Send,
+  Handshake,
 } from "lucide-react";
 import DhiigKaalLogo from "./DhiigKaalLogo.jsx";
 
@@ -104,6 +105,10 @@ function Sidebar({ isOpen, onClose }) {
             <NavLink to="/dashboard/send-messages" className={linkClass} onClick={handleLinkClick}>
               <Send className="w-5 h-5 text-emerald-400" />
               <span>Send Messages</span>
+            </NavLink>
+            <NavLink to="/dashboard/partners" className={linkClass} onClick={handleLinkClick}>
+              <Handshake className="w-5 h-5 text-amber-400" />
+              <span>Partners</span>
             </NavLink>
             <NavLink to="/dashboard/profile" className={linkClass} onClick={handleLinkClick}>
               <UserCircle className="w-5 h-5 text-gray-400" />

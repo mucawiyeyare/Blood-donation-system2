@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import ChatBot from "../Components/ChatBot.jsx";
 import FAQSection from "../Components/FAQSection.jsx";
+import PartnersMarquee from "../Components/PartnersMarquee.jsx";
 
 function FeatureCard({ icon: Icon, title, description, color, iconColor }) {
   return (
@@ -198,6 +199,8 @@ function Home() {
           ))}
         </div>
       </section>
+
+      <PartnersMarquee />
 
       {/* Key System Features */}
       <section className="py-20 bg-white border-b border-slate-100">
