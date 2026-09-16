@@ -2,53 +2,116 @@ import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "../context/NotificationContext";
 
+const ETA_CHOICES = [
+  { label: "Now", value: "Leaving now (approx 10-15 mins)" },
+  { label: "15 min", value: "In 15 minutes" },
+  { label: "30 min", value: "In 30 minutes" },
+  { label: "1 hour", value: "In 1 hour" },
+];
+
 /* ─────────────────────────────────────────────────────────────
-   WhatsApp-style native Android heads-up notification banner
-   Slides down from the top of the screen, dark frosted card
+   WhatsApp-style native Android heads-up notification banner.
+   Slides down from the top of the screen, dark frosted card.
+   For live blood-request notifications it lets the donor Accept
+   or Decline right here, without leaving whatever they're doing.
 ───────────────────────────────────────────────────────────── */
 export default function MobileNotificationBanner() {
   const navigate = useNavigate();
-  const { activeTopBanner, dismissTopBanner, markAsRead } = useNotifications();
+  const { activeTopBanner, dismissTopBanner, markAsRead, respondToDonorRequest } =
+    useNotifications();
   const [visible, setVisible] = useState(false);
   const [touchStartY, setTouchStartY] = useState(null);
+  const [phase, setPhase] = useState("idle"); // idle | eta | submitting | done | error
+  const [resultText, setResultText] = useState("");
   const timerRef = useRef(null);
 
-  /* Slide-in when a new banner appears, auto-dismiss after 6s */
+  const isActionable =
+    !!activeTopBanner &&
+    (activeTopBanner.type === "blood_request" || activeTopBanner.type === "batch_request") &&
+    !!activeTopBanner.data?.requestId;
+
+  const closeSoon = (delay = 320) => {
+    setVisible(false);
+    setTimeout(dismissTopBanner, delay);
+  };
+
+  /* Slide-in when a new banner appears; auto-dismiss unless the donor is mid-action */
   useEffect(() => {
+    clearTimeout(timerRef.current);
+    setPhase("idle");
+    setResultText("");
+
     if (!activeTopBanner) {
       setVisible(false);
       return;
     }
-    // Trigger CSS transition
     requestAnimationFrame(() => setVisible(true));
 
     timerRef.current = setTimeout(() => {
-      setVisible(false);
-      setTimeout(dismissTopBanner, 320); // wait for slide-out
-    }, 6000);
+      closeSoon();
+    }, isActionable ? 12000 : 6000);
 
     return () => clearTimeout(timerRef.current);
-  }, [activeTopBanner, dismissTopBanner]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTopBanner]);
 
   if (!activeTopBanner) return null;
 
-  /* Tap anywhere on the card to open the action */
+  /* Tap anywhere on a non-actionable card to open it */
   const handleTap = () => {
+    if (phase !== "idle") return;
     if (activeTopBanner._id) markAsRead(activeTopBanner._id);
     const url = activeTopBanner.data?.actionUrl || "/dashboard/donor-requests";
-    setVisible(false);
-    setTimeout(() => { dismissTopBanner(); navigate(url); }, 280);
+    closeSoon(280);
+    setTimeout(() => navigate(url), 280);
   };
 
-  /* Swipe-up to dismiss */
+  /* Swipe-up to dismiss (only while idle) */
   const handleTouchStart = (e) => setTouchStartY(e.touches[0].clientY);
   const handleTouchEnd = (e) => {
-    if (touchStartY === null) return;
+    if (touchStartY === null || phase !== "idle") return;
     if (touchStartY - e.changedTouches[0].clientY > 30) {
-      setVisible(false);
-      setTimeout(dismissTopBanner, 320);
+      closeSoon();
     }
     setTouchStartY(null);
+  };
+
+  const requestId = activeTopBanner.data?.requestId;
+
+  const handleAcceptTap = (e) => {
+    e.stopPropagation();
+    clearTimeout(timerRef.current);
+    setPhase("eta");
+  };
+
+  const handleDeclineTap = async (e) => {
+    e.stopPropagation();
+    clearTimeout(timerRef.current);
+    setPhase("submitting");
+    const res = await respondToDonorRequest(requestId, "decline", {});
+    if (activeTopBanner._id) markAsRead(activeTopBanner._id);
+    if (res.success) {
+      setResultText("Declined. You're still available for other requests.");
+      setPhase("done");
+    } else {
+      setResultText(res.message || "Couldn't send your response.");
+      setPhase("error");
+    }
+    timerRef.current = setTimeout(() => closeSoon(), 3000);
+  };
+
+  const handleEtaPick = async (etaLabel) => {
+    setPhase("submitting");
+    const res = await respondToDonorRequest(requestId, "accept", { availabilityTime: etaLabel });
+    if (activeTopBanner._id) markAsRead(activeTopBanner._id);
+    if (res.success) {
+      setResultText(`Accepted — hospital notified. ETA: ${etaLabel}`);
+      setPhase("done");
+    } else {
+      setResultText(res.message || "Couldn't send your response.");
+      setPhase("error");
+    }
+    timerRef.current = setTimeout(() => closeSoon(), 3200);
   };
 
   const isEmergency =
@@ -86,7 +149,7 @@ export default function MobileNotificationBanner() {
     display: "flex",
     alignItems: "flex-start",
     gap: "10px",
-    cursor: "pointer",
+    cursor: phase === "idle" ? "pointer" : "default",
     userSelect: "none",
     WebkitTapHighlightColor: "transparent",
   };
@@ -95,7 +158,8 @@ export default function MobileNotificationBanner() {
     width: 42,
     height: 42,
     borderRadius: "50%",
-    background: isEmergency ? "#c62828" : "#25D366",
+    background:
+      phase === "done" ? "#2e7d32" : phase === "error" ? "#8e8e93" : isEmergency ? "#c62828" : "#25D366",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -105,6 +169,42 @@ export default function MobileNotificationBanner() {
     boxShadow: isEmergency
       ? "0 2px 12px rgba(198,40,40,0.55)"
       : "0 2px 12px rgba(37,211,102,0.4)",
+  };
+
+  const acceptBtn = {
+    flex: 1,
+    background: "#25D366",
+    color: "#04210f",
+    border: "none",
+    borderRadius: "10px",
+    padding: "8px 0",
+    fontSize: "13px",
+    fontWeight: 800,
+    cursor: "pointer",
+  };
+
+  const declineBtn = {
+    flex: 1,
+    background: "rgba(255,255,255,0.12)",
+    color: "#ffffff",
+    border: "none",
+    borderRadius: "10px",
+    padding: "8px 0",
+    fontSize: "13px",
+    fontWeight: 800,
+    cursor: "pointer",
+  };
+
+  const etaChip = {
+    background: "rgba(255,255,255,0.10)",
+    color: "#ffffff",
+    border: "1px solid rgba(255,255,255,0.18)",
+    borderRadius: "999px",
+    padding: "7px 10px",
+    fontSize: "12px",
+    fontWeight: 700,
+    cursor: "pointer",
+    whiteSpace: "nowrap",
   };
 
   return (
@@ -118,7 +218,9 @@ export default function MobileNotificationBanner() {
       {/* ── WhatsApp-style card ── */}
       <div style={innerCard} onClick={handleTap}>
         {/* Left green/red circle icon */}
-        <div style={iconCircle}>{isEmergency ? "🩸" : "🏥"}</div>
+        <div style={iconCircle}>
+          {phase === "done" ? "✅" : phase === "error" ? "⚠️" : isEmergency ? "🩸" : "🏥"}
+        </div>
 
         {/* Center content */}
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -140,7 +242,7 @@ export default function MobileNotificationBanner() {
               }}
             >
               Dhiig Kaal
-              {isEmergency && (
+              {isEmergency && phase === "idle" && (
                 <span style={{ color: "#ff453a", fontWeight: 700 }}>
                   {" "}• EMERGENCY
                 </span>
@@ -168,11 +270,11 @@ export default function MobileNotificationBanner() {
             {activeTopBanner.title}
           </div>
 
-          {/* Message preview — 2 lines, grey like WhatsApp */}
+          {/* Message preview / status text */}
           <div
             style={{
               fontSize: "13px",
-              color: "#aeaeb2",
+              color: phase === "done" ? "#8ce29b" : phase === "error" ? "#ff9f9f" : "#aeaeb2",
               lineHeight: "1.4",
               marginTop: "1px",
               display: "-webkit-box",
@@ -181,32 +283,77 @@ export default function MobileNotificationBanner() {
               overflow: "hidden",
             }}
           >
-            {activeTopBanner.message}
+            {phase === "done" || phase === "error" ? resultText : activeTopBanner.message}
           </div>
+
+          {/* Inline Accept / Decline — the whole point: act right from the notification */}
+          {isActionable && phase === "idle" && (
+            <div
+              style={{ display: "flex", gap: "8px", marginTop: "8px" }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button style={acceptBtn} onClick={handleAcceptTap}>
+                ✅ Accept
+              </button>
+              <button style={declineBtn} onClick={handleDeclineTap}>
+                Decline
+              </button>
+            </div>
+          )}
+
+          {/* ETA quick-picks after tapping Accept */}
+          {isActionable && phase === "eta" && (
+            <div
+              style={{
+                display: "flex",
+                gap: "6px",
+                marginTop: "8px",
+                flexWrap: "wrap",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {ETA_CHOICES.map((choice) => (
+                <button
+                  key={choice.value}
+                  style={etaChip}
+                  onClick={() => handleEtaPick(choice.value)}
+                >
+                  {choice.label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {phase === "submitting" && (
+            <div style={{ fontSize: "12px", color: "#8e8e93", marginTop: "6px" }}>
+              Sending your response…
+            </div>
+          )}
         </div>
 
         {/* Dismiss button */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setVisible(false);
-            setTimeout(dismissTopBanner, 320);
-          }}
-          style={{
-            background: "none",
-            border: "none",
-            color: "#636366",
-            fontSize: "15px",
-            lineHeight: 1,
-            cursor: "pointer",
-            padding: "0 2px",
-            flexShrink: 0,
-            marginTop: "1px",
-          }}
-          aria-label="Dismiss"
-        >
-          ✕
-        </button>
+        {phase === "idle" && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              closeSoon();
+            }}
+            style={{
+              background: "none",
+              border: "none",
+              color: "#636366",
+              fontSize: "15px",
+              lineHeight: 1,
+              cursor: "pointer",
+              padding: "0 2px",
+              flexShrink: 0,
+              marginTop: "1px",
+            }}
+            aria-label="Dismiss"
+          >
+            ✕
+          </button>
+        )}
       </div>
 
       {/* Swipe-up hint pill (visible on mobile) */}

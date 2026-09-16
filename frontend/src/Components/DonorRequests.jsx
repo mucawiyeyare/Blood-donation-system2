@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import axios from "axios";
 import {
   Clock,
@@ -27,6 +28,7 @@ import {
 import { useNotifications } from "../context/NotificationContext.jsx";
 
 function DonorRequests() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -135,6 +137,25 @@ function DonorRequests() {
       console.error("Error checking donor status:", err);
     }
   };
+
+  // Deep-link support: a tap on "Accept"/"Decline" from an OS push
+  // notification (app closed/backgrounded) lands here with these params,
+  // so we open straight to the response modal instead of a plain list view.
+  useEffect(() => {
+    if (loading || requests.length === 0) return;
+
+    const quickAction = searchParams.get("quickAction");
+    const requestId = searchParams.get("requestId");
+    if (!quickAction || !requestId) return;
+
+    const target = requests.find((r) => r._id === requestId);
+    if (target && target.status === "Pending") {
+      openModal(target, quickAction === "decline" ? "decline" : "accept");
+    }
+
+    setSearchParams({}, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, requests]);
 
   const openModal = (request, type) => {
     setSelectedRequest(request);

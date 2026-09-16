@@ -151,6 +151,7 @@ export const NotificationProvider = ({ children }) => {
     }
 
     const title = notification.title || "🚨 DIGIIN DEGDEG AH: Dhiig Baa Loo Baahan Yahay!";
+    const requestId = notification.data?.requestId;
     const options = {
       body: notification.message || "Waxaad heshay codsi dhiig-bixin degdeg ah.",
       icon: "/logo.png",
@@ -160,7 +161,14 @@ export const NotificationProvider = ({ children }) => {
       tag: `dhiigkaal-${notification._id || Date.now()}`,
       data: {
         url: notification.data?.actionUrl || "/dashboard/donor-requests",
+        requestId,
       },
+      actions: requestId
+        ? [
+            { action: "accept", title: "✅ Accept" },
+            { action: "decline", title: "❌ Decline" },
+          ]
+        : undefined,
     };
 
     if (swRegistrationRef.current && "showNotification" in swRegistrationRef.current) {
@@ -308,6 +316,31 @@ export const NotificationProvider = ({ children }) => {
     setActiveTopBanner(null);
   };
 
+  // Donor responds (accept/decline) directly from a push notification / banner,
+  // without navigating to the full requests page.
+  const respondToDonorRequest = async (requestId, response, extra = {}) => {
+    const token = localStorage.getItem("token");
+    if (!token) return { success: false, message: "Please login first" };
+
+    try {
+      const res = await axios.put(
+        `/api/requests/${requestId}/respond`,
+        {
+          response,
+          availabilityTime: extra.availabilityTime,
+          declineReason: extra.declineReason,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      return { success: true, data: res.data };
+    } catch (err) {
+      return {
+        success: false,
+        message: err.response?.data?.message || "Failed to send your response",
+      };
+    }
+  };
+
   return (
     <NotificationContext.Provider
       value={{
@@ -326,6 +359,7 @@ export const NotificationProvider = ({ children }) => {
         subscribeToWebPush,
         triggerDelayedPushTest,
         notifyUser,
+        respondToDonorRequest,
       }}
     >
       {children}

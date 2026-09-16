@@ -14,6 +14,7 @@ self.addEventListener("push", (event) => {
   try {
     const data = event.data.json();
     const title = data.title || "🚨 DIGIIN DEGDEG AH: Dhiig Baa Loo Baahan Yahay!";
+    const requestId = data.data?.requestId;
     const options = {
       body:
         data.body ||
@@ -27,11 +28,19 @@ self.addEventListener("push", (event) => {
       tag: data.tag || `emergency-alert-${Date.now()}`,
       data: {
         url: data.data?.actionUrl || data.url || "/dashboard/donor-requests",
+        requestId,
       },
-      actions: [
-        { action: "open", title: "🚨 Fur Codsiga (View)" },
-        { action: "close", title: "Xir (Dismiss)" },
-      ],
+      // When this push is a live donor request, let the donor Accept/Decline
+      // straight from the notification (lock screen / over other apps).
+      actions: requestId
+        ? [
+            { action: "accept", title: "✅ Accept" },
+            { action: "decline", title: "❌ Decline" },
+          ]
+        : [
+            { action: "open", title: "🚨 Fur Codsiga (View)" },
+            { action: "close", title: "Xir (Dismiss)" },
+          ],
     };
 
     event.waitUntil(self.registration.showNotification(title, options));
@@ -46,7 +55,14 @@ self.addEventListener("notificationclick", (event) => {
 
   if (event.action === "close") return;
 
-  const targetUrl = event.notification.data?.url || "/dashboard/donor-requests";
+  const requestId = event.notification.data?.requestId;
+  let targetUrl = event.notification.data?.url || "/dashboard/donor-requests";
+
+  // Accept/Decline tapped directly on the notification: deep-link into the
+  // app so it can submit the response as soon as it opens (see DonorRequests.jsx).
+  if ((event.action === "accept" || event.action === "decline") && requestId) {
+    targetUrl = `/dashboard/donor-requests?quickAction=${event.action}&requestId=${requestId}`;
+  }
 
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
