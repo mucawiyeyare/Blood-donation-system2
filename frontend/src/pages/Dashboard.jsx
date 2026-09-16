@@ -8,6 +8,14 @@ import { useNotifications } from "../context/NotificationContext.jsx";
 const isPushSupported =
   typeof window !== "undefined" && "Notification" in window && "serviceWorker" in navigator;
 
+// iOS only delivers Web Push to a site that's been added to the Home Screen
+// (Apple platform restriction) — Notification.requestPermission() silently
+// does nothing useful in a regular Safari tab, so we show instructions instead.
+const isIOS =
+  typeof navigator !== "undefined" && /iPhone|iPad|iPod/i.test(navigator.userAgent);
+const isIOSStandalone =
+  typeof navigator !== "undefined" && window.navigator.standalone === true;
+
 function Dashboard({ setUser }) {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -123,28 +131,32 @@ function Dashboard({ setUser }) {
         {/* Persistent prompt until the device is actually subscribed to push —
             WhatsApp needs no opt-in and always fires, but the on-screen push
             alert does nothing until the browser grants permission here. */}
-        {isPushSupported && permissionStatus !== "granted" && !bannerDismissed && (
+        {(isPushSupported || (isIOS && !isIOSStandalone)) &&
+          permissionStatus !== "granted" &&
+          !bannerDismissed && (
           <div
             className={`flex flex-col sm:flex-row sm:items-center gap-2.5 px-4 sm:px-6 py-3 text-xs sm:text-sm font-semibold ${
-              permissionStatus === "denied"
+              permissionStatus === "denied" || (isIOS && !isIOSStandalone)
                 ? "bg-slate-800 text-slate-200"
                 : "bg-gradient-to-r from-amber-500 to-orange-500 text-white"
             }`}
           >
             <div className="flex items-center gap-2 flex-1 min-w-0">
-              {permissionStatus === "denied" ? (
+              {permissionStatus === "denied" || (isIOS && !isIOSStandalone) ? (
                 <BellOff className="w-4 h-4 flex-shrink-0" />
               ) : (
                 <Bell className="w-4 h-4 flex-shrink-0 animate-pulse" />
               )}
               <span className="min-w-0">
-                {permissionStatus === "denied"
+                {isIOS && !isIOSStandalone
+                  ? "On iPhone/iPad: tap the Share icon, then \"Add to Home Screen\", and open Dhiig Kaal from your Home Screen to turn on notifications — iOS only allows push alerts for installed apps."
+                  : permissionStatus === "denied"
                   ? "Notifications are blocked in your browser. Open your browser's site settings for this page and allow Notifications to get instant alerts on your phone."
                   : "Turn on notifications so urgent blood requests pop up on your phone screen instantly — not just on WhatsApp."}
               </span>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto">
-              {permissionStatus !== "denied" && (
+              {permissionStatus !== "denied" && !(isIOS && !isIOSStandalone) && (
                 <button
                   onClick={requestNotificationPermission}
                   disabled={isSubscribing}

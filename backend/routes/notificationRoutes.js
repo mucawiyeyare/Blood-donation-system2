@@ -8,6 +8,8 @@ import {
   getVapidPublicKey,
   savePushSubscription,
   testPushNotification,
+  getMyDevices,
+  revokeDevice,
 } from "../controllers/notificationController.js";
 
 const router = express.Router();
@@ -20,6 +22,12 @@ router.post("/subscribe", protect, savePushSubscription);
 
 // POST test push notification (with delay)
 router.post("/test-push", protect, testPushNotification);
+
+// GET list this user's registered push devices
+router.get("/devices", protect, getMyDevices);
+
+// DELETE revoke one of this user's registered push devices
+router.delete("/devices/:id", protect, revokeDevice);
 
 // GET all notifications for logged-in user
 router.get("/", protect, getUserNotifications);

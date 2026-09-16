@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import DhiigKaalLogo from "./DhiigKaalLogo.jsx";
 import ImageCropModal from "./ImageCropModal.jsx";
+import NotificationDevices from "./NotificationDevices.jsx";
 
 function Profile() {
   const [profile, setProfile] = useState(null);
@@ -647,6 +648,11 @@ function Profile() {
             </form>
           )}
         </div>
+      </div>
+
+      {/* Notification Devices Section */}
+      <div className="mt-8">
+        <NotificationDevices />
       </div>
 
       {/* 3. Donation History Section */}

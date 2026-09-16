@@ -204,6 +204,44 @@ export const savePushSubscription = async (req, res) => {
 };
 
 /**
+ * GET /api/notifications/devices
+ * List the current user's registered push-notification devices
+ */
+export const getMyDevices = async (req, res) => {
+  try {
+    const devices = await PushSubscription.find({ user: req.user._id })
+      .select("_id endpoint userAgent createdAt updatedAt")
+      .sort({ updatedAt: -1 })
+      .lean();
+
+    res.json({ success: true, devices });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * DELETE /api/notifications/devices/:id
+ * Revoke (unsubscribe) one of the current user's registered devices
+ */
+export const revokeDevice = async (req, res) => {
+  try {
+    const device = await PushSubscription.findOneAndDelete({
+      _id: req.params.id,
+      user: req.user._id,
+    });
+
+    if (!device) {
+      return res.status(404).json({ success: false, message: "Device not found" });
+    }
+
+    res.json({ success: true, message: "Device revoked" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
  * POST /api/notifications/test-push
  * Allows a user to test their push notification.
  * Delays by 4 seconds so the user can switch to YouTube or another app on their phone.

@@ -246,7 +246,7 @@ export const NotificationProvider = ({ children }) => {
     }
 
     fetchNotifications();
-    pollTimerRef.current = setInterval(fetchNotifications, 8000);
+    pollTimerRef.current = setInterval(fetchNotifications, 3000);
 
     return () => {
       if (pollTimerRef.current) clearInterval(pollTimerRef.current);
@@ -316,6 +316,53 @@ export const NotificationProvider = ({ children }) => {
     setActiveTopBanner(null);
   };
 
+  // List / revoke this user's registered push devices (profile "My Devices" section)
+  const listMyDevices = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return { success: false, message: "Please login first" };
+
+    try {
+      const res = await axios.get("/api/notifications/devices", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return { success: true, devices: res.data.devices || [] };
+    } catch (err) {
+      return {
+        success: false,
+        message: err.response?.data?.message || "Failed to load devices",
+      };
+    }
+  };
+
+  const revokeDevice = async (deviceId) => {
+    const token = localStorage.getItem("token");
+    if (!token) return { success: false, message: "Please login first" };
+
+    try {
+      await axios.delete(`/api/notifications/devices/${deviceId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return { success: true };
+    } catch (err) {
+      return {
+        success: false,
+        message: err.response?.data?.message || "Failed to revoke device",
+      };
+    }
+  };
+
+  // Endpoint URL of this browser's own active push subscription, so the
+  // device list can flag "This device" and warn before it's revoked.
+  const getCurrentDeviceEndpoint = async () => {
+    try {
+      if (!swRegistrationRef.current) return null;
+      const sub = await swRegistrationRef.current.pushManager.getSubscription();
+      return sub?.endpoint || null;
+    } catch {
+      return null;
+    }
+  };
+
   // Donor responds (accept/decline) directly from a push notification / banner,
   // without navigating to the full requests page.
   const respondToDonorRequest = async (requestId, response, extra = {}) => {
@@ -360,6 +407,9 @@ export const NotificationProvider = ({ children }) => {
         triggerDelayedPushTest,
         notifyUser,
         respondToDonorRequest,
+        listMyDevices,
+        revokeDevice,
+        getCurrentDeviceEndpoint,
       }}
     >
       {children}
