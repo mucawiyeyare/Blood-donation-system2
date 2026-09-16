@@ -95,127 +95,110 @@ function Home() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Hero Section with DHIIG KAAL visual identity */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-red-950 to-slate-900 text-white py-20 lg:py-28">
-        {/* Background decorative glowing circles */}
-        <div className="absolute top-10 left-1/4 w-72 h-72 bg-red-600/20 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute bottom-10 right-1/4 w-72 h-72 bg-sky-500/20 rounded-full blur-3xl pointer-events-none"></div>
+      {/* Hero Section with DHIIG KAAL visual identity — large full-bleed photo banner */}
+      <section className="relative overflow-hidden text-white min-h-[560px] sm:min-h-[640px] lg:min-h-[760px] flex items-center">
+        {/* Large background photo slideshow */}
+        <div className="absolute inset-0">
+          {heroImages.map((img, index) => (
+            <div
+              key={index}
+              className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
+              style={{ opacity: currentSlide === index ? 1 : 0 }}
+            >
+              <img
+                src={img.src}
+                alt={img.alt}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ))}
+          {/* Scrim so text stays legible over the photos, kept in the brand palette */}
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/75 to-red-950/50" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-slate-950/40" />
+        </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            {/* Left Column: Heading & CTAs */}
-            <div className="lg:col-span-7 text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-sky-300 text-xs font-semibold mb-6">
-                <Sparkles className="w-4 h-4 text-sky-400" />
-                <span>National Blood Donation Network • Somalia</span>
-              </div>
+        {/* Top-left: LIVE badge */}
+        <div className="absolute top-6 left-4 sm:left-6 lg:left-8 z-10 flex items-center gap-1.5 bg-red-600/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg">
+          <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+          <span className="text-white text-xs font-bold tracking-wide">LIVE DONATIONS</span>
+        </div>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight mb-6">
-                Save Lives with <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-red-400 to-sky-400">
-                  DHIIG KAAL
-                </span>
-              </h1>
+        {/* Top-right: image counter */}
+        <div className="absolute top-6 right-4 sm:right-6 lg:right-8 z-10 bg-black/40 backdrop-blur-sm px-2.5 py-1 rounded-full">
+          <span className="text-white text-xs font-semibold">
+            {currentSlide + 1} / {heroImages.length}
+          </span>
+        </div>
 
-              <p className="text-base sm:text-lg text-slate-300 mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-                A modern blood donation management system directly connecting hospitals with registered donors across Somalia. Real-time availability, WhatsApp emergency requests, and automated 2-hour workflow tracking.
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <Link
-                  to="/signup"
-                  className="flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-7 py-3.5 rounded-xl font-bold text-base shadow-lg shadow-red-600/40 hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5"
-                >
-                  <Droplet className="w-5 h-5" />
-                  <span>Register as Donor</span>
-                </Link>
-
-                <Link
-                  to="/signin"
-                  className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white px-7 py-3.5 rounded-xl font-bold text-base border border-white/20 transition-all duration-200"
-                >
-                  <Building2 className="w-5 h-5 text-sky-400" />
-                  <span>Hospital Portal</span>
-                  <ArrowRight className="w-4 h-4 text-slate-400" />
-                </Link>
-              </div>
-
-              {/* Quick stats pills */}
-              <div className="mt-12 grid grid-cols-3 gap-4 pt-8 border-t border-white/10">
-                <div>
-                  <p className="text-2xl sm:text-3xl font-black text-red-400">8+</p>
-                  <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Blood Types</p>
-                </div>
-                <div>
-                  <p className="text-2xl sm:text-3xl font-black text-sky-400">2 Hours</p>
-                  <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Arrival Window</p>
-                </div>
-                <div>
-                  <p className="text-2xl sm:text-3xl font-black text-emerald-400">100%</p>
-                  <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold">WhatsApp Direct</p>
-                </div>
-              </div>
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full">
+          <div className="max-w-3xl text-center lg:text-left">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-sky-300 text-xs font-semibold mb-6">
+              <Sparkles className="w-4 h-4 text-sky-400" />
+              <span>National Blood Donation Network • Somalia</span>
             </div>
 
-            {/* Right Column: Animated Image Slideshow */}
-            <div className="lg:col-span-5 flex justify-center">
-              <div
-                className="relative w-full max-w-md rounded-3xl overflow-hidden shadow-2xl border border-white/20"
-                style={{ height: "420px" }}
+            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tight leading-tight mb-6">
+              Save Lives with <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-red-400 to-sky-400">
+                DHIIG KAAL
+              </span>
+            </h1>
+
+            <p className="text-base sm:text-lg lg:text-xl text-slate-200 mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+              A modern blood donation management system directly connecting hospitals with registered donors across Somalia. Real-time availability, WhatsApp emergency requests, and automated 2-hour workflow tracking.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+              <Link
+                to="/signup"
+                className="flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-7 py-3.5 rounded-xl font-bold text-base shadow-lg shadow-red-600/40 hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5"
               >
-                {/* Slideshow Images */}
-                {heroImages.map((img, index) => (
-                  <div
-                    key={index}
-                    className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
-                    style={{ opacity: currentSlide === index ? 1 : 0 }}
-                  >
-                    <img
-                      src={img.src}
-                      alt={img.alt}
-                      className="w-full h-full object-cover"
-                    />
-                    {/* Gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/20 to-transparent" />
-                  </div>
-                ))}
+                <Droplet className="w-5 h-5" />
+                <span>Register as Donor</span>
+              </Link>
 
-                {/* Top-left: LIVE badge */}
-                <div className="absolute top-4 left-4 z-10 flex items-center gap-1.5 bg-red-600/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg">
-                  <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-                  <span className="text-white text-xs font-bold tracking-wide">LIVE DONATIONS</span>
-                </div>
-
-                {/* Top-right: image counter */}
-                <div className="absolute top-4 right-4 z-10 bg-black/40 backdrop-blur-sm px-2.5 py-1 rounded-full">
-                  <span className="text-white text-xs font-semibold">
-                    {currentSlide + 1} / {heroImages.length}
-                  </span>
-                </div>
-
-                {/* Bottom: dots + label */}
-                <div className="absolute bottom-0 left-0 right-0 p-5 flex flex-col items-center gap-3 z-10">
-                  <p className="text-white/80 text-xs font-semibold tracking-widest uppercase">
-                    Blood Donation System — Somalia
-                  </p>
-                  <div className="flex gap-2">
-                    {heroImages.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setCurrentSlide(index)}
-                        className={`transition-all duration-300 rounded-full ${
-                          currentSlide === index
-                            ? "w-7 h-2.5 bg-red-500"
-                            : "w-2.5 h-2.5 bg-white/40 hover:bg-white/70"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
+              <Link
+                to="/signin"
+                className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white px-7 py-3.5 rounded-xl font-bold text-base border border-white/20 transition-all duration-200"
+              >
+                <Building2 className="w-5 h-5 text-sky-400" />
+                <span>Hospital Portal</span>
+                <ArrowRight className="w-4 h-4 text-slate-400" />
+              </Link>
             </div>
 
+            {/* Quick stats pills */}
+            <div className="mt-12 grid grid-cols-3 gap-4 pt-8 border-t border-white/10 max-w-xl mx-auto lg:mx-0">
+              <div>
+                <p className="text-2xl sm:text-3xl font-black text-red-400">8+</p>
+                <p className="text-xs text-slate-300 uppercase tracking-wider font-semibold">Blood Types</p>
+              </div>
+              <div>
+                <p className="text-2xl sm:text-3xl font-black text-sky-400">2 Hours</p>
+                <p className="text-xs text-slate-300 uppercase tracking-wider font-semibold">Arrival Window</p>
+              </div>
+              <div>
+                <p className="text-2xl sm:text-3xl font-black text-emerald-400">100%</p>
+                <p className="text-xs text-slate-300 uppercase tracking-wider font-semibold">WhatsApp Direct</p>
+              </div>
+            </div>
           </div>
+        </div>
+
+        {/* Bottom: slide dots */}
+        <div className="absolute bottom-6 left-0 right-0 z-10 flex justify-center gap-2">
+          {heroImages.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentSlide(index)}
+              aria-label={`Show slide ${index + 1}`}
+              className={`transition-all duration-300 rounded-full ${
+                currentSlide === index
+                  ? "w-8 h-2.5 bg-red-500"
+                  : "w-2.5 h-2.5 bg-white/40 hover:bg-white/70"
+              }`}
+            />
+          ))}
         </div>
       </section>
 

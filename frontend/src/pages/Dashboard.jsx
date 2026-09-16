@@ -2,11 +2,17 @@ import React, { useState } from "react";
 import { Routes, Route, Outlet, Navigate, useNavigate } from "react-router-dom";
 import Sidebar from "../Components/Sidebar.jsx";
 import NotificationDropdown from "../Components/NotificationDropdown.jsx";
-import { LogOut, Menu, X, UserCheck, Shield, Droplet, Building2 } from "lucide-react";
+import { LogOut, Menu, X, UserCheck, Shield, Droplet, Building2, Bell, BellOff } from "lucide-react";
+import { useNotifications } from "../context/NotificationContext.jsx";
+
+const isPushSupported =
+  typeof window !== "undefined" && "Notification" in window && "serviceWorker" in navigator;
 
 function Dashboard({ setUser }) {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+  const { permissionStatus, isSubscribing, requestNotificationPermission } = useNotifications();
 
   const role = localStorage.getItem("role") || "user";
   const userName = localStorage.getItem("userName") || "";
@@ -113,6 +119,50 @@ function Dashboard({ setUser }) {
             </button>
           </div>
         </header>
+
+        {/* Persistent prompt until the device is actually subscribed to push —
+            WhatsApp needs no opt-in and always fires, but the on-screen push
+            alert does nothing until the browser grants permission here. */}
+        {isPushSupported && permissionStatus !== "granted" && !bannerDismissed && (
+          <div
+            className={`flex flex-col sm:flex-row sm:items-center gap-2.5 px-4 sm:px-6 py-3 text-xs sm:text-sm font-semibold ${
+              permissionStatus === "denied"
+                ? "bg-slate-800 text-slate-200"
+                : "bg-gradient-to-r from-amber-500 to-orange-500 text-white"
+            }`}
+          >
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              {permissionStatus === "denied" ? (
+                <BellOff className="w-4 h-4 flex-shrink-0" />
+              ) : (
+                <Bell className="w-4 h-4 flex-shrink-0 animate-pulse" />
+              )}
+              <span className="min-w-0">
+                {permissionStatus === "denied"
+                  ? "Notifications are blocked in your browser. Open your browser's site settings for this page and allow Notifications to get instant alerts on your phone."
+                  : "Turn on notifications so urgent blood requests pop up on your phone screen instantly — not just on WhatsApp."}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto">
+              {permissionStatus !== "denied" && (
+                <button
+                  onClick={requestNotificationPermission}
+                  disabled={isSubscribing}
+                  className="px-3 py-1.5 rounded-lg bg-white text-orange-700 hover:bg-orange-50 disabled:opacity-60 font-bold transition-colors"
+                >
+                  {isSubscribing ? "Enabling…" : "Enable Notifications"}
+                </button>
+              )}
+              <button
+                onClick={() => setBannerDismissed(true)}
+                className="p-1.5 rounded-lg hover:bg-black/10"
+                aria-label="Dismiss"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Nested View */}
         <main className="flex-1">
