@@ -19,6 +19,7 @@ import {
   TrendingUp,
   Activity,
   BarChart3,
+  ShieldCheck,
 } from "lucide-react";
 import ChatBot from "../Components/ChatBot.jsx";
 import FAQSection from "../Components/FAQSection.jsx";
@@ -168,14 +169,10 @@ function Home() {
             </div>
 
             {/* Quick stats pills */}
-            <div className="mt-12 grid grid-cols-3 gap-4 pt-8 border-t border-white/10 max-w-xl mx-auto lg:mx-0">
+            <div className="mt-12 grid grid-cols-2 gap-4 pt-8 border-t border-white/10 max-w-sm mx-auto lg:mx-0">
               <div>
                 <p className="text-2xl sm:text-3xl font-black text-red-400">8+</p>
                 <p className="text-xs text-slate-300 uppercase tracking-wider font-semibold">Blood Types</p>
-              </div>
-              <div>
-                <p className="text-2xl sm:text-3xl font-black text-sky-400">2 Hours</p>
-                <p className="text-xs text-slate-300 uppercase tracking-wider font-semibold">Arrival Window</p>
               </div>
               <div>
                 <p className="text-2xl sm:text-3xl font-black text-emerald-400">100%</p>
@@ -202,55 +199,14 @@ function Home() {
         </div>
       </section>
 
-      {/* 4-Step Status Workflow Section */}
-      <section className="py-16 bg-white border-b border-slate-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-black text-slate-800 mb-3">Donor Status Workflow</h2>
-            <p className="text-slate-600 text-sm max-w-xl mx-auto">
-              Automated lifecycle ensuring efficient donation coordination between hospitals and donors
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-6 text-center relative">
-              <div className="w-12 h-12 rounded-full bg-emerald-600 text-white flex items-center justify-center font-black mx-auto mb-3 text-lg">
-                1
-              </div>
-              <h3 className="font-bold text-slate-800 mb-1">Available</h3>
-              <p className="text-xs text-slate-600">Donor is registered, healthy, and ready for requests.</p>
-            </div>
-
-            <div className="bg-amber-50/70 border border-amber-200 rounded-2xl p-6 text-center relative">
-              <div className="w-12 h-12 rounded-full bg-amber-500 text-white flex items-center justify-center font-black mx-auto mb-3 text-lg">
-                2
-              </div>
-              <h3 className="font-bold text-slate-800 mb-1">Pending</h3>
-              <p className="text-xs text-slate-600">Hospital sends request with a 2-hour countdown timer.</p>
-            </div>
-
-            <div className="bg-sky-50/70 border border-sky-200 rounded-2xl p-6 text-center relative">
-              <div className="w-12 h-12 rounded-full bg-sky-600 text-white flex items-center justify-center font-black mx-auto mb-3 text-lg">
-                3
-              </div>
-              <h3 className="font-bold text-slate-800 mb-1">Arrived</h3>
-              <p className="text-xs text-slate-600">Donor checks in at the hospital clinic for testing.</p>
-            </div>
-
-            <div className="bg-red-50/70 border border-red-200 rounded-2xl p-6 text-center relative">
-              <div className="w-12 h-12 rounded-full bg-red-600 text-white flex items-center justify-center font-black mx-auto mb-3 text-lg">
-                4
-              </div>
-              <h3 className="font-bold text-slate-800 mb-1">Donated</h3>
-              <p className="text-xs text-slate-600">Donation recorded in history; donor enters cooldown.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Key System Features */}
-      <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-20 bg-white border-b border-slate-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-100 text-red-700 text-xs font-bold uppercase tracking-wider mb-3">
+            <ShieldCheck className="w-4 h-4 text-red-600" />
+            <span>National Platform Standards</span>
+          </div>
           <h2 className="text-3xl sm:text-4xl font-black text-slate-800 mb-4">
             Designed for Speed, Safety & Impact
           </h2>
@@ -307,6 +263,7 @@ function Home() {
             color="bg-teal-50"
             iconColor="text-teal-600"
           />
+        </div>
         </div>
       </section>
 
