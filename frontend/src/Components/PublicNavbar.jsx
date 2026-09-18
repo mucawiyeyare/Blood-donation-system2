@@ -39,7 +39,7 @@ function PublicNavbar() {
           </Link>
 
           {/* Desktop Navigation (No Icons) */}
-          <div className="hidden md:flex items-center space-x-2">
+          <div className="hidden lg:flex items-center space-x-2">
             <Link to="/" className={navLinkClass("/")}>
               Home
             </Link>
@@ -83,7 +83,7 @@ function PublicNavbar() {
           {/* Mobile Menu Button */}
           <button
             onClick={toggleMenu}
-            className="md:hidden p-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+            className="lg:hidden p-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
             aria-label="Toggle menu"
           >
             {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6 text-red-600" />}
@@ -92,7 +92,7 @@ function PublicNavbar() {
 
         {/* Mobile Navigation (No Icons) */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-gray-100 bg-white">
+          <div className="lg:hidden py-4 border-t border-gray-100 bg-white">
             <div className="flex flex-col space-y-2">
               <Link
                 to="/"

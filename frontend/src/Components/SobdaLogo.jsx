@@ -59,7 +59,7 @@ export default function SobdaLogo({ size = "md", showText = true, className = ""
 
       {showText && (
         <div className="flex flex-col leading-tight text-left">
-          <div className={`font-black tracking-wider flex items-center gap-1 ${currentSize.text}`}>
+          <div className={`font-black tracking-wider flex items-center ${currentSize.text}`}>
             <span className="text-red-600">SOB</span>
             <span className="text-sky-500">DA</span>
           </div>

@@ -529,7 +529,7 @@ function Contact() {
             {/* Message Details */}
             {/* MESSAGE DETAILS WITH DIRECT FILE ATTACHMENT & UPLOAD */}
             <div>
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                 <label htmlFor="message" className="block text-xs font-black text-slate-700 uppercase tracking-wider">
                   MESSAGE DETAILS <span className="text-red-600">*</span>
                 </label>

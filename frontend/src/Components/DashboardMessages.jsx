@@ -176,9 +176,9 @@ function DashboardMessages() {
             const waNumber = cleanPhoneForWhatsApp(msg);
 
             return (
-              <div key={msg._id} className="bg-white rounded-3xl shadow-sm border border-gray-200 p-6 md:p-7 hover:shadow-md transition-all">
+              <div key={msg._id} className="bg-white rounded-3xl shadow-sm border border-gray-200 p-4 sm:p-6 md:p-7 hover:shadow-md transition-all min-w-0 break-words">
                 <div className="flex flex-col lg:flex-row justify-between gap-6">
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     {/* Status & Timestamp Header */}
                     <div className="flex flex-wrap items-center gap-2.5 mb-3">
                       <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getStatusColor(msg.status)}`}>
@@ -203,7 +203,7 @@ function DashboardMessages() {
                     </div>
                     
                     {/* Subject */}
-                    <h3 className="text-xl font-black text-gray-900 mb-2 flex items-center gap-2">
+                    <h3 className="text-lg sm:text-xl font-black text-gray-900 mb-2 flex flex-wrap items-center gap-2">
                       <span>{msg.subject}</span>
                       {hasAttachments && (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-red-50 text-red-700 text-xs font-bold border border-red-200">

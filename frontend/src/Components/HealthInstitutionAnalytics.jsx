@@ -398,12 +398,12 @@ function HealthInstitutionAnalytics() {
                 const percentage = ((count / analytics.totalDonors) * 100).toFixed(1);
                 return (
                   <div key={region} className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                    <div className="w-12 h-12 flex-shrink-0 bg-green-100 rounded-lg flex items-center justify-center">
                       <MapPin className="w-6 h-6 text-green-600" />
                     </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="font-semibold text-gray-800">{region}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap justify-between items-center gap-x-2 mb-1">
+                        <span className="font-semibold text-gray-800 truncate">{region}</span>
                         <span className="text-sm text-gray-600">{count} donors ({percentage}%)</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">

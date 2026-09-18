@@ -219,7 +219,7 @@ export default function AdminMessageSender() {
       )}
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6 bg-slate-900/60 p-1.5 rounded-2xl w-fit">
+      <div className="flex flex-wrap gap-2 mb-6 bg-slate-900/60 p-1.5 rounded-2xl w-full sm:w-fit">
         <button onClick={() => setTab("template")} className={tabClass("template")}>
           <span className="flex items-center gap-1.5">
             <Edit3 className="w-4 h-4" /> Template Editor

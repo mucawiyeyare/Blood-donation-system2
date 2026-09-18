@@ -140,15 +140,15 @@ function Home() {
               <span>National Blood Donation Network • Somalia</span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tight leading-tight mb-6">
-              Save Lives with <br />
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight mb-6">
+              Every drop connects <br className="hidden sm:block" />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-red-400 to-sky-400">
-                SOBDA
+                a life to hope
               </span>
             </h1>
 
             <p className="text-base sm:text-lg lg:text-xl text-slate-200 mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-              A modern blood donation management system directly connecting hospitals with registered donors across Somalia. Real-time availability, WhatsApp emergency requests, and automated 2-hour workflow tracking.
+              SOBDA links Somali blood donors with hospitals and health institutions in real time — because a match found in minutes can save a life.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">

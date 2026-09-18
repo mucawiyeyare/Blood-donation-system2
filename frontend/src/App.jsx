@@ -34,13 +34,20 @@ import AdminMessageSender from "./Components/AdminMessageSender.jsx";
 import PartnersManagement from "./Components/PartnersManagement.jsx";
 import DoctorsManagement from "./Components/DoctorsManagement.jsx";
 import Doctors from "./pages/Doctors.jsx";
+import Partners from "./pages/Partners.jsx";
 import DonorRegistrationModal from "./Components/DonorRegistrationModal.jsx";
 import ScrollToTop from "./Components/ScrollToTop.jsx";
 import { NotificationProvider } from "./context/NotificationContext.jsx";
 import MobileNotificationBanner from "./Components/MobileNotificationBanner.jsx";
 
 function App() {
-  const [user, setUser] = useState(null);
+  // Read the saved login synchronously so a page refresh or deep link to a
+  // dashboard page isn't bounced to /signin (and then /dashboard) on first render.
+  const [user, setUser] = useState(() => {
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
+    return token && role ? { token, role } : null;
+  });
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
 
   useEffect(() => {
@@ -129,6 +136,16 @@ function App() {
           <>
             <PublicNavbar />
             <Doctors />
+            <Footer />
+          </>
+        }
+      />
+      <Route
+        path="/partners"
+        element={
+          <>
+            <PublicNavbar />
+            <Partners />
             <Footer />
           </>
         }
