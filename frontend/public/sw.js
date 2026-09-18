@@ -1,4 +1,4 @@
-// DHIIG KAAL Service Worker for OS-Level Emergency Warning Notifications
+// SOBDA Service Worker for OS-Level Emergency Warning Notifications
 self.addEventListener("install", (event) => {
   self.skipWaiting();
 });

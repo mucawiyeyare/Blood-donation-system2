@@ -4,6 +4,7 @@ import User from "../models/usermodel.js";
 import DonorRequest from "../models/donorRequestModel.js";
 import Donation from "../models/donationModel.js";
 import Partner from "../models/partnerModel.js";
+import Doctor from "../models/doctorModel.js";
 import bcrypt from "bcryptjs";
 import { createLog } from "../controllers/activityLogController.js";
 
@@ -321,6 +322,85 @@ router.delete("/partners/:id", protect, adminOnly, async (req, res) => {
     await createLog(req.user._id, "Admin deleted partner", "system", "warning", `Partner: ${partner.name}`);
 
     res.json({ message: "Partner deleted successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+const cleanWhatsapp = (value) => (value || "").replace(/[^\d]/g, "");
+
+// 13. Admin: Get all doctors (including hidden), for the management screen
+router.get("/doctors", protect, adminOnly, async (req, res) => {
+  try {
+    const doctors = await Doctor.find({}).sort({ order: 1, createdAt: 1 });
+    res.json(doctors);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// 14. Admin: Add a doctor (name, specialty, bio, photo, WhatsApp number)
+router.post("/doctors", protect, adminOnly, async (req, res) => {
+  try {
+    const { name, specialty, bio, photo, whatsapp, order } = req.body;
+
+    if (!name || !specialty) {
+      return res.status(400).json({ message: "Doctor name and specialty are required" });
+    }
+
+    const doctor = new Doctor({
+      name: name.trim(),
+      specialty: specialty.trim(),
+      bio: (bio || "").trim(),
+      photo: photo || "",
+      whatsapp: cleanWhatsapp(whatsapp),
+      order: order || 0,
+    });
+    await doctor.save();
+
+    await createLog(req.user._id, "Admin added doctor", "system", "success", `Doctor: ${doctor.name}`);
+
+    res.status(201).json({ message: "Doctor added successfully", doctor });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// 15. Admin: Update a doctor
+router.put("/doctors/:id", protect, adminOnly, async (req, res) => {
+  try {
+    const { name, specialty, bio, photo, whatsapp, order, isActive } = req.body;
+
+    const doctor = await Doctor.findById(req.params.id);
+    if (!doctor) return res.status(404).json({ message: "Doctor not found" });
+
+    if (name) doctor.name = name.trim();
+    if (specialty) doctor.specialty = specialty.trim();
+    if (bio !== undefined) doctor.bio = bio.trim();
+    if (photo !== undefined) doctor.photo = photo;
+    if (whatsapp !== undefined) doctor.whatsapp = cleanWhatsapp(whatsapp);
+    if (order !== undefined) doctor.order = order;
+    if (typeof isActive === "boolean") doctor.isActive = isActive;
+
+    await doctor.save();
+
+    await createLog(req.user._id, "Admin updated doctor", "system", "success", `Doctor: ${doctor.name}`);
+
+    res.json({ message: "Doctor updated successfully", doctor });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// 16. Admin: Delete a doctor
+router.delete("/doctors/:id", protect, adminOnly, async (req, res) => {
+  try {
+    const doctor = await Doctor.findByIdAndDelete(req.params.id);
+    if (!doctor) return res.status(404).json({ message: "Doctor not found" });
+
+    await createLog(req.user._id, "Admin deleted doctor", "system", "warning", `Doctor: ${doctor.name}`);
+
+    res.json({ message: "Doctor deleted successfully" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

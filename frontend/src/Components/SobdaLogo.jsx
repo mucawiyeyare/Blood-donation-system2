@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-export default function DhiigKaalLogo({ size = "md", showText = true, className = "", light = false }) {
+export default function SobdaLogo({ size = "md", showText = true, className = "", light = false }) {
   const [imgError, setImgError] = useState(false);
 
   const sizeMap = {
@@ -17,7 +17,7 @@ export default function DhiigKaalLogo({ size = "md", showText = true, className 
       {!imgError ? (
         <img
           src="/logo.jpg"
-          alt="DHIIG KAAL Logo"
+          alt="SOBDA Logo"
           className={`${currentSize.img} object-contain rounded-lg shadow-sm`}
           onError={() => setImgError(true)}
         />
@@ -60,8 +60,8 @@ export default function DhiigKaalLogo({ size = "md", showText = true, className 
       {showText && (
         <div className="flex flex-col leading-tight text-left">
           <div className={`font-black tracking-wider flex items-center gap-1 ${currentSize.text}`}>
-            <span className="text-red-600">DHIIG</span>
-            <span className="text-sky-500">KAAL</span>
+            <span className="text-red-600">SOB</span>
+            <span className="text-sky-500">DA</span>
           </div>
         </div>
       )}

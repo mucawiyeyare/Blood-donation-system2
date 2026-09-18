@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
-import DhiigKaalLogo from "./DhiigKaalLogo.jsx";
+import SobdaLogo from "./SobdaLogo.jsx";
 
 function PublicNavbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -33,9 +33,9 @@ function PublicNavbar() {
     <nav className="bg-white/95 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-gray-100">
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
-          {/* DHIIG KAAL Brand Logo */}
+          {/* SOBDA Brand Logo */}
           <Link to="/" className="flex items-center group transition-transform hover:scale-105">
-            <DhiigKaalLogo size="md" />
+            <SobdaLogo size="md" />
           </Link>
 
           {/* Desktop Navigation (No Icons) */}
@@ -45,6 +45,9 @@ function PublicNavbar() {
             </Link>
             <Link to="/about" className={navLinkClass("/about")}>
               About
+            </Link>
+            <Link to="/doctors" className={navLinkClass("/doctors")}>
+              Doctors
             </Link>
             <Link to="/#eligibility" className="px-4 py-2 rounded-lg font-medium transition-all duration-200 text-sm tracking-wide text-gray-700 hover:bg-red-50 hover:text-red-600">
               Eligibility
@@ -104,6 +107,13 @@ function PublicNavbar() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 About
+              </Link>
+              <Link
+                to="/doctors"
+                className={mobileNavLinkClass("/doctors")}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Doctors
               </Link>
               <Link
                 to="/#eligibility"

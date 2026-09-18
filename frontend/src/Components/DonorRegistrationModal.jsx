@@ -17,7 +17,7 @@ import {
   Sparkles,
   Trophy,
 } from "lucide-react";
-import DhiigKaalLogo from "./DhiigKaalLogo.jsx";
+import SobdaLogo from "./SobdaLogo.jsx";
 import { SOMALIA_REGIONS } from "../utils/somaliaLocations.js";
 import { validateFullName } from "../utils/nameValidator.js";
 import GlobalPhoneInput from "./GlobalPhoneInput.jsx";
@@ -126,7 +126,7 @@ function DonorRegistrationModal({ isOpen, onClose }) {
         location: `${formData.district}, ${formData.region}`,
       };
       const res = await axios.post("/api/users/register", payload);
-      setSuccessMessage(res.data.message || "Registration successful! Welcome to DHIIG KAAL.");
+      setSuccessMessage(res.data.message || "Registration successful! Welcome to SOBDA.");
       setTimeout(() => {
         if (res.data.token) {
           localStorage.setItem("token", res.data.token);

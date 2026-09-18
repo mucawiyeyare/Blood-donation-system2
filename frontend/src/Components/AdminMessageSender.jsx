@@ -28,7 +28,7 @@ Fadlan haddii aad awooddo, kaalay *{hospitalName}*
 Mahadsanid walaal {donorName}.
 Caawintaadu waxay badbaadin kartaa nolol Allaha ka ajarsiyo. ❤️🩸
 
-— *DhiigKaal System*`;
+— *SOBDA System*`;
 
 const STORAGE_KEY = "waMessageTemplate";
 

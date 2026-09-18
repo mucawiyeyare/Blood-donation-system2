@@ -104,7 +104,7 @@ function Dashboard({ setUser }) {
             </button>
 
             <div className="hidden sm:flex items-center gap-2">
-              <span className="font-bold text-sm tracking-wide text-white">DHIIG KAAL</span>
+              <span className="font-bold text-sm tracking-wide text-white">SOBDA</span>
               <span className="text-xs text-red-200">|</span>
               <span className="text-xs text-red-100 font-medium">Somalia Blood Donation Network</span>
             </div>
@@ -149,7 +149,7 @@ function Dashboard({ setUser }) {
               )}
               <span className="min-w-0">
                 {isIOS && !isIOSStandalone
-                  ? "On iPhone/iPad: tap the Share icon, then \"Add to Home Screen\", and open Dhiig Kaal from your Home Screen to turn on notifications — iOS only allows push alerts for installed apps."
+                  ? "On iPhone/iPad: tap the Share icon, then \"Add to Home Screen\", and open SOBDA from your Home Screen to turn on notifications — iOS only allows push alerts for installed apps."
                   : permissionStatus === "denied"
                   ? "Notifications are blocked in your browser. Open your browser's site settings for this page and allow Notifications to get instant alerts on your phone."
                   : "Turn on notifications so urgent blood requests pop up on your phone screen instantly — not just on WhatsApp."}

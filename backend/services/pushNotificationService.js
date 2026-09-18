@@ -8,7 +8,7 @@ const vapidPublicKey =
 const vapidPrivateKey =
   process.env.VAPID_PRIVATE_KEY || "RpBA2KSe7_rODbG0-CSk4KQLZZHq1HJVSkPweC8_m28";
 const vapidEmail =
-  process.env.VAPID_EMAIL || "mailto:support@dhiigkaal.iftiinhub.com";
+  process.env.VAPID_EMAIL || "mailto:support@sobda.org";
 
 try {
   webpush.setVapidDetails(vapidEmail, vapidPublicKey, vapidPrivateKey);
@@ -43,7 +43,7 @@ export const sendUrgentPushToUser = async (
       body,
       icon: "/logo.png",
       badge: "/logo.png",
-      tag: `dhiigkaal-warning-${Date.now()}`,
+      tag: `sobda-warning-${Date.now()}`,
       vibrate: [400, 200, 400, 200, 400],
       requireInteraction: true, // Remains on top until touched
       data: {

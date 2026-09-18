@@ -53,7 +53,7 @@ function About() {
           </h1>
 
           <p className="text-base sm:text-lg lg:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed mb-10">
-            DHIIG KAAL is a mission-driven digital healthcare platform that directly bridges hospitals, emergency
+            SOBDA is a mission-driven digital healthcare platform that directly bridges hospitals, emergency
             clinics, and verified voluntary blood donors with real-time availability and automated WhatsApp dispatching.
           </p>
 
@@ -121,7 +121,7 @@ function About() {
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-xs sm:text-sm font-bold uppercase tracking-widest text-red-600 mb-3">
-              How DHIIG KAAL Works
+              How SOBDA Works
             </h2>
             <p className="text-3xl sm:text-4xl font-black text-slate-900">
               The 3-Step Rapid Emergency Blood Workflow

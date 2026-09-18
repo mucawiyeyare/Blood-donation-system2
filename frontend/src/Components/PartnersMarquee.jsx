@@ -28,7 +28,7 @@ function PartnersMarquee() {
           Trusted by National & International Partners
         </h2>
         <p className="text-slate-600 text-sm max-w-xl mx-auto">
-          Organizations and institutions supporting DHIIG KAAL's mission across Somalia.
+          Organizations and institutions supporting SOBDA's mission across Somalia.
         </p>
       </div>
 

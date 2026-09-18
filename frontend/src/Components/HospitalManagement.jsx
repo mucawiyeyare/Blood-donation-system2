@@ -403,7 +403,7 @@ function HospitalManagement() {
             <div className="flex justify-between items-start mb-4 pb-3 border-b border-slate-100">
               <div>
                 <h3 className="text-xl font-black text-slate-800">Register New Hospital</h3>
-                <p className="text-xs text-slate-500 mt-0.5">Add verified medical facility to DHIIG KAAL network</p>
+                <p className="text-xs text-slate-500 mt-0.5">Add verified medical facility to SOBDA network</p>
               </div>
               <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600">
                 <XCircle className="w-6 h-6" />

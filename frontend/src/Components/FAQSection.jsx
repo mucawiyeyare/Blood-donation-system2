@@ -174,7 +174,7 @@ function FAQSection({ stats }) {
             <h2 className="text-3xl sm:text-4xl font-black text-slate-900 mb-2">
               Common questions
             </h2>
-            <p className="text-slate-500 text-sm">Everything you need to know about blood donation on DhiigKaal</p>
+            <p className="text-slate-500 text-sm">Everything you need to know about blood donation on SOBDA</p>
           </div>
 
           <div className="space-y-3">

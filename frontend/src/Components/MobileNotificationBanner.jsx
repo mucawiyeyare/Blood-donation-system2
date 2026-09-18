@@ -241,7 +241,7 @@ export default function MobileNotificationBanner() {
                 letterSpacing: "0.1px",
               }}
             >
-              Dhiig Kaal
+              SOBDA
               {isEmergency && phase === "idle" && (
                 <span style={{ color: "#ff453a", fontWeight: 700 }}>
                   {" "}• EMERGENCY

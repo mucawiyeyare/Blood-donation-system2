@@ -61,7 +61,7 @@ Fadlan haddii aad awooddo, kaalay *${hName}*
 Mahadsanid walaal ${dName}.
 Caawintaadu waxay badbaadin kartaa nolol Allaha ka ajarsiyo. ❤️🩸
 
-— *DhiigKaal System*`;
+— *SOBDA System*`;
 
   return {
     message,

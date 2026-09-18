@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate, Link } from "react-router-dom";
 import { LogIn, Mail, Lock, AlertCircle, ShieldCheck, Heart } from "lucide-react";
-import DhiigKaalLogo from "../Components/DhiigKaalLogo.jsx";
+import SobdaLogo from "../Components/SobdaLogo.jsx";
 
 function Signin({ setUser }) {
   const [email, setEmail] = useState("");
@@ -51,7 +51,7 @@ function Signin({ setUser }) {
         {/* Top Centered Branding Logo */}
         <div className="text-center mb-8 flex flex-col items-center">
           <Link to="/" className="inline-block transform hover:scale-105 transition-transform duration-200 mb-3 bg-white p-3.5 rounded-2xl shadow-sm border border-slate-200/80">
-            <DhiigKaalLogo size="lg" />
+            <SobdaLogo size="lg" />
           </Link>
           <p className="text-sm font-medium text-slate-600">
             Blood Donation Management System

@@ -1,7 +1,7 @@
 {
-  "name": "dhiig-kaal-blood-donation-system",
+  "name": "sobda-blood-donation-system",
   "version": "1.0.0",
-  "description": "DHIIG KAAL - National Blood Donation Management System for Somalia",
+  "description": "SOBDA - National Blood Donation Management System for Somalia",
   "main": "backend/server.js",
   "type": "module",
   "scripts": {
@@ -18,6 +18,6 @@
     "express",
     "mongodb"
   ],
-  "author": "DhiigKaal",
+  "author": "SOBDA",
   "license": "ISC"
 }

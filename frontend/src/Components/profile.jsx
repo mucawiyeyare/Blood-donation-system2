@@ -28,7 +28,7 @@ import {
   Trash2,
   Trophy,
 } from "lucide-react";
-import DhiigKaalLogo from "./DhiigKaalLogo.jsx";
+import SobdaLogo from "./SobdaLogo.jsx";
 import ImageCropModal from "./ImageCropModal.jsx";
 import NotificationDevices from "./NotificationDevices.jsx";
 
@@ -736,7 +736,7 @@ function Profile() {
 
             {/* Certificate Branding */}
             <div className="flex justify-center mb-4">
-              <DhiigKaalLogo size="md" />
+              <SobdaLogo size="md" />
             </div>
 
             <div className="inline-block px-4 py-1 rounded-full bg-red-100 text-red-700 text-xs font-black uppercase tracking-widest mb-3">
@@ -771,7 +771,7 @@ function Profile() {
 
             <div className="flex justify-between items-end pt-4 border-t border-slate-200 text-xs text-slate-500">
               <div className="text-left">
-                <p className="font-bold text-slate-800">DHIIG KAAL Network</p>
+                <p className="font-bold text-slate-800">SOBDA Network</p>
                 <p className="text-[10px]">Ministry of Health & Healthcare Partners</p>
               </div>
               <button

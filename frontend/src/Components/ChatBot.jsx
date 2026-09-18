@@ -4,9 +4,9 @@ import { MessageCircle, X, Send, Bot, User, Droplet } from "lucide-react";
 // ── FAQ Knowledge Base ──────────────────────────────────────────────
 const FAQ = [
   {
-    keywords: ["what is dhiigkaal", "about dhiigkaal", "what is this", "who are you", "tell me about"],
+    keywords: ["what is sobda", "about sobda", "what is this", "who are you", "tell me about"],
     answer:
-      "🩸 **DhiigKaal** is Somalia's national blood donation management system. We connect registered blood donors with hospitals in real time, making it faster and easier to save lives across the country.",
+      "🩸 **SOBDA** is Somalia's national blood donation management system. We connect registered blood donors with hospitals in real time, making it faster and easier to save lives across the country.",
   },
   {
     keywords: ["register", "sign up", "how to join", "become donor", "how do i donate"],
@@ -31,7 +31,7 @@ const FAQ = [
   {
     keywords: ["hospital", "how hospital", "request", "hospital send", "how does hospital"],
     answer:
-      "🏥 Hospitals log into DhiigKaal and:\n1. Filter donors by blood type, location & availability\n2. Select one or multiple donors\n3. Fill in patient details\n4. Send a WhatsApp request directly to the donor\n5. A **2-hour arrival window** starts automatically",
+      "🏥 Hospitals log into SOBDA and:\n1. Filter donors by blood type, location & availability\n2. Select one or multiple donors\n3. Fill in patient details\n4. Send a WhatsApp request directly to the donor\n5. A **2-hour arrival window** starts automatically",
   },
   {
     keywords: ["2 hour", "two hour", "time limit", "pending", "expire", "window"],
@@ -51,7 +51,7 @@ const FAQ = [
   {
     keywords: ["safe", "privacy", "information", "data", "secure", "personal"],
     answer:
-      "🔒 Your information is **completely safe**. DhiigKaal:\n- Only shares your first name and blood type with hospitals\n- Never shares your National ID or full address publicly\n- Uses secure authentication for all users\n- Your donation history is private to you",
+      "🔒 Your information is **completely safe**. SOBDA:\n- Only shares your first name and blood type with hospitals\n- Never shares your National ID or full address publicly\n- Uses secure authentication for all users\n- Your donation history is private to you",
   },
   {
     keywords: ["status", "my status", "available", "check status", "donor status"],
@@ -61,12 +61,12 @@ const FAQ = [
   {
     keywords: ["contact", "help", "support", "problem", "issue", "reach"],
     answer:
-      "📞 Need help? Visit our **Contact** page to reach the DhiigKaal team. You can also check the **About** page to learn more about our mission.",
+      "📞 Need help? Visit our **Contact** page to reach the SOBDA team. You can also check the **About** page to learn more about our mission.",
   },
 ];
 
 const QUICK_TOPICS = [
-  { label: "What is DhiigKaal?", query: "what is dhiigkaal" },
+  { label: "What is SOBDA?", query: "what is sobda" },
   { label: "How to register?", query: "how to register" },
   { label: "Benefits of donating", query: "why donate blood" },
   { label: "How requests work", query: "how does hospital send request" },
@@ -96,7 +96,7 @@ export default function ChatBot() {
   const [messages, setMessages] = useState([
     {
       from: "bot",
-      text: "👋 Hello! I'm the **DhiigKaal Assistant**.\n\nI can answer questions about blood donation, how our system works, and how you can save lives. What would you like to know?",
+      text: "👋 Hello! I'm the **SOBDA Assistant**.\n\nI can answer questions about blood donation, how our system works, and how you can save lives. What would you like to know?",
       time: new Date(),
     },
   ]);
@@ -157,7 +157,7 @@ export default function ChatBot() {
               <Droplet className="w-5 h-5 text-white" />
             </div>
             <div>
-              <p className="text-white font-bold text-sm">DhiigKaal Assistant</p>
+              <p className="text-white font-bold text-sm">SOBDA Assistant</p>
               <p className="text-red-200 text-xs flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
                 Online — always here to help
@@ -226,7 +226,7 @@ export default function ChatBot() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKey}
-              placeholder="Ask anything about DhiigKaal..."
+              placeholder="Ask anything about SOBDA..."
               className="flex-1 text-sm px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-red-400 focus:border-transparent"
             />
             <button

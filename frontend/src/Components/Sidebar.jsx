@@ -16,8 +16,9 @@ import {
   History,
   Send,
   Handshake,
+  Stethoscope,
 } from "lucide-react";
-import DhiigKaalLogo from "./DhiigKaalLogo.jsx";
+import SobdaLogo from "./SobdaLogo.jsx";
 
 function Sidebar({ isOpen, onClose }) {
   const role = localStorage.getItem("role"); // admin / donor / hospital / health_institution
@@ -49,7 +50,7 @@ function Sidebar({ isOpen, onClose }) {
       {/* Brand Logo Header */}
       <div className="pb-6 mb-4 border-b border-slate-800">
         <Link to="/" title="Go to Website Home" className="block bg-white/10 hover:bg-white/15 backdrop-blur-sm p-3 rounded-2xl border border-white/10 flex justify-center items-center transition-all group">
-          <DhiigKaalLogo size="sm" light={true} />
+          <SobdaLogo size="sm" light={true} />
         </Link>
         <div className="mt-3 px-2 flex items-center justify-between">
           <span className="text-[11px] font-bold uppercase tracking-wider text-sky-400">
@@ -109,6 +110,10 @@ function Sidebar({ isOpen, onClose }) {
             <NavLink to="/dashboard/partners" className={linkClass} onClick={handleLinkClick}>
               <Handshake className="w-5 h-5 text-amber-400" />
               <span>Partners</span>
+            </NavLink>
+            <NavLink to="/dashboard/doctors" className={linkClass} onClick={handleLinkClick}>
+              <Stethoscope className="w-5 h-5 text-teal-400" />
+              <span>Doctors</span>
             </NavLink>
             <NavLink to="/dashboard/profile" className={linkClass} onClick={handleLinkClick}>
               <UserCircle className="w-5 h-5 text-gray-400" />
@@ -198,7 +203,7 @@ function Sidebar({ isOpen, onClose }) {
 
       {/* Footer System Info */}
       <div className="pt-4 mt-auto border-t border-slate-800 text-center">
-        <p className="text-[11px] text-slate-400 font-medium">DHIIG KAAL BDMS v2.0</p>
+        <p className="text-[11px] text-slate-400 font-medium">SOBDA BDMS v2.0</p>
         <p className="text-[10px] text-slate-500">Ministry of Health & Healthcare Partners</p>
       </div>
     </div>

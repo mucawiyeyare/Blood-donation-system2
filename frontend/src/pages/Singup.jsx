@@ -6,7 +6,7 @@ import {
   ShieldCheck, HeartHandshake, Calendar, AlertCircle, CheckCircle2,
   FileCheck2, Sparkles, Activity, Trophy, Award
 } from "lucide-react";
-import DhiigKaalLogo from "../Components/DhiigKaalLogo.jsx";
+import SobdaLogo from "../Components/SobdaLogo.jsx";
 import { SOMALIA_REGIONS } from "../utils/somaliaLocations.js";
 import { validateFullName } from "../utils/nameValidator.js";
 import GlobalPhoneInput from "../Components/GlobalPhoneInput.jsx";
@@ -193,7 +193,7 @@ function Signup() {
           {/* Top Centered Branding Logo */}
           <div className="text-center mb-6 flex flex-col items-center">
             <Link to="/" className="inline-block transform hover:scale-105 transition-transform duration-200 mb-3 bg-white p-3.5 rounded-2xl shadow-sm border border-slate-200/80">
-              <DhiigKaalLogo size="lg" />
+              <SobdaLogo size="lg" />
             </Link>
           </div>
 
@@ -271,7 +271,7 @@ function Signup() {
         {/* Top Centered Branding Logo */}
         <div className="text-center mb-6 flex flex-col items-center">
           <Link to="/" className="inline-block transform hover:scale-105 transition-transform duration-200 mb-3 bg-white p-3.5 rounded-2xl shadow-sm border border-slate-200/80">
-            <DhiigKaalLogo size="lg" />
+            <SobdaLogo size="lg" />
           </Link>
           <p className="text-sm font-medium text-slate-600 max-w-md mx-auto text-center">
             {role === "donor"

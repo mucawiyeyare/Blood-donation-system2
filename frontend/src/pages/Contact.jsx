@@ -363,28 +363,28 @@ function Contact() {
             icon={Heart}
             title="Blood Bank Operations"
             description="Blood inventory, storage, and distribution"
-            email="bloodbank@dhiigkaal.so"
+            email="bloodbank@sobda.org"
             phone="+252 61 640 8886"
           />
           <DepartmentCard
             icon={Users}
             title="Donor Services"
             description="Donor registration, scheduling, and support"
-            email="donors@dhiigkaal.so"
+            email="donors@sobda.org"
             phone="+252 61 640 8886"
           />
           <DepartmentCard
             icon={Activity}
             title="Hospital Relations"
             description="Hospital partnerships and blood requests"
-            email="hospitals@dhiigkaal.so"
+            email="hospitals@sobda.org"
             phone="+252 61 640 8886"
           />
           <DepartmentCard
             icon={Headphones}
             title="Technical Support"
             description="System access, account issues, and IT help"
-            email="support@dhiigkaal.so"
+            email="support@sobda.org"
             phone="+252 61 640 8886"
           />
         </div>

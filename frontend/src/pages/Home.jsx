@@ -24,6 +24,7 @@ import {
 import ChatBot from "../Components/ChatBot.jsx";
 import FAQSection from "../Components/FAQSection.jsx";
 import PartnersMarquee from "../Components/PartnersMarquee.jsx";
+import DoctorsSection from "../Components/DoctorsSection.jsx";
 
 function FeatureCard({ icon: Icon, title, description, color, iconColor }) {
   return (
@@ -97,7 +98,7 @@ function Home() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Hero Section with DHIIG KAAL visual identity — large full-bleed photo banner */}
+      {/* Hero Section with SOBDA visual identity — large full-bleed photo banner */}
       <section className="relative overflow-hidden text-white min-h-[560px] sm:min-h-[640px] lg:min-h-[760px] flex items-center">
         {/* Large background photo slideshow */}
         <div className="absolute inset-0">
@@ -142,7 +143,7 @@ function Home() {
             <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tight leading-tight mb-6">
               Save Lives with <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-red-400 to-sky-400">
-                DHIIG KAAL
+                SOBDA
               </span>
             </h1>
 
@@ -269,6 +270,8 @@ function Home() {
         </div>
         </div>
       </section>
+
+      <DoctorsSection />
 
       {/* Live Public Report Section (Blood Type Distribution & Monthly Trends) */}
       <section className="py-20 bg-slate-100/70 border-t border-b border-slate-200">
@@ -460,7 +463,7 @@ function Home() {
           </div>
           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 mb-3">Our Blood Heroes 🏆</h2>
           <p className="text-slate-600 text-sm max-w-xl mx-auto mb-12">
-            These amazing donors have saved the most lives on DhiigKaal. Keep going!
+            These amazing donors have saved the most lives on SOBDA. Keep going!
           </p>
 
           {/* Show up to 3 real donors; only pad with placeholder slots if fewer than 3 donated */}

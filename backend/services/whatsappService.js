@@ -198,7 +198,7 @@ export const sendWhatsAppMessage = async (toPhone, message) => {
   const targetJid = formatSomaliPhone(toPhone);
 
   if (!sock || connectionStatus !== "connected") {
-    console.log(`[DhiigKaal System Message] 📨 Dispatched locally to ${toPhone}:\n${message}`);
+    console.log(`[SOBDA System Message] 📨 Dispatched locally to ${toPhone}:\n${message}`);
     return {
       success: true,
       simulated: true,

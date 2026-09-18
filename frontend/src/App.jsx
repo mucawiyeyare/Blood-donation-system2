@@ -32,6 +32,8 @@ import HospitalManagement from "./Components/HospitalManagement.jsx";
 import DashboardMessages from "./Components/DashboardMessages.jsx";
 import AdminMessageSender from "./Components/AdminMessageSender.jsx";
 import PartnersManagement from "./Components/PartnersManagement.jsx";
+import DoctorsManagement from "./Components/DoctorsManagement.jsx";
+import Doctors from "./pages/Doctors.jsx";
 import DonorRegistrationModal from "./Components/DonorRegistrationModal.jsx";
 import ScrollToTop from "./Components/ScrollToTop.jsx";
 import { NotificationProvider } from "./context/NotificationContext.jsx";
@@ -117,6 +119,16 @@ function App() {
           <>
             <PublicNavbar />
             <Contact />
+            <Footer />
+          </>
+        }
+      />
+      <Route
+        path="/doctors"
+        element={
+          <>
+            <PublicNavbar />
+            <Doctors />
             <Footer />
           </>
         }
@@ -315,6 +327,14 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
               <PartnersManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="doctors"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <DoctorsManagement />
             </ProtectedRoute>
           }
         />

@@ -158,7 +158,7 @@ export const NotificationProvider = ({ children }) => {
       badge: "/logo.png",
       vibrate: [400, 200, 400, 200, 400],
       requireInteraction: true,
-      tag: `dhiigkaal-${notification._id || Date.now()}`,
+      tag: `sobda-${notification._id || Date.now()}`,
       data: {
         url: notification.data?.actionUrl || "/dashboard/donor-requests",
         requestId,

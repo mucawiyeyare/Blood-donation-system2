@@ -53,7 +53,7 @@ export const buildEmergencySMSText = (donorName = "Walaal", hospitalName = "Isbi
     patientStr = ` Bukaanka: ${patientInfo.name}${patientInfo.diagnosis ? ` (${patientInfo.diagnosis})` : ""}.`;
   }
 
-  return `Asc Wll ${dName}, waxaa loo baahan yahay dhiig-bixin degdeg ah ${hName} (${hLoc}).${patientStr} Fadlan hadaad awooddo nala soo xiriir ama kaalay isbitaalka. Caawintaadu waa badbaado nololeed. - DhiigKaal System`;
+  return `Asc Wll ${dName}, waxaa loo baahan yahay dhiig-bixin degdeg ah ${hName} (${hLoc}).${patientStr} Fadlan hadaad awooddo nala soo xiriir ama kaalay isbitaalka. Caawintaadu waa badbaado nololeed. - SOBDA System`;
 };
 
 /**

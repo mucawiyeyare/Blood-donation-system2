@@ -89,7 +89,7 @@ export const registerDonor = async (req, res) => {
     const token = generateToken(newUser);
 
     res.status(201).json({
-      message: "Donor registered successfully in DHIIG KAAL system",
+      message: "Donor registered successfully in SOBDA system",
       token,
       user: {
         id: newUser._id,

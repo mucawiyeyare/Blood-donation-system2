@@ -132,7 +132,7 @@ function DashboardHome() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl sm:text-3xl font-black text-slate-800">
-          Welcome to DHIIG KAAL Overview
+          Welcome to SOBDA Overview
         </h1>
         <p className="text-sm text-slate-600 mt-1">
           Real-time blood network metrics, emergency response counters, and system activity

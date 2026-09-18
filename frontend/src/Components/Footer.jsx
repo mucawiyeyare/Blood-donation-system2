@@ -12,7 +12,7 @@ import {
   ArrowRight,
   Sparkles,
 } from "lucide-react";
-import DhiigKaalLogo from "./DhiigKaalLogo.jsx";
+import SobdaLogo from "./SobdaLogo.jsx";
 
 function Footer() {
   const bloodTypes = [
@@ -66,10 +66,10 @@ function Footer() {
           {/* Column 1: Brand & Mission (4 Cols) */}
           <div className="lg:col-span-4 space-y-4">
             <div className="inline-block">
-              <DhiigKaalLogo size="md" />
+              <SobdaLogo size="md" />
             </div>
             <p className="text-slate-600 text-xs sm:text-sm leading-relaxed max-w-sm">
-              <strong className="text-slate-900">DHIIG KAAL</strong> is Somalia's official national blood donation management platform, empowering hospitals to find compatible, eligible blood donors in real time during medical emergencies.
+              <strong className="text-slate-900">SOBDA</strong> is Somalia's official national blood donation management platform, empowering hospitals to find compatible, eligible blood donors in real time during medical emergencies.
             </p>
             <div className="flex flex-wrap gap-2 pt-2">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-50 border border-slate-200 text-[11px] font-semibold text-emerald-700 shadow-sm">
@@ -94,7 +94,7 @@ function Footer() {
               </li>
               <li>
                 <Link to="/about" className="text-slate-600 hover:text-red-600 font-medium transition-colors">
-                  About DhiigKaal
+                  About SOBDA
                 </Link>
               </li>
               <li>
@@ -152,8 +152,8 @@ function Footer() {
               </li>
               <li className="flex items-center gap-2.5">
                 <Mail className="w-4 h-4 text-sky-600 flex-shrink-0" />
-                <a href="mailto:info@dhiigkaal.so" className="hover:text-red-600 font-medium transition-colors">
-                  info@dhiigkaal.so
+                <a href="mailto:info@sobda.org" className="hover:text-red-600 font-medium transition-colors">
+                  info@sobda.org
                 </a>
               </li>
               <li className="flex items-center gap-2.5">
@@ -168,7 +168,7 @@ function Footer() {
       {/* Bottom Bar */}
       <div className="border-t border-slate-200 bg-slate-50 py-6 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 text-center sm:text-left">
-          <p>© {new Date().getFullYear()} DHIIG KAAL. National Blood Donation Network. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} SOBDA. National Blood Donation Network. All rights reserved.</p>
           <p className="flex items-center justify-center gap-1 text-slate-600 font-medium">
             <span>Built with</span>
             <Heart className="w-3.5 h-3.5 text-red-600 fill-red-600 inline" />
