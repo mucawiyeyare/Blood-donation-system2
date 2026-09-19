@@ -49,8 +49,13 @@ app.get("/", (req, res) => {
   res.send("🩸 SOBDA — Blood Donation Management System API is running...");
 });
 
-// Initialize WhatsApp Gateway Service
-initWhatsApp().catch((err) => console.error("[WhatsApp Gateway] Startup error:", err));
+// Initialize WhatsApp Gateway Service (set WHATSAPP_ENABLED=false to keep it off,
+// e.g. on a standby server that must not share the live WhatsApp login)
+if (process.env.WHATSAPP_ENABLED === "false") {
+  console.log("[WhatsApp Gateway] Disabled by WHATSAPP_ENABLED=false");
+} else {
+  initWhatsApp().catch((err) => console.error("[WhatsApp Gateway] Startup error:", err));
+}
 
 app.use((err, req, res, next) => {
   console.error("❌ Server Error:", err.message);
