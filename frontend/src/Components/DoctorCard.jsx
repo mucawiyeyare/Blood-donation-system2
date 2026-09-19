@@ -32,41 +32,30 @@ function DoctorCard({ doctor, preview = false, adminActions = null, dimmed = fal
         </div>
       )}
 
-      <div className="flex gap-4 sm:gap-5">
-        <button
-          type="button"
-          onClick={openProfile}
-          aria-label={`View ${displayName}'s profile`}
-          className={`relative flex-shrink-0 ${preview ? "cursor-default" : ""}`}
-        >
-          <span className={`absolute -inset-1.5 rounded-[2rem] bg-gradient-to-br ${accent.blob}`} />
-          {doctor.photo ? (
-            <img
-              src={doctor.photo}
-              alt={displayName}
-              className="relative h-32 w-28 rounded-[1.6rem] bg-soft object-cover sm:h-44 sm:w-36"
-            />
-          ) : (
-            <span className="relative flex h-32 w-28 items-center justify-center rounded-[1.6rem] bg-soft text-4xl font-extrabold text-navy sm:h-44 sm:w-36">
-              {initialsOf(doctor.name)}
-            </span>
-          )}
-        </button>
-
-        <div className="min-w-0 flex-1 pt-1">
-          <span className={`inline-flex max-w-full items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold sm:text-sm ${accent.badge}`}>
-            <BadgeIcon className="h-4 w-4 flex-shrink-0" />
-            <span className="truncate">{doctor.specialty}</span>
+      <button
+        type="button"
+        onClick={openProfile}
+        aria-label={`View ${displayName}'s profile`}
+        className={`block w-full overflow-hidden rounded-2xl bg-soft ${preview ? "cursor-default" : ""}`}
+      >
+        {doctor.photo ? (
+          <img src={doctor.photo} alt={displayName} className="aspect-[4/3] w-full object-cover object-top" />
+        ) : (
+          <span className="flex aspect-[4/3] w-full items-center justify-center text-5xl font-extrabold text-navy">
+            {initialsOf(doctor.name)}
           </span>
-          <h3 className="mt-3 break-words text-xl font-extrabold leading-tight text-navy sm:text-2xl">{displayName}</h3>
-          {doctor.title && <p className="mt-1 text-sm text-slate-500 sm:text-base">{doctor.title}</p>}
-          {doctor.bio && (
-            <p className="mt-2 hidden line-clamp-4 text-sm leading-relaxed text-slate-500 sm:block">{doctor.bio}</p>
-          )}
-        </div>
-      </div>
+        )}
+      </button>
 
-      {doctor.bio && <p className="mt-4 line-clamp-4 text-sm leading-relaxed text-slate-500 sm:hidden">{doctor.bio}</p>}
+      <div className="mt-4 min-w-0">
+        <span className={`inline-flex max-w-full items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold sm:text-sm ${accent.badge}`}>
+          <BadgeIcon className="h-4 w-4 flex-shrink-0" />
+          <span className="truncate">{doctor.specialty}</span>
+        </span>
+        <h3 className="mt-3 break-words text-xl font-extrabold leading-tight text-navy sm:text-2xl">{displayName}</h3>
+        {doctor.title && <p className="mt-1 text-sm text-slate-500 sm:text-base">{doctor.title}</p>}
+        {doctor.bio && <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-slate-500">{doctor.bio}</p>}
+      </div>
 
       {highlights.length > 0 && (
         <ul className="mt-4 space-y-2.5 border-t border-line pt-4">
