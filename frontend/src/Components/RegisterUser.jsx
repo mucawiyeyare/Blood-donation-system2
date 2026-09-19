@@ -11,7 +11,9 @@ function RegisterUser() {
     phone: "",
     location: "",
     bloodType: "",
-    role: "donor"
+    role: "donor",
+    specialty: "",
+    bio: ""
   });
   const [loading, setLoading] = useState(false);
   const [nameError, setNameError] = useState("");
@@ -54,7 +56,9 @@ function RegisterUser() {
         phone: "",
         location: "",
         bloodType: "",
-        role: "donor"
+        role: "donor",
+        specialty: "",
+        bio: ""
       });
     } catch (error) {
       setMessage({
@@ -233,8 +237,36 @@ function RegisterUser() {
                   <option value="hospital">Hospital</option>
                   <option value="admin">Admin</option>
                   <option value="health_institution">Health Institution (Ministry)</option>
+                  <option value="doctor">Doctor (answers donors' questions)</option>
                 </select>
               </div>
+
+              {formData.role === "doctor" && (
+                <>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Specialty</label>
+                    <input
+                      type="text"
+                      name="specialty"
+                      value={formData.specialty}
+                      onChange={handleChange}
+                      placeholder="e.g. Hematologist"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Short bio (shown on the website)</label>
+                    <textarea
+                      name="bio"
+                      value={formData.bio}
+                      onChange={handleChange}
+                      rows="2"
+                      placeholder="e.g. Blood Disorders & Transfusion"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    />
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Submit Button */}

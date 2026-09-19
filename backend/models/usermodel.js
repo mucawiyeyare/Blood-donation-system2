@@ -41,7 +41,7 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ["donor", "hospital", "admin", "health_institution"],
+      enum: ["donor", "hospital", "admin", "health_institution", "doctor"],
       default: "donor",
     },
     age: {

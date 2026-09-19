@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Routes, Route, Outlet, Navigate, useNavigate } from "react-router-dom";
 import Sidebar from "../Components/Sidebar.jsx";
 import NotificationDropdown from "../Components/NotificationDropdown.jsx";
-import { LogOut, Menu, X, UserCheck, Shield, Droplet, Building2, Bell, BellOff } from "lucide-react";
+import { LogOut, Menu, X, UserCheck, Shield, Droplet, Building2, Bell, BellOff, Stethoscope } from "lucide-react";
 import { useNotifications } from "../context/NotificationContext.jsx";
 
 const isPushSupported =
@@ -64,6 +64,13 @@ function Dashboard({ setUser }) {
           <span className="flex items-center gap-1 px-3 py-1 rounded-full bg-purple-500/20 text-purple-100 border border-purple-400/30 text-xs font-bold uppercase tracking-wider">
             <Shield className="w-3.5 h-3.5 text-purple-300" />
             Ministry of Health
+          </span>
+        );
+      case "doctor":
+        return (
+          <span className="flex items-center gap-1 px-3 py-1 rounded-full bg-teal-500/20 text-teal-100 border border-teal-400/30 text-xs font-bold uppercase tracking-wider">
+            <Stethoscope className="w-3.5 h-3.5 text-teal-300" />
+            Doctor
           </span>
         );
       default:

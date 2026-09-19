@@ -1,23 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
 import { MessageCircle } from "lucide-react";
-
-const initialsOf = (name = "") =>
-  name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0].toUpperCase())
-    .join("");
+import AskDoctorModal from "./AskDoctorModal.jsx";
+import { doctorDisplayName, initialsOf } from "../utils/doctorName.js";
 
 // Doctor "poster" card: portrait on top, then name, specialty and a short focus line.
+// "Start chat" opens the in-app Ask Doctor box (questions never go to WhatsApp).
 function DoctorCard({ doctor }) {
-  // Show "Dr." once, whether or not it was typed into the name.
-  const displayName = /^dr\.?\s/i.test(doctor.name) ? doctor.name : `Dr. ${doctor.name}`;
-  const chatUrl = doctor.whatsapp
-    ? `https://wa.me/${doctor.whatsapp}?text=${encodeURIComponent(
-        `Hello ${displayName}, I would like some guidance about blood donation eligibility.`
-      )}`
-    : null;
+  const [asking, setAsking] = useState(false);
+  const displayName = doctorDisplayName(doctor.name);
 
   return (
     <div className="flex h-full flex-col rounded-2xl border border-line bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
@@ -38,17 +28,18 @@ function DoctorCard({ doctor }) {
       {doctor.bio && (
         <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-navy/70">{doctor.bio}</p>
       )}
-      {chatUrl && (
-        <a
-          href={chatUrl}
-          target="_blank"
-          rel="noreferrer"
+      {doctor.canChat && (
+        <button
+          type="button"
+          onClick={() => setAsking(true)}
           className="mt-auto inline-flex items-center gap-1.5 pt-3 text-sm font-semibold text-brand hover:text-brand-dark"
         >
           <MessageCircle className="h-4 w-4" />
           Start chat
-        </a>
+        </button>
       )}
+
+      {asking && <AskDoctorModal doctor={doctor} onClose={() => setAsking(false)} />}
     </div>
   );
 }

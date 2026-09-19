@@ -16,6 +16,7 @@ import ReportRouter from "./routes/reportRoutes.js";
 import NotificationRouter from "./routes/notificationRoutes.js";
 import PartnerRouter from "./routes/partnerRoutes.js";
 import DoctorRouter from "./routes/doctorRoutes.js";
+import ConsultRouter from "./routes/consultRoutes.js";
 import { initWhatsApp } from "./services/whatsappService.js"; 
 
 // Always load the environment file next to this server file
@@ -44,6 +45,7 @@ app.use("/api/reports", ReportRouter);
 app.use("/api/notifications", NotificationRouter);
 app.use("/api/partners", PartnerRouter);
 app.use("/api/doctors", DoctorRouter);
+app.use("/api/consult", ConsultRouter);
 
 app.get("/", (req, res) => {
   res.send("🩸 SOBDA — Blood Donation Management System API is running...");

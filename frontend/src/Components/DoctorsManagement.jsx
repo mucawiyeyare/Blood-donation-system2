@@ -9,10 +9,13 @@ import {
   X,
   EyeOff,
   Eye,
+  KeyRound,
+  MessageCircle,
 } from "lucide-react";
 import ImageCropModal from "./ImageCropModal.jsx";
+import { initialsOf } from "../utils/doctorName.js";
 
-const emptyForm = { name: "", specialty: "", bio: "", photo: "", whatsapp: "" };
+const emptyForm = { name: "", specialty: "", bio: "", photo: "", email: "", password: "", phone: "" };
 
 function DoctorsManagement() {
   const [doctors, setDoctors] = useState([]);
@@ -60,7 +63,9 @@ function DoctorsManagement() {
       specialty: doctor.specialty,
       bio: doctor.bio || "",
       photo: doctor.photo || "",
-      whatsapp: doctor.whatsapp || "",
+      email: doctor.user?.email || "",
+      password: "",
+      phone: "",
     });
     setShowModal(true);
   };
@@ -87,6 +92,8 @@ function DoctorsManagement() {
     setCropImageSrc(null);
   };
 
+  const hasLogin = Boolean(editingDoctor?.user);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.name.trim() || !form.specialty.trim()) {
@@ -94,12 +101,34 @@ function DoctorsManagement() {
       return;
     }
 
+    const account = {};
+    if (form.email.trim()) account.email = form.email.trim();
+    if (form.password) account.password = form.password;
+    if (form.phone.trim() && !hasLogin) account.phone = form.phone.trim();
+
+    if (!hasLogin && account.email && !account.password) {
+      alert("Please set a password for the doctor's login (at least 6 characters).");
+      return;
+    }
+    if (account.password && account.password.length < 6) {
+      alert("The password must be at least 6 characters.");
+      return;
+    }
+
+    const payload = {
+      name: form.name,
+      specialty: form.specialty,
+      bio: form.bio,
+      photo: form.photo,
+    };
+    if (Object.keys(account).length) payload.account = account;
+
     setSubmitting(true);
     try {
       if (editingDoctor) {
-        await axios.put(`/api/admin/doctors/${editingDoctor._id}`, form, authHeaders);
+        await axios.put(`/api/admin/doctors/${editingDoctor._id}`, payload, authHeaders);
       } else {
-        await axios.post("/api/admin/doctors", form, authHeaders);
+        await axios.post("/api/admin/doctors", payload, authHeaders);
       }
       setShowModal(false);
       fetchDoctors();
@@ -120,7 +149,8 @@ function DoctorsManagement() {
   };
 
   const handleDelete = async (doctor) => {
-    if (!window.confirm(`Remove "${doctor.name}" from doctors? This can't be undone.`)) return;
+    const extra = doctor.user ? " Their login account and all their conversations with donors will be deleted too." : "";
+    if (!window.confirm(`Remove "${doctor.name}" from doctors?${extra} This can't be undone.`)) return;
     try {
       await axios.delete(`/api/admin/doctors/${doctor._id}`, authHeaders);
       fetchDoctors();
@@ -138,8 +168,8 @@ function DoctorsManagement() {
             Doctors
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Manage the doctors shown on the homepage and the Doctors page. Donors can start a
-            WhatsApp chat with a doctor when you add their number.
+            Manage the doctors shown on the website. Give a doctor a login so they can sign in, read
+            donors' questions and answer them inside SOBDA.
           </p>
         </div>
         <button
@@ -177,13 +207,21 @@ function DoctorsManagement() {
                 />
               ) : (
                 <div className="w-14 h-14 rounded-full bg-red-100 text-red-700 flex items-center justify-center font-black flex-shrink-0">
-                  {doctor.name.split(" ").filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join("")}
+                  {initialsOf(doctor.name)}
                 </div>
               )}
               <div className="min-w-0 flex-1">
                 <p className="font-bold text-sm text-slate-800 truncate">{doctor.name}</p>
                 <p className="text-xs text-red-600 font-semibold truncate">{doctor.specialty}</p>
                 {doctor.bio && <p className="text-[11px] text-slate-500 mt-1 line-clamp-2">{doctor.bio}</p>}
+                {doctor.user ? (
+                  <p className="mt-1.5 flex items-center gap-1 text-[11px] font-semibold text-emerald-700 truncate">
+                    <MessageCircle className="w-3 h-3 flex-shrink-0" />
+                    <span className="truncate">Can chat · {doctor.user.email}</span>
+                  </p>
+                ) : (
+                  <p className="mt-1.5 text-[11px] text-slate-400">No login yet, so donors cannot chat</p>
+                )}
                 {!doctor.isActive && (
                   <span className="inline-block mt-1 text-[10px] font-bold uppercase text-slate-400">Hidden</span>
                 )}
@@ -264,7 +302,7 @@ function DoctorsManagement() {
                   type="text"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="e.g. Ubax Xasan"
+                  placeholder="e.g. Ubax Farax"
                   className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-red-500"
                   required
                 />
@@ -276,7 +314,7 @@ function DoctorsManagement() {
                   type="text"
                   value={form.specialty}
                   onChange={(e) => setForm({ ...form, specialty: e.target.value })}
-                  placeholder="e.g. Hematology"
+                  placeholder="e.g. Hematologist"
                   className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-red-500"
                   required
                 />
@@ -287,26 +325,52 @@ function DoctorsManagement() {
                 <textarea
                   value={form.bio}
                   onChange={(e) => setForm({ ...form, bio: e.target.value })}
-                  rows="3"
-                  placeholder="Short description of the doctor's background and experience"
+                  rows="2"
+                  placeholder="Short line shown on the website, e.g. Blood Disorders & Transfusion"
                   className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-red-500"
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                  WhatsApp Number
-                </label>
+              {/* Login account */}
+              <div className="rounded-xl border border-sky-200 bg-sky-50/60 p-4 space-y-3">
+                <div className="flex items-start gap-2">
+                  <KeyRound className="w-4 h-4 text-sky-700 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-xs font-bold text-sky-900 uppercase">
+                      {hasLogin ? "Doctor login" : "Doctor login (optional)"}
+                    </p>
+                    <p className="text-[11px] text-sky-800/80 mt-0.5">
+                      {hasLogin
+                        ? "This doctor can sign in and answer donors. Change the email, or set a new password."
+                        : "With a login the doctor can sign in, read donors' questions and answer them inside SOBDA. Leave empty for a website profile only."}
+                    </p>
+                  </div>
+                </div>
                 <input
-                  type="tel"
-                  value={form.whatsapp}
-                  onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
-                  placeholder="+252616408886"
-                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-red-500"
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  placeholder="Login email"
+                  autoComplete="off"
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-red-500"
                 />
-                <p className="text-[11px] text-slate-500 mt-1">
-                  Include the country code. Enables the "Start chat" button; leave empty to hide it.
-                </p>
+                <input
+                  type="text"
+                  value={form.password}
+                  onChange={(e) => setForm({ ...form, password: e.target.value })}
+                  placeholder={hasLogin ? "New password (leave empty to keep)" : "Password (min 6 characters)"}
+                  autoComplete="new-password"
+                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-red-500"
+                />
+                {!hasLogin && (
+                  <input
+                    type="tel"
+                    value={form.phone}
+                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                    placeholder="Phone (optional)"
+                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-red-500"
+                  />
+                )}
               </div>
 
               <div className="flex gap-3 pt-2">

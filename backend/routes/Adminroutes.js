@@ -5,6 +5,7 @@ import DonorRequest from "../models/donorRequestModel.js";
 import Donation from "../models/donationModel.js";
 import Partner from "../models/partnerModel.js";
 import Doctor from "../models/doctorModel.js";
+import ConsultationMessage from "../models/consultationMessageModel.js";
 import bcrypt from "bcryptjs";
 import { createLog } from "../controllers/activityLogController.js";
 
@@ -41,7 +42,7 @@ router.get("/users/:id", protect, async (req, res) => {
 // 3. Admin registers a new user (Donor, Hospital, Admin, Health Institution)
 router.post("/register-user", protect, adminOnly, async (req, res) => {
   try {
-    const { name, email, password, phone, location, bloodType, role, nationalId, gender, age, hospitalLicense } = req.body;
+    const { name, email, password, phone, location, bloodType, role, nationalId, gender, age, hospitalLicense, specialty, bio } = req.body;
 
     if (!name || !email || !password || !phone || !location) {
       return res.status(400).json({ message: "Name, email, password, phone, and location are required." });
@@ -83,6 +84,16 @@ router.post("/register-user", protect, adminOnly, async (req, res) => {
 
     await newUser.save();
 
+    // A doctor account comes with the public doctor profile it answers questions as
+    if (newUser.role === "doctor") {
+      await Doctor.create({
+        name: newUser.name,
+        specialty: (specialty || "").trim() || "General Physician",
+        bio: (bio || "").trim(),
+        user: newUser._id,
+      });
+    }
+
     await createLog(req.user._id, "Admin created user", "user", "success", `Created ${newUser.role}: ${newUser.name}`);
 
     res.status(201).json({
@@ -115,7 +126,7 @@ router.put("/update-user/:id", protect, adminOnly, async (req, res) => {
     if (phone) user.phone = phone.trim();
     if (location) user.location = location.trim();
     if (bloodType) user.bloodType = bloodType;
-    if (role && ["donor", "hospital", "admin", "health_institution"].includes(role)) user.role = role;
+    if (role && ["donor", "hospital", "admin", "health_institution", "doctor"].includes(role)) user.role = role;
     if (nationalId !== undefined) user.nationalId = nationalId.trim();
     if (gender) user.gender = gender;
     if (age !== undefined) user.age = Number(age);
@@ -160,6 +171,7 @@ router.delete("/delete-user/:id", protect, adminOnly, async (req, res) => {
     }
 
     await User.findByIdAndDelete(req.params.id);
+    await Doctor.updateMany({ user: user._id }, { $set: { user: null } });
 
     await createLog(req.user._id, "Admin deleted user", "user", "warning", `Deleted: ${user.name} (${user.role})`);
 
@@ -327,25 +339,52 @@ router.delete("/partners/:id", protect, adminOnly, async (req, res) => {
   }
 });
 
-const cleanWhatsapp = (value) => (value || "").replace(/[^\d]/g, "");
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// 13. Admin: Get all doctors (including hidden), for the management screen
+// Creates the login account (role "doctor") for a doctor profile. Throws {status, message} on bad input.
+async function createDoctorUser({ name, email, password, phone }) {
+  const cleanEmail = (email || "").toLowerCase().trim();
+  if (!EMAIL_RE.test(cleanEmail)) throw { status: 400, message: "Please enter a valid login email for the doctor." };
+  if (!password || password.length < 6) throw { status: 400, message: "The doctor's password must be at least 6 characters." };
+  if (await User.findOne({ email: cleanEmail })) throw { status: 400, message: "That email is already registered." };
+  const cleanPhone = (phone || "").trim();
+  if (cleanPhone && (await User.findOne({ phone: cleanPhone }))) throw { status: 400, message: "That phone number is already registered." };
+
+  return User.create({
+    name: name.trim(),
+    email: cleanEmail,
+    password: await bcrypt.hash(password, 10),
+    phone: cleanPhone || "N/A",
+    location: "Somalia",
+    role: "doctor",
+    isAvailable: false,
+  });
+}
+
+const sendError = (res, err) => res.status(err.status || 500).json({ message: err.message });
+
+// 13. Admin: Get all doctors (including hidden), with their login email, for the management screen
 router.get("/doctors", protect, adminOnly, async (req, res) => {
   try {
-    const doctors = await Doctor.find({}).sort({ order: 1, createdAt: 1 });
+    const doctors = await Doctor.find({}).sort({ order: 1, createdAt: 1 }).populate("user", "email");
     res.json(doctors);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    sendError(res, err);
   }
 });
 
-// 14. Admin: Add a doctor (name, specialty, bio, photo, WhatsApp number)
+// 14. Admin: Add a doctor (profile + optional login account so the doctor can answer donors)
 router.post("/doctors", protect, adminOnly, async (req, res) => {
+  let doctorUser = null;
   try {
-    const { name, specialty, bio, photo, whatsapp, order } = req.body;
+    const { name, specialty, bio, photo, order, account } = req.body;
 
     if (!name || !specialty) {
       return res.status(400).json({ message: "Doctor name and specialty are required" });
+    }
+
+    if (account && account.email) {
+      doctorUser = await createDoctorUser({ name, ...account });
     }
 
     const doctor = new Doctor({
@@ -353,23 +392,24 @@ router.post("/doctors", protect, adminOnly, async (req, res) => {
       specialty: specialty.trim(),
       bio: (bio || "").trim(),
       photo: photo || "",
-      whatsapp: cleanWhatsapp(whatsapp),
+      user: doctorUser ? doctorUser._id : null,
       order: order || 0,
     });
     await doctor.save();
 
-    await createLog(req.user._id, "Admin added doctor", "system", "success", `Doctor: ${doctor.name}`);
+    await createLog(req.user._id, "Admin added doctor", "system", "success", `Doctor: ${doctor.name}${doctorUser ? " (with login)" : ""}`);
 
     res.status(201).json({ message: "Doctor added successfully", doctor });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    if (doctorUser) await User.findByIdAndDelete(doctorUser._id).catch(() => {});
+    sendError(res, err);
   }
 });
 
-// 15. Admin: Update a doctor
+// 15. Admin: Update a doctor (and create / update the login account)
 router.put("/doctors/:id", protect, adminOnly, async (req, res) => {
   try {
-    const { name, specialty, bio, photo, whatsapp, order, isActive } = req.body;
+    const { name, specialty, bio, photo, order, isActive, account } = req.body;
 
     const doctor = await Doctor.findById(req.params.id);
     if (!doctor) return res.status(404).json({ message: "Doctor not found" });
@@ -378,9 +418,33 @@ router.put("/doctors/:id", protect, adminOnly, async (req, res) => {
     if (specialty) doctor.specialty = specialty.trim();
     if (bio !== undefined) doctor.bio = bio.trim();
     if (photo !== undefined) doctor.photo = photo;
-    if (whatsapp !== undefined) doctor.whatsapp = cleanWhatsapp(whatsapp);
     if (order !== undefined) doctor.order = order;
     if (typeof isActive === "boolean") doctor.isActive = isActive;
+
+    if (account) {
+      if (!doctor.user) {
+        if (account.email) {
+          const created = await createDoctorUser({ name: doctor.name, ...account });
+          doctor.user = created._id;
+        }
+      } else {
+        const update = { name: doctor.name };
+        if (account.password) {
+          if (account.password.length < 6) throw { status: 400, message: "The doctor's password must be at least 6 characters." };
+          update.password = await bcrypt.hash(account.password, 10);
+        }
+        if (account.email) {
+          const cleanEmail = account.email.toLowerCase().trim();
+          if (!EMAIL_RE.test(cleanEmail)) throw { status: 400, message: "Please enter a valid login email for the doctor." };
+          const taken = await User.findOne({ email: cleanEmail, _id: { $ne: doctor.user } });
+          if (taken) throw { status: 400, message: "That email is already registered." };
+          update.email = cleanEmail;
+        }
+        await User.findByIdAndUpdate(doctor.user, { $set: update });
+      }
+    } else if (name && doctor.user) {
+      await User.findByIdAndUpdate(doctor.user, { $set: { name: doctor.name } });
+    }
 
     await doctor.save();
 
@@ -388,21 +452,24 @@ router.put("/doctors/:id", protect, adminOnly, async (req, res) => {
 
     res.json({ message: "Doctor updated successfully", doctor });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    sendError(res, err);
   }
 });
 
-// 16. Admin: Delete a doctor
+// 16. Admin: Delete a doctor (removes the login account and the conversations too)
 router.delete("/doctors/:id", protect, adminOnly, async (req, res) => {
   try {
     const doctor = await Doctor.findByIdAndDelete(req.params.id);
     if (!doctor) return res.status(404).json({ message: "Doctor not found" });
 
+    if (doctor.user) await User.findByIdAndDelete(doctor.user);
+    await ConsultationMessage.deleteMany({ doctor: doctor._id });
+
     await createLog(req.user._id, "Admin deleted doctor", "system", "warning", `Doctor: ${doctor.name}`);
 
     res.json({ message: "Doctor deleted successfully" });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    sendError(res, err);
   }
 });
 

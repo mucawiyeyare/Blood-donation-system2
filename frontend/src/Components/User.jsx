@@ -32,7 +32,7 @@ function Users() {
   const [locations, setLocations] = useState([]);
   
   const bloodTypes = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
-  const roles = ["admin", "donor", "hospital", "health_institution"];
+  const roles = ["admin", "donor", "hospital", "health_institution", "doctor"];
 
   useEffect(() => {
     fetchUsers();
@@ -337,6 +337,7 @@ function Users() {
                             user.role === 'admin' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
                             user.role === 'health_institution' ? 'bg-purple-100 text-purple-800 border border-purple-200' :
                             user.role === 'hospital' ? 'bg-indigo-100 text-indigo-800 border border-indigo-200' :
+                            user.role === 'doctor' ? 'bg-sky-100 text-sky-800 border border-sky-200' :
                             'bg-emerald-100 text-emerald-800 border border-emerald-200'
                         }`}>
                           {user.role === 'health_institution' ? 'MINISTRY / HEALTH INST' : user.role ? user.role.toUpperCase() : 'UNKNOWN'}

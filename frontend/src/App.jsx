@@ -33,6 +33,8 @@ import DashboardMessages from "./Components/DashboardMessages.jsx";
 import AdminMessageSender from "./Components/AdminMessageSender.jsx";
 import PartnersManagement from "./Components/PartnersManagement.jsx";
 import DoctorsManagement from "./Components/DoctorsManagement.jsx";
+import AskDoctor from "./Components/AskDoctor.jsx";
+import DoctorInbox from "./Components/DoctorInbox.jsx";
 import Doctors from "./pages/Doctors.jsx";
 import Partners from "./pages/Partners.jsx";
 import DonorRegistrationModal from "./Components/DonorRegistrationModal.jsx";
@@ -183,7 +185,7 @@ function App() {
       <Route
         path="/dashboard"
         element={
-          <ProtectedRoute allowedRoles={["admin", "donor", "hospital", "health_institution"]}>
+          <ProtectedRoute allowedRoles={["admin", "donor", "hospital", "health_institution", "doctor"]}>
             <Dashboard setUser={setUser} />
           </ProtectedRoute>
         }
@@ -192,9 +194,11 @@ function App() {
         <Route
           index
           element={
-            <ProtectedRoute allowedRoles={["admin", "donor", "hospital", "health_institution"]}>
+            <ProtectedRoute allowedRoles={["admin", "donor", "hospital", "health_institution", "doctor"]}>
               {user?.role === "donor" ? (
                 <Navigate to="/dashboard/donor-requests" replace />
+              ) : user?.role === "doctor" ? (
+                <Navigate to="/dashboard/doctor-inbox" replace />
               ) : user?.role === "hospital" ? (
                 <Navigate to="/dashboard/hospital-donors" replace />
               ) : (
@@ -238,7 +242,7 @@ function App() {
         <Route
           path="profile"
           element={
-            <ProtectedRoute allowedRoles={["donor", "hospital", "admin", "health_institution"]}>
+            <ProtectedRoute allowedRoles={["donor", "hospital", "admin", "health_institution", "doctor"]}>
               <Profile />
             </ProtectedRoute>
           }
@@ -352,6 +356,22 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
               <DoctorsManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="ask-doctor"
+          element={
+            <ProtectedRoute allowedRoles={["donor"]}>
+              <AskDoctor />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="doctor-inbox"
+          element={
+            <ProtectedRoute allowedRoles={["doctor"]}>
+              <DoctorInbox />
             </ProtectedRoute>
           }
         />

@@ -32,6 +32,7 @@ const notificationSchema = new mongoose.Schema(
         "donor_arrived",
         "donation_completed",
         "whatsapp_message",
+        "doctor_message",
         "system_alert",
       ],
       default: "blood_request",

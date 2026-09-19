@@ -17,11 +17,18 @@ import {
   Send,
   Handshake,
   Stethoscope,
+  MessageCircle,
 } from "lucide-react";
+import useConsultUnread from "../hooks/useConsultUnread.js";
 import SobdaLogo from "./SobdaLogo.jsx";
 
 function Sidebar({ isOpen, onClose }) {
-  const role = localStorage.getItem("role"); // admin / donor / hospital / health_institution
+  const role = localStorage.getItem("role"); // admin / donor / hospital / health_institution / doctor
+  const unreadMessages = useConsultUnread(role);
+  const unreadBadge =
+    unreadMessages > 0 ? (
+      <span className="ml-auto rounded-full bg-red-600 px-2 py-0.5 text-[10px] font-bold text-white">{unreadMessages}</span>
+    ) : null;
 
   // Navigation link style helper
   const linkClass = ({ isActive }) =>
@@ -159,9 +166,29 @@ function Sidebar({ isOpen, onClose }) {
               <Inbox className="w-5 h-5 text-red-400" />
               <span>My Status & Requests</span>
             </NavLink>
+            <NavLink to="/dashboard/ask-doctor" className={linkClass} onClick={handleLinkClick}>
+              <MessageCircle className="w-5 h-5 text-emerald-400" />
+              <span>Ask a Doctor</span>
+              {unreadBadge}
+            </NavLink>
             <NavLink to="/dashboard/profile" className={linkClass} onClick={handleLinkClick}>
               <UserCircle className="w-5 h-5 text-sky-400" />
               <span>Profile & History</span>
+            </NavLink>
+          </>
+        )}
+
+        {/* DOCTOR ROLE */}
+        {role === "doctor" && (
+          <>
+            <NavLink to="/dashboard/doctor-inbox" className={linkClass} onClick={handleLinkClick}>
+              <MessageCircle className="w-5 h-5 text-emerald-400" />
+              <span>Donor Questions</span>
+              {unreadBadge}
+            </NavLink>
+            <NavLink to="/dashboard/profile" className={linkClass} onClick={handleLinkClick}>
+              <UserCircle className="w-5 h-5 text-sky-400" />
+              <span>My Profile</span>
             </NavLink>
           </>
         )}
