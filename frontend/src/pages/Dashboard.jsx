@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Routes, Route, Outlet, Navigate, useNavigate } from "react-router-dom";
 import Sidebar from "../Components/Sidebar.jsx";
 import NotificationDropdown from "../Components/NotificationDropdown.jsx";
+import ThemeToggle from "../Components/ThemeToggle.jsx";
 import { LogOut, Menu, X, UserCheck, Shield, Droplet, Building2, Bell, BellOff, Stethoscope } from "lucide-react";
 import { useNotifications } from "../context/NotificationContext.jsx";
 
@@ -97,6 +98,7 @@ function Dashboard({ setUser }) {
           <div className="flex items-center gap-2.5 sm:gap-3">
             {/* Notification Center Bell */}
             <NotificationDropdown />
+            <ThemeToggle />
 
             {getRoleBadge()}
 

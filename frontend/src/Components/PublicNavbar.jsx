@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X, User, Droplet } from "lucide-react";
 import SobdaLogo from "./SobdaLogo.jsx";
+import ThemeToggle from "./ThemeToggle.jsx";
 
 const NAV_LINKS = [
   { to: "/", label: "Home" },
@@ -51,6 +52,7 @@ function PublicNavbar() {
 
           {/* Desktop actions */}
           <div className="hidden lg:flex items-center gap-3">
+            <ThemeToggle />
             {loggedIn ? (
               <Link
                 to="/dashboard"
@@ -79,6 +81,8 @@ function PublicNavbar() {
           </div>
 
           {/* Mobile menu button */}
+          <div className="flex items-center gap-1 lg:hidden">
+          <ThemeToggle />
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="lg:hidden rounded-lg p-2 text-navy transition-colors hover:bg-sky-50"
@@ -87,6 +91,7 @@ function PublicNavbar() {
           >
             {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
+          </div>
         </div>
 
         {/* Mobile navigation */}
