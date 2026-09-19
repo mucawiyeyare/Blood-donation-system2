@@ -44,47 +44,24 @@ function Dashboard({ setUser }) {
   };
 
   const getRoleBadge = () => {
-    switch (role) {
-      case "hospital":
-        return (
-          <span className="flex items-center gap-1 px-3 py-1 rounded-full bg-sky-500/20 text-sky-100 border border-sky-400/30 text-xs font-bold uppercase tracking-wider">
-            <Building2 className="w-3.5 h-3.5 text-sky-300" />
-            Hospital
-          </span>
-        );
-      case "admin":
-        return (
-          <span className="flex items-center gap-1 px-3 py-1 rounded-full bg-amber-500/20 text-amber-100 border border-amber-400/30 text-xs font-bold uppercase tracking-wider">
-            <Shield className="w-3.5 h-3.5 text-amber-300" />
-            Administrator
-          </span>
-        );
-      case "health_institution":
-        return (
-          <span className="flex items-center gap-1 px-3 py-1 rounded-full bg-purple-500/20 text-purple-100 border border-purple-400/30 text-xs font-bold uppercase tracking-wider">
-            <Shield className="w-3.5 h-3.5 text-purple-300" />
-            Ministry of Health
-          </span>
-        );
-      case "doctor":
-        return (
-          <span className="flex items-center gap-1 px-3 py-1 rounded-full bg-teal-500/20 text-teal-100 border border-teal-400/30 text-xs font-bold uppercase tracking-wider">
-            <Stethoscope className="w-3.5 h-3.5 text-teal-300" />
-            Doctor
-          </span>
-        );
-      default:
-        return (
-          <span className="flex items-center gap-1 px-3 py-1 rounded-full bg-red-500/20 text-red-100 border border-red-400/30 text-xs font-bold uppercase tracking-wider">
-            <Droplet className="w-3.5 h-3.5 text-red-300" />
-            Blood Donor
-          </span>
-        );
-    }
+    const [Icon, label] =
+      {
+        hospital: [Building2, "Hospital"],
+        admin: [Shield, "Administrator"],
+        health_institution: [Shield, "Ministry of Health"],
+        doctor: [Stethoscope, "Doctor"],
+      }[role] || [Droplet, "Blood Donor"];
+
+    return (
+      <span className="flex items-center gap-1 px-3 py-1 rounded-full bg-soft text-navy border border-line text-xs font-bold uppercase tracking-wider">
+        <Icon className="w-3.5 h-3.5 text-brand" />
+        {label}
+      </span>
+    );
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-900">
+    <div className="flex h-screen overflow-hidden bg-white">
       {/* Sidebar */}
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
@@ -99,21 +76,21 @@ function Dashboard({ setUser }) {
       {/* Main Content Area */}
       <div className="flex-1 bg-slate-50 overflow-auto relative flex flex-col min-w-0">
         {/* Top Navbar */}
-        <header className="sticky top-0 right-0 z-20 flex justify-between items-center px-4 sm:px-6 py-3.5 bg-gradient-to-r from-red-600 via-red-700 to-slate-900 shadow-md text-white">
+        <header className="sticky top-0 right-0 z-20 flex justify-between items-center px-4 sm:px-6 py-3.5 bg-white border-b border-line text-slate-800">
           <div className="flex items-center gap-3">
             {/* Mobile Menu Toggle */}
             <button
               onClick={toggleSidebar}
-              className="lg:hidden bg-white/10 hover:bg-white/20 p-2.5 rounded-xl transition-colors"
+              className="lg:hidden bg-slate-100 hover:bg-slate-200 text-slate-700 p-2.5 rounded-xl transition-colors"
               title="Toggle Menu"
             >
               {isSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
 
             <div className="hidden sm:flex items-center gap-2">
-              <span className="font-bold text-sm tracking-wide text-white">SOBDA</span>
-              <span className="text-xs text-red-200">|</span>
-              <span className="text-xs text-red-100 font-medium">Somalia Blood Donation Network</span>
+              <span className="font-bold text-sm tracking-wide text-navy">SOBDA</span>
+              <span className="text-xs text-slate-300">|</span>
+              <span className="text-xs text-slate-500 font-medium">Somalia Blood Donation Network</span>
             </div>
           </div>
 
@@ -126,7 +103,7 @@ function Dashboard({ setUser }) {
             {/* Logout Button */}
             <button
               onClick={handleLogout}
-              className="bg-white/10 hover:bg-white/20 text-white px-3.5 py-1.5 rounded-xl font-bold text-xs transition-all flex items-center gap-1.5 border border-white/10"
+              className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-1.5 rounded-xl font-bold text-xs transition-all flex items-center gap-1.5 border border-line"
               title="Logout"
             >
               <LogOut className="w-3.5 h-3.5" />
@@ -143,9 +120,7 @@ function Dashboard({ setUser }) {
           !bannerDismissed && (
           <div
             className={`flex flex-col sm:flex-row sm:items-center gap-2.5 px-4 sm:px-6 py-3 text-xs sm:text-sm font-semibold ${
-              permissionStatus === "denied" || (isIOS && !isIOSStandalone)
-                ? "bg-slate-800 text-slate-200"
-                : "bg-gradient-to-r from-amber-500 to-orange-500 text-white"
+              "bg-soft text-slate-700 border-b border-line"
             }`}
           >
             <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -167,14 +142,14 @@ function Dashboard({ setUser }) {
                 <button
                   onClick={requestNotificationPermission}
                   disabled={isSubscribing}
-                  className="px-3 py-1.5 rounded-lg bg-white text-orange-700 hover:bg-orange-50 disabled:opacity-60 font-bold transition-colors"
+                  className="px-3 py-1.5 rounded-lg bg-brand text-white hover:bg-brand-dark disabled:opacity-60 font-bold transition-colors"
                 >
                   {isSubscribing ? "Enabling…" : "Enable Notifications"}
                 </button>
               )}
               <button
                 onClick={() => setBannerDismissed(true)}
-                className="p-1.5 rounded-lg hover:bg-black/10"
+                className="p-1.5 rounded-lg hover:bg-slate-200"
                 aria-label="Dismiss"
               >
                 <X className="w-4 h-4" />

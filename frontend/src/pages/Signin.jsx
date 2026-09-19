@@ -63,7 +63,7 @@ function Signin({ setUser }) {
         {/* Sign In Card */}
         <div className="bg-white rounded-3xl shadow-xl border border-slate-200/80 p-8 relative overflow-hidden">
           {/* Top accent line */}
-          <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-red-600 via-rose-500 to-red-600"></div>
+          <div className="absolute top-0 left-0 right-0 h-2 bg-brand"></div>
 
           <div className="mb-6">
             <h2 className="text-2xl sm:text-3xl font-black text-slate-900">Welcome Back</h2>

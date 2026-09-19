@@ -90,7 +90,7 @@ function SplitHero({
   const media = slides || [{ image, alt: imageAlt, tagline, plain: plainImage }];
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-white via-soft to-soft">
+    <section className="relative overflow-hidden bg-white">
       <div className="mx-auto grid max-w-7xl items-stretch lg:grid-cols-2">
         <div className="order-2 flex flex-col justify-center px-4 py-12 sm:px-6 sm:py-16 lg:order-1 lg:px-8 lg:py-20">
           <Eyebrow className="mb-5">{eyebrow}</Eyebrow>

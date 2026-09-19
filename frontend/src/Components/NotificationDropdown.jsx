@@ -109,13 +109,13 @@ export default function NotificationDropdown() {
       {/* Bell Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all active:scale-95 flex items-center justify-center border border-white/10"
+        className="relative p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all active:scale-95 flex items-center justify-center border border-line"
         title="Notifications"
         aria-label="View notifications"
       >
-        <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-slate-100" />
+        <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-slate-700" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-600 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-slate-900 animate-pulse shadow-md">
+          <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-600 text-white text-[10px] font-black rounded-full flex items-center justify-center border-2 border-white animate-pulse shadow-md">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
@@ -123,15 +123,15 @@ export default function NotificationDropdown() {
 
       {/* Dropdown Panel */}
       {isOpen && (
-        <div className="fixed sm:absolute top-14 sm:top-full right-2 sm:right-0 mt-2 w-[calc(100vw-1rem)] sm:w-96 max-w-sm bg-slate-900 text-white rounded-2xl shadow-2xl border border-slate-700/80 overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed sm:absolute top-14 sm:top-full right-2 sm:right-0 mt-2 w-[calc(100vw-1rem)] sm:w-96 max-w-sm bg-white text-slate-800 rounded-2xl shadow-2xl border border-line overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
           {/* Header */}
-          <div className="p-3.5 bg-slate-800/80 border-b border-slate-700/80 flex items-center justify-between">
+          <div className="p-3.5 bg-soft border-b border-line flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="font-bold text-sm tracking-wide text-white">
+              <span className="font-bold text-sm tracking-wide text-slate-900">
                 Notifications
               </span>
               {unreadCount > 0 && (
-                <span className="px-2 py-0.5 rounded-full bg-red-500/20 text-red-300 text-[11px] font-bold border border-red-500/30">
+                <span className="px-2 py-0.5 rounded-full bg-red-50 text-red-600 text-[11px] font-bold border border-red-200">
                   {unreadCount} new
                 </span>
               )}
@@ -141,7 +141,7 @@ export default function NotificationDropdown() {
               {unreadCount > 0 && (
                 <button
                   onClick={markAllAsRead}
-                  className="flex items-center gap-1 text-xs text-sky-400 hover:text-sky-300 font-semibold transition-colors"
+                  className="flex items-center gap-1 text-xs text-brand hover:text-brand-dark font-semibold transition-colors"
                   title="Mark all as read"
                 >
                   <CheckCheck className="w-3.5 h-3.5" />
@@ -150,7 +150,7 @@ export default function NotificationDropdown() {
               )}
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10"
+                className="text-slate-400 hover:text-slate-900 p-1 rounded-lg hover:bg-slate-100"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -159,16 +159,16 @@ export default function NotificationDropdown() {
 
           {/* Browser Push Permission Banner */}
           {permissionStatus !== "granted" && (
-            <div className="p-2.5 bg-gradient-to-r from-red-950/60 to-slate-900 border-b border-red-900/40 flex items-center justify-between gap-2">
+            <div className="p-2.5 bg-soft border-b border-line flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0">
-                <Smartphone className="w-4 h-4 text-emerald-400 flex-shrink-0" />
-                <span className="text-[11px] text-slate-300 truncate">
+                <Smartphone className="w-4 h-4 text-slate-500 flex-shrink-0" />
+                <span className="text-[11px] text-slate-600 truncate">
                   Get WhatsApp & Phone top alerts
                 </span>
               </div>
               <button
                 onClick={requestNotificationPermission}
-                className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold flex-shrink-0 transition-colors shadow"
+                className="px-2.5 py-1 rounded-lg bg-brand hover:bg-brand-dark text-white text-[11px] font-bold flex-shrink-0 transition-colors shadow"
               >
                 Enable
               </button>
@@ -176,13 +176,13 @@ export default function NotificationDropdown() {
           )}
 
           {/* Filter Tabs */}
-          <div className="px-3 pt-2 pb-1 flex items-center gap-2 bg-slate-900/90 border-b border-slate-800 text-xs">
+          <div className="px-3 pt-2 pb-1 flex items-center gap-2 bg-white border-b border-line text-xs">
             <button
               onClick={() => setFilter("all")}
               className={`px-3 py-1 rounded-lg font-semibold transition-colors ${
                 filter === "all"
-                  ? "bg-white/15 text-white"
-                  : "text-slate-400 hover:text-white"
+                  ? "bg-slate-100 text-slate-900"
+                  : "text-slate-500 hover:text-slate-900"
               }`}
             >
               All ({notifications.length})
@@ -191,8 +191,8 @@ export default function NotificationDropdown() {
               onClick={() => setFilter("unread")}
               className={`px-3 py-1 rounded-lg font-semibold transition-colors ${
                 filter === "unread"
-                  ? "bg-white/15 text-white"
-                  : "text-slate-400 hover:text-white"
+                  ? "bg-slate-100 text-slate-900"
+                  : "text-slate-500 hover:text-slate-900"
               }`}
             >
               Unread ({unreadCount})
@@ -200,10 +200,10 @@ export default function NotificationDropdown() {
           </div>
 
           {/* Notifications List */}
-          <div className="max-h-80 overflow-y-auto divide-y divide-slate-800/80 custom-scrollbar">
+          <div className="max-h-80 overflow-y-auto divide-y divide-line custom-scrollbar">
             {filteredList.length === 0 ? (
               <div className="p-8 text-center text-slate-400">
-                <Bell className="w-8 h-8 mx-auto mb-2 text-slate-600" />
+                <Bell className="w-8 h-8 mx-auto mb-2 text-slate-300" />
                 <p className="text-xs font-medium">No notifications yet</p>
                 <p className="text-[11px] text-slate-500 mt-1">
                   When hospitals send messages or blood requests, they will appear here.
@@ -214,8 +214,8 @@ export default function NotificationDropdown() {
                 <div
                   key={item._id}
                   onClick={() => handleNotificationClick(item)}
-                  className={`p-3 transition-colors cursor-pointer flex items-start gap-3 group hover:bg-white/5 ${
-                    !item.isRead ? "bg-slate-800/40" : ""
+                  className={`p-3 transition-colors cursor-pointer flex items-start gap-3 group hover:bg-slate-50 ${
+                    !item.isRead ? "bg-soft" : ""
                   }`}
                 >
                   {/* Icon */}
@@ -228,7 +228,7 @@ export default function NotificationDropdown() {
                     <div className="flex items-center justify-between gap-1">
                       <h5
                         className={`text-xs font-bold truncate ${
-                          !item.isRead ? "text-white" : "text-slate-300"
+                          !item.isRead ? "text-slate-900" : "text-slate-600"
                         }`}
                       >
                         {item.title}
@@ -238,12 +238,12 @@ export default function NotificationDropdown() {
                       </span>
                     </div>
 
-                    <p className="text-xs text-slate-300 mt-0.5 line-clamp-2 leading-relaxed">
+                    <p className="text-xs text-slate-600 mt-0.5 line-clamp-2 leading-relaxed">
                       {item.message}
                     </p>
 
                     {item.channel === "both" && (
-                      <div className="mt-1.5 flex items-center gap-1.5 text-[10px] text-emerald-400 font-semibold">
+                      <div className="mt-1.5 flex items-center gap-1.5 text-[10px] text-slate-500 font-semibold">
                         <MessageCircle className="w-3 h-3" />
                         <span>WhatsApp & System alert dispatched</span>
                       </div>
@@ -260,7 +260,7 @@ export default function NotificationDropdown() {
                         e.stopPropagation();
                         deleteNotification(item._id);
                       }}
-                      className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-white/10 text-slate-400 hover:text-red-400 transition-all"
+                      className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-slate-100 text-slate-400 hover:text-red-500 transition-all"
                       title="Delete"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -272,13 +272,13 @@ export default function NotificationDropdown() {
           </div>
 
           {/* Footer */}
-          <div className="p-2.5 bg-slate-800/80 border-t border-slate-700/80 text-center">
+          <div className="p-2.5 bg-soft border-t border-line text-center">
             <button
               onClick={() => {
                 setIsOpen(false);
                 navigate("/dashboard/donor-requests");
               }}
-              className="text-xs font-bold text-sky-400 hover:text-sky-300 transition-colors inline-flex items-center gap-1"
+              className="text-xs font-bold text-brand hover:text-brand-dark transition-colors inline-flex items-center gap-1"
             >
               <span>View all blood requests</span>
               <ExternalLink className="w-3 h-3" />

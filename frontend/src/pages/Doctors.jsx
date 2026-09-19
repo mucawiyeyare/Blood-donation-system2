@@ -50,7 +50,7 @@ function Doctors() {
         tagline="Care you can trust"
       />
 
-      <section className="bg-gradient-to-b from-soft/70 via-white to-white py-14 sm:py-16">
+      <section className="bg-white py-14 sm:py-16">
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
           <DoctorsHeading />
 

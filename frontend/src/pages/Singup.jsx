@@ -199,7 +199,7 @@ function Signup() {
 
           <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 p-8 sm:p-10 relative overflow-hidden text-center">
             {/* Top Amber Accent Bar */}
-            <div className="absolute top-0 left-0 right-0 h-2.5 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600"></div>
+            <div className="absolute top-0 left-0 right-0 h-2.5 bg-brand"></div>
 
             <div className="w-20 h-20 bg-amber-100 text-amber-700 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-inner border border-amber-200 animate-pulse">
               <Building2 className="w-10 h-10 text-amber-600" />
@@ -238,7 +238,7 @@ function Signup() {
               </div>
             </div>
 
-            <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs text-left mb-6 flex items-start gap-3">
+            <div className="p-4 rounded-xl bg-slate-50 border border-line text-slate-700 text-xs text-left mb-6 flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
               <p>
                 <strong>Next Step:</strong> Our administrative team will verify your facility details. You will not be able to log in to dispatch donor requests until your account is approved.
@@ -282,7 +282,7 @@ function Signup() {
 
         {/* ────────────────── Segmented Role Switcher Pill ────────────────── */}
         <div className="flex justify-center mb-6">
-          <div className="bg-slate-900 p-1.5 rounded-2xl flex items-center shadow-xl max-w-sm w-full border border-slate-800">
+          <div className="bg-slate-100 p-1.5 rounded-2xl flex items-center max-w-sm w-full border border-line">
             <button
               type="button"
               onClick={() => {
@@ -292,8 +292,8 @@ function Signup() {
               }}
               className={`flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-black flex items-center justify-center gap-2 transition-all ${
                 role === "donor"
-                  ? "bg-red-600 text-white shadow-lg shadow-red-600/30 scale-[1.02]"
-                  : "text-slate-400 hover:text-white"
+                  ? "bg-navy text-white shadow-md"
+                  : "text-slate-500 hover:text-navy"
               }`}
             >
               <Droplet className="w-4 h-4" />
@@ -308,8 +308,8 @@ function Signup() {
               }}
               className={`flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-black flex items-center justify-center gap-2 transition-all ${
                 role === "hospital"
-                  ? "bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 scale-[1.02]"
-                  : "text-slate-400 hover:text-white"
+                  ? "bg-navy text-white shadow-md"
+                  : "text-slate-500 hover:text-navy"
               }`}
             >
               <Building2 className="w-4 h-4" />
@@ -324,8 +324,8 @@ function Signup() {
           <div
             className={`absolute top-0 left-0 right-0 h-2 transition-all duration-300 ${
               role === "donor"
-                ? "bg-gradient-to-r from-red-600 via-rose-500 to-red-600"
-                : "bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-600"
+                ? "bg-brand"
+                : "bg-brand"
             }`}
           ></div>
 
@@ -565,9 +565,9 @@ function Signup() {
                 </div>
 
                 {/* 🏆 Hall of Heroes Leaderboard Visibility Preference */}
-                <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/90 shadow-sm">
+                <div className="p-4 rounded-2xl bg-slate-50 border border-line shadow-sm">
                   <div className="flex items-start gap-3">
-                    <div className="p-2 bg-amber-500 text-white rounded-xl shadow-sm mt-0.5">
+                    <div className="p-2 bg-slate-200 text-slate-700 rounded-xl shadow-sm mt-0.5">
                       <Trophy className="w-5 h-5" />
                     </div>
                     <div className="flex-1">
@@ -590,7 +590,7 @@ function Signup() {
                         >
                           <div
                             className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                              donorData.allowPublicLeaderboard !== false ? "border-amber-600 bg-amber-600" : "border-slate-300"
+                              donorData.allowPublicLeaderboard !== false ? "border-navy bg-navy" : "border-slate-300"
                             }`}
                           >
                             {donorData.allowPublicLeaderboard !== false && (
@@ -775,7 +775,7 @@ function Signup() {
               className={`w-full py-3.5 text-white font-bold rounded-xl transition-all duration-200 shadow-md text-sm sm:text-base flex items-center justify-center gap-2 ${
                 role === "donor"
                   ? "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 shadow-red-600/30"
-                  : "bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 shadow-emerald-600/30"
+                  : "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 shadow-red-600/30"
               }`}
             >
               {loading ? (

@@ -102,9 +102,9 @@ function About() {
             </p>
           </div>
 
-          <div className="relative min-h-[220px] overflow-hidden rounded-2xl bg-gradient-to-br from-[#4189dd] via-[#3a7bcc] to-[#2c63b0]">
-            <Star className="absolute left-[36%] top-[42%] h-40 w-40 -translate-x-1/2 -translate-y-1/2 fill-white/90 text-white/90 sm:h-48 sm:w-48" />
-            <p className="absolute bottom-5 right-6 max-w-[14rem] text-right font-script text-3xl leading-[1.05] text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.4)] sm:text-4xl">
+          <div className="relative min-h-[220px] overflow-hidden rounded-2xl border border-line bg-white">
+            <Star className="absolute left-[34%] top-[42%] h-36 w-36 -translate-x-1/2 -translate-y-1/2 fill-[#4189dd] text-[#4189dd] sm:h-44 sm:w-44" />
+            <p className="absolute bottom-5 right-6 max-w-[14rem] text-right font-script text-3xl leading-[1.05] text-navy sm:text-4xl">
               Healthy People Stronger Somalia
               <span className="ml-auto mt-1 block h-1 w-28 rounded bg-brand" />
             </p>
@@ -175,13 +175,13 @@ function About() {
             </Link>
           </div>
 
-          <div className="flex flex-col justify-center rounded-3xl bg-gradient-to-br from-navy to-navy-deep p-7 text-white shadow-lg sm:p-9">
+          <div className="flex flex-col justify-center rounded-3xl border border-line bg-white p-7 shadow-sm sm:p-9">
             <Quote className="mb-3 h-9 w-9 text-brand" />
-            <p className="text-xl font-semibold leading-snug sm:text-2xl">
+            <p className="text-xl font-semibold leading-snug text-navy sm:text-2xl">
               Blood donation is not just a gift of blood, it is a gift of life.
             </p>
             <span className="mt-5 block h-0.5 w-10 rounded bg-brand" />
-            <p className="mt-3 text-sm font-semibold text-white/80">SOBDA Team</p>
+            <p className="mt-3 text-sm font-semibold text-slate-500">SOBDA Team</p>
           </div>
         </div>
       </section>

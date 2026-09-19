@@ -62,23 +62,23 @@ function FAQSection({ stats }) {
   return (
     <div className="w-full bg-white">
       {/* 1. Red Impact Stats Bar */}
-      <section className="bg-gradient-to-r from-red-700 via-red-800 to-red-700 text-white py-12 px-4 sm:px-6 lg:px-8 border-y border-red-900/30">
+      <section className="bg-white text-navy py-12 px-4 sm:px-6 lg:px-8 border-y border-line">
         <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           <div className="space-y-1">
             <p className="text-4xl sm:text-5xl font-black tracking-tight">{totalDonors}</p>
-            <p className="text-xs sm:text-sm text-red-100 font-medium">Registered donors</p>
+            <p className="text-xs sm:text-sm text-slate-500 font-medium">Registered donors</p>
           </div>
           <div className="space-y-1">
             <p className="text-4xl sm:text-5xl font-black tracking-tight">{regionsCovered}</p>
-            <p className="text-xs sm:text-sm text-red-100 font-medium">Regions covered</p>
+            <p className="text-xs sm:text-sm text-slate-500 font-medium">Regions covered</p>
           </div>
           <div className="space-y-1">
             <p className="text-4xl sm:text-5xl font-black tracking-tight">{totalHospitals}</p>
-            <p className="text-xs sm:text-sm text-red-100 font-medium">Partner hospitals</p>
+            <p className="text-xs sm:text-sm text-slate-500 font-medium">Partner hospitals</p>
           </div>
           <div className="space-y-1">
             <p className="text-4xl sm:text-5xl font-black tracking-tight">{livesSaved}</p>
-            <p className="text-xs sm:text-sm text-red-100 font-medium">Lives potentially saved</p>
+            <p className="text-xs sm:text-sm text-slate-500 font-medium">Lives potentially saved</p>
           </div>
         </div>
       </section>
@@ -99,8 +99,8 @@ function FAQSection({ stats }) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           {/* Card 1: You can donate if you... */}
-          <div className="bg-white rounded-2xl border-2 border-emerald-200/80 p-6 sm:p-8 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center gap-2.5 text-emerald-700 font-bold text-base sm:text-lg mb-6 pb-3 border-b border-emerald-100">
+          <div className="bg-white rounded-2xl border border-line p-6 sm:p-8 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-2.5 text-navy font-bold text-base sm:text-lg mb-6 pb-3 border-b border-line">
               <CheckCircle2 className="w-6 h-6 text-emerald-600 flex-shrink-0" />
               <span>You can donate if you...</span>
             </div>
@@ -129,8 +129,8 @@ function FAQSection({ stats }) {
           </div>
 
           {/* Card 2: Please wait if you... */}
-          <div className="bg-white rounded-2xl border-2 border-rose-200/80 p-6 sm:p-8 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center gap-2.5 text-rose-700 font-bold text-base sm:text-lg mb-6 pb-3 border-b border-rose-100">
+          <div className="bg-white rounded-2xl border border-line p-6 sm:p-8 shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex items-center gap-2.5 text-navy font-bold text-base sm:text-lg mb-6 pb-3 border-b border-line">
               <XCircle className="w-6 h-6 text-rose-600 flex-shrink-0" />
               <span>Please wait if you...</span>
             </div>
@@ -165,7 +165,7 @@ function FAQSection({ stats }) {
       </section>
 
       {/* 3. FAQ Section: "Common questions" */}
-      <section id="faq" className="py-20 bg-slate-50/70 border-t border-slate-200/80 px-4 sm:px-6 lg:px-8">
+      <section id="faq" className="py-20 bg-white border-t border-line px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
             <span className="text-xs font-bold uppercase tracking-widest text-red-600 block mb-2">

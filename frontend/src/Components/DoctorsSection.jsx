@@ -20,12 +20,12 @@ function DoctorsSection() {
   if (doctors.length === 0) return null;
 
   return (
-    <section id="doctors" className="relative overflow-hidden bg-gradient-to-b from-soft/70 via-white to-white py-16 sm:py-20">
+    <section id="doctors" className="relative overflow-hidden bg-white py-16 sm:py-20">
       {/* faint heartbeat line, as in the mockup */}
       <svg
         aria-hidden="true"
         viewBox="0 0 200 80"
-        className="pointer-events-none absolute right-6 top-6 hidden h-28 w-64 text-blue-200/60 md:block"
+        className="pointer-events-none absolute right-6 top-6 hidden h-28 w-64 text-slate-200 md:block"
         fill="none"
         stroke="currentColor"
         strokeWidth="3"

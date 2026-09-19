@@ -40,7 +40,7 @@ export default function HeroesSection({ leaderboard }) {
       {/* Top 3 Donors Leaderboard (White Background) */}
       <section className="py-20 bg-white border-t border-slate-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold mb-4 shadow-sm">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-soft border border-line text-navy text-xs font-bold mb-4 shadow-sm">
             <Trophy className="w-4 h-4 text-amber-500" />
             <span>Hall of Heroes — Top Donors</span>
           </div>
@@ -61,9 +61,9 @@ export default function HeroesSection({ leaderboard }) {
               const medals = ["🥇", "🥈", "🥉"];
               const rankLabels = ["1st Place", "2nd Place", "3rd Place"];
               const cardStyles = [
-                "bg-gradient-to-b from-amber-50/80 to-white border-2 border-amber-300/80 shadow-md shadow-amber-500/10",
-                "bg-gradient-to-b from-slate-50 to-white border-2 border-slate-300 shadow-md shadow-slate-500/10",
-                "bg-gradient-to-b from-orange-50/80 to-white border-2 border-orange-300/80 shadow-md shadow-orange-500/10",
+                "bg-white border border-line shadow-sm",
+                "bg-white border border-line shadow-sm",
+                "bg-white border border-line shadow-sm",
               ];
               const getMessage = (d, idx) => {
                 if (!d) return "";

@@ -9,7 +9,7 @@ function StatsBar({ items, className = "" }) {
           const Icon = item.icon;
           return (
             <div key={item.label} className="flex items-center gap-3.5 p-4 sm:p-5">
-              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-brand text-white">
+              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-soft text-brand">
                 <Icon className="h-6 w-6" />
               </div>
               <div className="min-w-0">

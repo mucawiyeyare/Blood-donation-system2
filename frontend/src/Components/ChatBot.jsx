@@ -152,13 +152,13 @@ export default function ChatBot() {
           style={{ height: "520px" }}>
 
           {/* Header */}
-          <div className="bg-gradient-to-r from-red-700 to-red-600 px-4 py-3 flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
-              <Droplet className="w-5 h-5 text-white" />
+          <div className="bg-white border-b border-line px-4 py-3 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-soft flex items-center justify-center">
+              <Droplet className="w-5 h-5 text-brand" />
             </div>
             <div>
-              <p className="text-white font-bold text-sm">SOBDA Assistant</p>
-              <p className="text-red-200 text-xs flex items-center gap-1">
+              <p className="text-navy font-bold text-sm">SOBDA Assistant</p>
+              <p className="text-slate-500 text-xs flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
                 Online — always here to help
               </p>

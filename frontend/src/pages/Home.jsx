@@ -101,23 +101,22 @@ function Home() {
 
       {/* Emergency request banner */}
       <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-brand-dark via-brand to-[#e0212f] px-6 py-6 text-white shadow-lg sm:px-10">
-          <Droplet className="pointer-events-none absolute -bottom-8 right-1/3 h-40 w-40 text-white/10" />
-          <div className="relative flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="rounded-3xl border border-line border-l-4 border-l-brand bg-white px-6 py-6 shadow-sm sm:px-10">
+          <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-white/15">
+              <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-soft text-brand">
                 <Siren className="h-7 w-7" />
               </div>
               <div>
-                <h2 className="text-xl font-extrabold sm:text-2xl">Emergency Blood Request</h2>
-                <p className="mt-1 max-w-xl text-sm text-white/90">
+                <h2 className="text-xl font-extrabold text-navy sm:text-2xl">Emergency Blood Request</h2>
+                <p className="mt-1 max-w-xl text-sm text-slate-600">
                   Need blood urgently? Submit a request now and get help from our donor network.
                 </p>
               </div>
             </div>
             <Link
               to="/contact"
-              className="inline-flex flex-shrink-0 items-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-semibold text-brand shadow-md transition-colors hover:bg-soft"
+              className="inline-flex flex-shrink-0 items-center gap-2 rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-white shadow-md shadow-brand/20 transition-colors hover:bg-brand-dark"
             >
               Request Blood Now <ArrowRight className="h-4 w-4" />
             </Link>
@@ -139,7 +138,7 @@ function Home() {
                 return (
                   <div key={step.title} className="relative flex items-start gap-4 sm:flex-col sm:items-center sm:text-center">
                     <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-soft ring-8 ring-soft/60">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-brand text-white">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white text-brand shadow-sm">
                         <Icon className="h-5 w-5" />
                       </div>
                     </div>

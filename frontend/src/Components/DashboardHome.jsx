@@ -100,8 +100,8 @@ function DashboardHome() {
     const card = (
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hover:shadow-md transition-all group">
         <div className="flex items-start justify-between mb-4">
-          <div className={`p-3.5 rounded-2xl ${color} shadow-sm group-hover:scale-110 transition-transform`}>
-            <Icon className="w-6 h-6 text-white" />
+          <div className={`p-3.5 rounded-2xl bg-soft group-hover:scale-110 transition-transform`}>
+            <Icon className="w-6 h-6 text-brand" />
           </div>
           {linkTo && <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-red-600 transition-colors" />}
         </div>

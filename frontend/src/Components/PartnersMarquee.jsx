@@ -23,7 +23,7 @@ function PartnersMarquee() {
   const track = [...partners, ...partners];
 
   return (
-    <section id="partners" className="overflow-hidden border-y border-slate-100 bg-slate-50 py-14 sm:py-16">
+    <section id="partners" className="overflow-hidden border-y border-line bg-white py-14 sm:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-10 flex items-end justify-between gap-4">
           <div>

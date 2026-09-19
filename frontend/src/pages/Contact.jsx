@@ -279,19 +279,19 @@ function Contact() {
 
       {/* Emergency Hotline Banner */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        <div className="rounded-3xl bg-gradient-to-r from-brand-dark via-brand to-[#e0212f] px-6 py-6 text-white shadow-lg sm:px-10">
+        <div className="rounded-3xl border border-line border-l-4 border-l-brand bg-white px-6 py-6 shadow-sm sm:px-10">
           <div className="flex flex-col items-start gap-4 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-white/15 animate-pulse">
+              <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-soft text-brand">
                 <Phone className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-sm text-white/80">24/7 Emergency Hotline</p>
-                <p className="text-2xl font-extrabold">888 (Toll-Free)</p>
+                <p className="text-sm text-slate-500">24/7 Emergency Hotline</p>
+                <p className="text-2xl font-extrabold text-navy">888 (Toll-Free)</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 text-white/95">
-              <AlertCircle className="w-6 h-6 flex-shrink-0 text-yellow-300" />
+            <div className="flex items-center gap-3 text-slate-600">
+              <AlertCircle className="w-6 h-6 flex-shrink-0 text-brand" />
               <p className="text-base sm:text-lg">For urgent blood requirements, call immediately</p>
             </div>
           </div>
