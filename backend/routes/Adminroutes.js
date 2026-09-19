@@ -361,6 +361,31 @@ async function createDoctorUser({ name, email, password, phone }) {
   });
 }
 
+const cleanHighlights = (value) =>
+  Array.isArray(value)
+    ? value.map((v) => String(v || "").trim().slice(0, 60)).filter(Boolean).slice(0, 3)
+    : [];
+
+// Only real http(s) links are stored, so a saved link can never be a javascript: URL
+const cleanUrl = (value) => {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  const withScheme = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+  try {
+    const url = new URL(withScheme);
+    if (!["http:", "https:"].includes(url.protocol) || !url.hostname.includes(".")) throw new Error("bad");
+    return url.href.slice(0, 300);
+  } catch {
+    throw { status: 400, message: `"${raw}" is not a valid link.` };
+  }
+};
+
+const cleanSocials = (socials = {}) => ({
+  facebook: cleanUrl(socials.facebook),
+  linkedin: cleanUrl(socials.linkedin),
+  twitter: cleanUrl(socials.twitter),
+});
+
 const sendError = (res, err) => res.status(err.status || 500).json({ message: err.message });
 
 // 13. Admin: Get all doctors (including hidden), with their login email, for the management screen
@@ -377,11 +402,13 @@ router.get("/doctors", protect, adminOnly, async (req, res) => {
 router.post("/doctors", protect, adminOnly, async (req, res) => {
   let doctorUser = null;
   try {
-    const { name, specialty, bio, photo, order, account } = req.body;
+    const { name, specialty, title, bio, highlights, socials, photo, order, account } = req.body;
 
     if (!name || !specialty) {
       return res.status(400).json({ message: "Doctor name and specialty are required" });
     }
+
+    const cleanedSocials = cleanSocials(socials);
 
     if (account && account.email) {
       doctorUser = await createDoctorUser({ name, ...account });
@@ -390,7 +417,10 @@ router.post("/doctors", protect, adminOnly, async (req, res) => {
     const doctor = new Doctor({
       name: name.trim(),
       specialty: specialty.trim(),
+      title: (title || "").trim(),
       bio: (bio || "").trim(),
+      highlights: cleanHighlights(highlights),
+      socials: cleanedSocials,
       photo: photo || "",
       user: doctorUser ? doctorUser._id : null,
       order: order || 0,
@@ -409,14 +439,17 @@ router.post("/doctors", protect, adminOnly, async (req, res) => {
 // 15. Admin: Update a doctor (and create / update the login account)
 router.put("/doctors/:id", protect, adminOnly, async (req, res) => {
   try {
-    const { name, specialty, bio, photo, order, isActive, account } = req.body;
+    const { name, specialty, title, bio, highlights, socials, photo, order, isActive, account } = req.body;
 
     const doctor = await Doctor.findById(req.params.id);
     if (!doctor) return res.status(404).json({ message: "Doctor not found" });
 
     if (name) doctor.name = name.trim();
     if (specialty) doctor.specialty = specialty.trim();
+    if (title !== undefined) doctor.title = String(title).trim();
     if (bio !== undefined) doctor.bio = bio.trim();
+    if (highlights !== undefined) doctor.highlights = cleanHighlights(highlights);
+    if (socials !== undefined) doctor.socials = cleanSocials(socials);
     if (photo !== undefined) doctor.photo = photo;
     if (order !== undefined) doctor.order = order;
     if (typeof isActive === "boolean") doctor.isActive = isActive;

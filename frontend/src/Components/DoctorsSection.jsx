@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import { Stethoscope, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import DoctorCard from "./DoctorCard.jsx";
+import DoctorsHeading from "./DoctorsHeading.jsx";
 
-const HOME_LIMIT = 4;
+const HOME_LIMIT = 3;
 
 function DoctorsSection() {
   const [doctors, setDoctors] = useState([]);
@@ -19,33 +20,37 @@ function DoctorsSection() {
   if (doctors.length === 0) return null;
 
   return (
-    <section id="doctors" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="rounded-3xl border border-line bg-soft/70 p-5 sm:p-7">
-        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex items-start gap-3">
-            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-white text-navy shadow-sm">
-              <Stethoscope className="h-6 w-6" />
-            </div>
-            <div>
-              <h2 className="text-xl font-extrabold text-navy">Our Doctors</h2>
-              <p className="mt-1 max-w-2xl text-sm text-slate-600">
-                Experienced doctors and medical professionals are here to support the blood donation
-                process and ensure safe and healthy communities.
-              </p>
-            </div>
-          </div>
-          <Link
-            to="/doctors"
-            className="inline-flex items-center gap-1.5 whitespace-nowrap text-sm font-semibold text-navy hover:text-brand"
-          >
-            Meet Our Medical Team <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
+    <section id="doctors" className="relative overflow-hidden bg-gradient-to-b from-soft/70 via-white to-white py-16 sm:py-20">
+      {/* faint heartbeat line, as in the mockup */}
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 200 80"
+        className="pointer-events-none absolute right-6 top-6 hidden h-28 w-64 text-blue-200/60 md:block"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M0 42 H55 L68 42 L78 12 L94 70 L106 30 L114 42 H200" />
+      </svg>
 
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="relative mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
+        <DoctorsHeading />
+
+        <div className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {doctors.slice(0, HOME_LIMIT).map((doctor) => (
             <DoctorCard key={doctor._id} doctor={doctor} />
           ))}
+        </div>
+
+        <div className="mt-10 text-center">
+          <Link
+            to="/doctors"
+            className="inline-flex items-center gap-2 rounded-full border border-navy/30 bg-white px-6 py-3 text-sm font-semibold text-navy shadow-sm transition-colors hover:border-navy hover:bg-soft"
+          >
+            Meet Our Medical Team <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
       </div>
     </section>

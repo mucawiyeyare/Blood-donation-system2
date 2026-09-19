@@ -13,9 +13,26 @@ import {
   MessageCircle,
 } from "lucide-react";
 import ImageCropModal from "./ImageCropModal.jsx";
-import { initialsOf } from "../utils/doctorName.js";
+import DoctorCard from "./DoctorCard.jsx";
+import { SOCIAL_LINKS } from "../utils/doctorStyle.js";
 
-const emptyForm = { name: "", specialty: "", bio: "", photo: "", email: "", password: "", phone: "" };
+const emptyForm = {
+  name: "",
+  specialty: "",
+  title: "",
+  bio: "",
+  photo: "",
+  highlights: ["", "", ""],
+  facebook: "",
+  linkedin: "",
+  twitter: "",
+  email: "",
+  password: "",
+  phone: "",
+};
+
+const inputClass = "w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-red-500";
+const labelClass = "block text-xs font-bold text-slate-700 uppercase mb-1";
 
 function DoctorsManagement() {
   const [doctors, setDoctors] = useState([]);
@@ -57,12 +74,18 @@ function DoctorsManagement() {
   };
 
   const openEditModal = (doctor) => {
+    const h = doctor.highlights || [];
     setEditingDoctor(doctor);
     setForm({
       name: doctor.name,
       specialty: doctor.specialty,
+      title: doctor.title || "",
       bio: doctor.bio || "",
       photo: doctor.photo || "",
+      highlights: [h[0] || "", h[1] || "", h[2] || ""],
+      facebook: doctor.socials?.facebook || "",
+      linkedin: doctor.socials?.linkedin || "",
+      twitter: doctor.socials?.twitter || "",
       email: doctor.user?.email || "",
       password: "",
       phone: "",
@@ -94,6 +117,9 @@ function DoctorsManagement() {
 
   const hasLogin = Boolean(editingDoctor?.user);
 
+  const setHighlight = (index, value) =>
+    setForm((f) => ({ ...f, highlights: f.highlights.map((h, i) => (i === index ? value : h)) }));
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.name.trim() || !form.specialty.trim()) {
@@ -118,8 +144,11 @@ function DoctorsManagement() {
     const payload = {
       name: form.name,
       specialty: form.specialty,
+      title: form.title,
       bio: form.bio,
       photo: form.photo,
+      highlights: form.highlights.map((h) => h.trim()).filter(Boolean),
+      socials: { facebook: form.facebook, linkedin: form.linkedin, twitter: form.twitter },
     };
     if (Object.keys(account).length) payload.account = account;
 
@@ -159,8 +188,10 @@ function DoctorsManagement() {
     }
   };
 
+  const actionButton = "p-1.5 rounded-lg text-slate-400";
+
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-black text-slate-800 flex items-center gap-2.5">
@@ -168,8 +199,8 @@ function DoctorsManagement() {
             Doctors
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Manage the doctors shown on the website. Give a doctor a login so they can sign in, read
-            donors' questions and answer them inside SOBDA.
+            Cards below look exactly like they do on the website. Add the details and links here, and give a
+            doctor a login so they can answer donors' questions inside SOBDA.
           </p>
         </div>
         <button
@@ -191,64 +222,44 @@ function DoctorsManagement() {
           <p className="text-sm text-slate-500">No doctors added yet. Click "Add Doctor" to add the first one.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6">
           {doctors.map((doctor) => (
-            <div
-              key={doctor._id}
-              className={`bg-white rounded-2xl border border-slate-200 p-4 flex items-start gap-4 shadow-sm ${
-                doctor.isActive ? "" : "opacity-50"
-              }`}
-            >
-              {doctor.photo ? (
-                <img
-                  src={doctor.photo}
-                  alt={doctor.name}
-                  className="w-14 h-14 rounded-full object-cover border border-slate-200 flex-shrink-0"
+            <div key={doctor._id} className="flex flex-col gap-2">
+              <div className="flex-1 [&>article]:h-full">
+                <DoctorCard
+                  doctor={{ ...doctor, canChat: Boolean(doctor.user) }}
+                  preview
+                  dimmed={!doctor.isActive}
+                  adminActions={
+                    <>
+                      <button onClick={() => openEditModal(doctor)} className={`${actionButton} hover:text-sky-600 hover:bg-sky-50`} aria-label="Edit" title="Edit">
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleToggleActive(doctor)}
+                        className={`${actionButton} hover:text-amber-600 hover:bg-amber-50`}
+                        aria-label={doctor.isActive ? "Hide from website" : "Show on website"}
+                        title={doctor.isActive ? "Hide from website" : "Show on website"}
+                      >
+                        {doctor.isActive ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                      </button>
+                      <button onClick={() => handleDelete(doctor)} className={`${actionButton} hover:text-red-600 hover:bg-red-50`} aria-label="Delete" title="Delete">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </>
+                  }
                 />
-              ) : (
-                <div className="w-14 h-14 rounded-full bg-red-100 text-red-700 flex items-center justify-center font-black flex-shrink-0">
-                  {initialsOf(doctor.name)}
-                </div>
-              )}
-              <div className="min-w-0 flex-1">
-                <p className="font-bold text-sm text-slate-800 truncate">{doctor.name}</p>
-                <p className="text-xs text-red-600 font-semibold truncate">{doctor.specialty}</p>
-                {doctor.bio && <p className="text-[11px] text-slate-500 mt-1 line-clamp-2">{doctor.bio}</p>}
-                {doctor.user ? (
-                  <p className="mt-1.5 flex items-center gap-1 text-[11px] font-semibold text-emerald-700 truncate">
-                    <MessageCircle className="w-3 h-3 flex-shrink-0" />
-                    <span className="truncate">Can chat · {doctor.user.email}</span>
-                  </p>
-                ) : (
-                  <p className="mt-1.5 text-[11px] text-slate-400">No login yet, so donors cannot chat</p>
-                )}
-                {!doctor.isActive && (
-                  <span className="inline-block mt-1 text-[10px] font-bold uppercase text-slate-400">Hidden</span>
-                )}
               </div>
-              <div className="flex flex-col gap-1.5 flex-shrink-0">
-                <button
-                  onClick={() => openEditModal(doctor)}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-sky-600 hover:bg-sky-50"
-                  aria-label="Edit"
-                >
-                  <Pencil className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => handleToggleActive(doctor)}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-amber-50"
-                  aria-label={doctor.isActive ? "Hide from website" : "Show on website"}
-                  title={doctor.isActive ? "Hide from website" : "Show on website"}
-                >
-                  {doctor.isActive ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                </button>
-                <button
-                  onClick={() => handleDelete(doctor)}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50"
-                  aria-label="Delete"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+              <div className="rounded-xl border border-line bg-white px-4 py-2 text-xs">
+                {doctor.user ? (
+                  <span className="flex items-center gap-1.5 font-semibold text-emerald-700">
+                    <MessageCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span className="truncate">Can chat · login {doctor.user.email}</span>
+                  </span>
+                ) : (
+                  <span className="text-slate-500">No login yet, so donors cannot chat with this doctor.</span>
+                )}
+                {!doctor.isActive && <span className="ml-2 font-bold uppercase text-slate-400">Hidden on website</span>}
               </div>
             </div>
           ))}
@@ -258,7 +269,7 @@ function DoctorsManagement() {
       {/* Add / Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-100 max-h-[92vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 border border-slate-100 max-h-[92vh] overflow-y-auto">
             <div className="flex justify-between items-start mb-4 pb-3 border-b border-slate-100">
               <h3 className="text-xl font-black text-slate-800">
                 {editingDoctor ? "Edit Doctor" : "Add Doctor"}
@@ -270,13 +281,7 @@ function DoctorsManagement() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="flex flex-col items-center gap-2">
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handlePhotoSelect}
-                  accept="image/*"
-                  className="hidden"
-                />
+                <input type="file" ref={fileInputRef} onChange={handlePhotoSelect} accept="image/*" className="hidden" />
                 <div
                   onClick={() => fileInputRef.current?.click()}
                   className="w-20 h-20 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center cursor-pointer hover:border-red-400 overflow-hidden bg-slate-50"
@@ -287,48 +292,76 @@ function DoctorsManagement() {
                     <ImageIcon className="w-7 h-7 text-slate-300" />
                   )}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="text-xs font-bold text-red-600 hover:underline"
-                >
+                <button type="button" onClick={() => fileInputRef.current?.click()} className="text-xs font-bold text-red-600 hover:underline">
                   {form.photo ? "Change Photo" : "Upload Photo (optional)"}
                 </button>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Doctor Name *</label>
-                <input
-                  type="text"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  placeholder="e.g. Ubax Farax"
-                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-red-500"
-                  required
-                />
+                <label className={labelClass}>Doctor Name *</label>
+                <input type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Ubax Farax" className={inputClass} required />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className={labelClass}>Specialty (badge) *</label>
+                  <input type="text" value={form.specialty} onChange={(e) => setForm({ ...form, specialty: e.target.value })} placeholder="e.g. Hematology" className={inputClass} required />
+                </div>
+                <div>
+                  <label className={labelClass}>Title under the name</label>
+                  <input type="text" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. Hematologist" className={inputClass} />
+                </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Specialty *</label>
-                <input
-                  type="text"
-                  value={form.specialty}
-                  onChange={(e) => setForm({ ...form, specialty: e.target.value })}
-                  placeholder="e.g. Hematologist"
-                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-red-500"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Bio</label>
+                <label className={labelClass}>Description</label>
                 <textarea
                   value={form.bio}
                   onChange={(e) => setForm({ ...form, bio: e.target.value })}
-                  rows="2"
-                  placeholder="Short line shown on the website, e.g. Blood Disorders & Transfusion"
-                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-red-500"
+                  rows="3"
+                  placeholder="A few lines about the doctor and their experience"
+                  className={inputClass}
                 />
+              </div>
+
+              {/* Highlights */}
+              <div>
+                <label className={labelClass}>Highlights (up to 3 lines with icons)</label>
+                <div className="space-y-2">
+                  {form.highlights.map((value, i) => (
+                    <input
+                      key={i}
+                      type="text"
+                      value={value}
+                      maxLength={60}
+                      onChange={(e) => setHighlight(i, e.target.value)}
+                      placeholder={["e.g. 10+ Years Experience", "e.g. Specialized in Blood Disorders", "e.g. Trusted by Thousands"][i]}
+                      className={inputClass}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Social links */}
+              <div>
+                <label className={labelClass}>Social media links (optional)</label>
+                <div className="space-y-2">
+                  {SOCIAL_LINKS.map(({ key, label, Icon }) => (
+                    <div key={key} className="flex items-center gap-2">
+                      <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600" title={label}>
+                        <Icon className="w-4 h-4" />
+                      </span>
+                      <input
+                        type="text"
+                        value={form[key]}
+                        onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+                        placeholder={`${label} link, e.g. https://…`}
+                        className={inputClass}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <p className="text-[11px] text-slate-500 mt-1">Only links you fill in appear on the doctor's card.</p>
               </div>
 
               {/* Login account */}
@@ -346,46 +379,25 @@ function DoctorsManagement() {
                     </p>
                   </div>
                 </div>
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  placeholder="Login email"
-                  autoComplete="off"
-                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-red-500"
-                />
+                <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="Login email" autoComplete="off" className={`${inputClass} bg-white`} />
                 <input
                   type="text"
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
                   placeholder={hasLogin ? "New password (leave empty to keep)" : "Password (min 6 characters)"}
                   autoComplete="new-password"
-                  className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-red-500"
+                  className={`${inputClass} bg-white`}
                 />
                 {!hasLogin && (
-                  <input
-                    type="tel"
-                    value={form.phone}
-                    onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                    placeholder="Phone (optional)"
-                    className="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm bg-white focus:ring-2 focus:ring-red-500"
-                  />
+                  <input type="tel" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="Phone (optional)" className={`${inputClass} bg-white`} />
                 )}
               </div>
 
               <div className="flex gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs"
-                >
+                <button type="button" onClick={() => setShowModal(false)} className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs">
                   Cancel
                 </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-bold rounded-xl text-xs"
-                >
+                <button type="submit" disabled={submitting} className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white font-bold rounded-xl text-xs">
                   {submitting ? "Saving..." : editingDoctor ? "Save Changes" : "Add Doctor"}
                 </button>
               </div>
@@ -395,11 +407,7 @@ function DoctorsManagement() {
       )}
 
       {cropImageSrc && (
-        <ImageCropModal
-          imageSrc={cropImageSrc}
-          onCancel={() => setCropImageSrc(null)}
-          onCropComplete={handleCropComplete}
-        />
+        <ImageCropModal imageSrc={cropImageSrc} onCancel={() => setCropImageSrc(null)} onCropComplete={handleCropComplete} />
       )}
     </div>
   );
