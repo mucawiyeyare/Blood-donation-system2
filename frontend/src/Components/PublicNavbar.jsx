@@ -20,16 +20,16 @@ function PublicNavbar() {
 
   const desktopLink = (path) =>
     `relative px-1 py-2 text-sm font-semibold transition-colors ${
-      isActive(path) ? "text-brand" : "text-navy hover:text-brand"
+      isActive(path) ? "text-sky-700" : "text-navy hover:text-sky-700"
     }`;
 
   const mobileLink = (path) =>
     `block rounded-lg px-4 py-3 text-sm font-semibold transition-colors ${
-      isActive(path) ? "bg-soft text-brand" : "text-navy hover:bg-soft hover:text-brand"
+      isActive(path) ? "bg-sky-50 text-sky-700" : "text-navy hover:bg-sky-50 hover:text-sky-700"
     }`;
 
   return (
-    <nav className="font-brand sticky top-0 z-50 border-b border-line bg-white/95 backdrop-blur-md">
+    <nav className="font-brand sticky top-0 z-50 border-b border-sky-100 bg-white/95 shadow-[0_4px_20px_-8px_rgba(14,80,160,0.18)] backdrop-blur-md">
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-[72px] items-center justify-between gap-6">
           {/* Brand */}
@@ -43,7 +43,7 @@ function PublicNavbar() {
               <Link key={link.to} to={link.to} className={desktopLink(link.to)}>
                 {link.label}
                 {isActive(link.to) && (
-                  <span className="absolute inset-x-0 -bottom-[13px] h-0.5 rounded bg-brand" />
+                  <span className="absolute inset-x-0 -bottom-[13px] h-0.5 rounded bg-sky-600" />
                 )}
               </Link>
             ))}
@@ -54,7 +54,7 @@ function PublicNavbar() {
             {loggedIn ? (
               <Link
                 to="/dashboard"
-                className="rounded-xl bg-navy px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-navy-deep"
+                className="rounded-xl bg-sky-700 px-5 py-2.5 text-sm font-semibold text-white shadow-sm shadow-sky-700/20 transition-colors hover:bg-sky-800"
               >
                 Dashboard
               </Link>
@@ -62,7 +62,7 @@ function PublicNavbar() {
               <>
                 <Link
                   to="/signin"
-                  className="inline-flex items-center gap-2 rounded-xl border border-navy/40 bg-white px-5 py-2.5 text-sm font-semibold text-navy transition-colors hover:border-navy hover:bg-soft"
+                  className="inline-flex items-center gap-2 rounded-xl border border-sky-200 bg-white px-5 py-2.5 text-sm font-semibold text-sky-800 transition-colors hover:border-sky-400 hover:bg-sky-50"
                 >
                   <User className="h-4 w-4" />
                   Login
@@ -81,7 +81,7 @@ function PublicNavbar() {
           {/* Mobile menu button */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="lg:hidden rounded-lg p-2 text-navy transition-colors hover:bg-soft"
+            className="lg:hidden rounded-lg p-2 text-navy transition-colors hover:bg-sky-50"
             aria-label="Toggle menu"
             aria-expanded={isMenuOpen}
           >
@@ -91,7 +91,7 @@ function PublicNavbar() {
 
         {/* Mobile navigation */}
         {isMenuOpen && (
-          <div className="lg:hidden border-t border-line py-4">
+          <div className="lg:hidden border-t border-sky-100 py-4">
             <div className="flex flex-col gap-1">
               {NAV_LINKS.map((link) => (
                 <Link
@@ -107,7 +107,7 @@ function PublicNavbar() {
                 {loggedIn ? (
                   <Link
                     to="/dashboard"
-                    className="rounded-xl bg-navy px-4 py-3 text-center text-sm font-semibold text-white"
+                    className="rounded-xl bg-sky-700 px-4 py-3 text-center text-sm font-semibold text-white"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Go to Dashboard
@@ -116,7 +116,7 @@ function PublicNavbar() {
                   <>
                     <Link
                       to="/signin"
-                      className="rounded-xl border border-navy/40 px-4 py-3 text-center text-sm font-semibold text-navy"
+                      className="rounded-xl border border-sky-200 px-4 py-3 text-center text-sm font-semibold text-sky-800"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Login
