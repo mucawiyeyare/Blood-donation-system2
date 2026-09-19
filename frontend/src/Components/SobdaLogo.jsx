@@ -4,10 +4,10 @@ export default function SobdaLogo({ size = "md", showText = true, className = ""
   const [imgError, setImgError] = useState(false);
 
   const sizeMap = {
-    sm: { img: "h-8 w-auto max-w-[36px]", icon: "w-9 h-9", text: "text-xl" },
-    md: { img: "h-12 w-auto max-w-[52px]", icon: "w-12 h-12", text: "text-3xl" },
-    lg: { img: "h-16 w-auto max-w-[70px]", icon: "w-16 h-16", text: "text-4xl" },
-    xl: { img: "h-24 w-auto max-w-[100px]", icon: "w-24 h-24", text: "text-5xl" },
+    sm: { img: "h-8 w-auto", icon: "w-9 h-9", text: "text-xl" },
+    md: { img: "h-12 w-auto", icon: "w-12 h-12", text: "text-3xl" },
+    lg: { img: "h-14 w-auto", icon: "w-16 h-16", text: "text-4xl" },
+    xl: { img: "h-20 w-auto", icon: "w-24 h-24", text: "text-5xl" },
   };
 
   const currentSize = sizeMap[size] || sizeMap.md;
@@ -18,9 +18,9 @@ export default function SobdaLogo({ size = "md", showText = true, className = ""
     <div className={`flex items-center gap-3 ${className}`}>
       {!imgError ? (
         <img
-          src="/logo.jpg"
+          src="/logo-mark.png"
           alt="SOBDA Logo"
-          className={`${currentSize.img} object-contain rounded-lg shadow-sm`}
+          className={`${currentSize.img} object-contain`}
           onError={() => setImgError(true)}
         />
       ) : (
