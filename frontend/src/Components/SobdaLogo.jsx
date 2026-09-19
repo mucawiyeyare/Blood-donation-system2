@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-export default function SobdaLogo({ size = "md", showText = true, className = "", light = false }) {
+export default function SobdaLogo({ size = "md", showText = true, className = "", light = false, tagline }) {
   const [imgError, setImgError] = useState(false);
 
   const sizeMap = {
@@ -11,6 +11,8 @@ export default function SobdaLogo({ size = "md", showText = true, className = ""
   };
 
   const currentSize = sizeMap[size] || sizeMap.md;
+  // Show the "Somali Blood Donation System" line under the wordmark except in the compact size.
+  const showTagline = tagline ?? size !== "sm";
 
   return (
     <div className={`flex items-center gap-3 ${className}`}>
@@ -59,10 +61,14 @@ export default function SobdaLogo({ size = "md", showText = true, className = ""
 
       {showText && (
         <div className="flex flex-col leading-tight text-left">
-          <div className={`font-black tracking-wider flex items-center ${currentSize.text}`}>
-            <span className="text-red-600">SOB</span>
-            <span className="text-sky-500">DA</span>
+          <div className={`font-extrabold tracking-wide ${currentSize.text} ${light ? "text-white" : "text-navy"}`}>
+            SOBDA
           </div>
+          {showTagline && (
+            <span className={`text-[10px] sm:text-[11px] font-medium leading-tight ${light ? "text-white/75" : "text-slate-600"}`}>
+              Somali Blood Donation System
+            </span>
+          )}
         </div>
       )}
     </div>

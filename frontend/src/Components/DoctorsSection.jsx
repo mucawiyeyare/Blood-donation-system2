@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { Stethoscope, ArrowRight } from "lucide-react";
 import DoctorCard from "./DoctorCard.jsx";
 
 const HOME_LIMIT = 4;
@@ -18,19 +19,30 @@ function DoctorsSection() {
   if (doctors.length === 0) return null;
 
   return (
-    <section id="doctors" className="py-20 bg-white border-b border-slate-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-end justify-between gap-4 mb-10">
-          <div>
-            <h2 className="text-3xl sm:text-4xl font-black text-slate-900">Talk to a doctor</h2>
-            <p className="text-slate-600 mt-2">Get eligibility guidance before you donate.</p>
+    <section id="doctors" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="rounded-3xl border border-line bg-soft/70 p-5 sm:p-7">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-white text-navy shadow-sm">
+              <Stethoscope className="h-6 w-6" />
+            </div>
+            <div>
+              <h2 className="text-xl font-extrabold text-navy">Our Doctors</h2>
+              <p className="mt-1 max-w-2xl text-sm text-slate-600">
+                Experienced doctors and medical professionals are here to support the blood donation
+                process and ensure safe and healthy communities.
+              </p>
+            </div>
           </div>
-          <Link to="/doctors" className="text-red-700 hover:text-red-800 font-bold whitespace-nowrap">
-            View all
+          <Link
+            to="/doctors"
+            className="inline-flex items-center gap-1.5 whitespace-nowrap text-sm font-semibold text-navy hover:text-brand"
+          >
+            Meet Our Medical Team <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {doctors.slice(0, HOME_LIMIT).map((doctor) => (
             <DoctorCard key={doctor._id} doctor={doctor} />
           ))}

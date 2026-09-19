@@ -3,597 +3,191 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import {
   Droplet,
-  Heart,
   Users,
-  Shield,
-  MapPin,
-  Clock,
   Building2,
-  PhoneCall,
-  CheckCircle2,
+  MapPin,
+  Stethoscope,
+  UserPlus,
+  HeartPulse,
+  HandHeart,
+  Siren,
   ArrowRight,
-  Send,
-  Sparkles,
-  Trophy,
-  PieChart,
-  TrendingUp,
-  Activity,
-  BarChart3,
-  ShieldCheck,
+  PlayCircle,
 } from "lucide-react";
 import ChatBot from "../Components/ChatBot.jsx";
 import FAQSection from "../Components/FAQSection.jsx";
-import PartnersMarquee from "../Components/PartnersMarquee.jsx";
+import SplitHero from "../Components/SplitHero.jsx";
+import StatsBar from "../Components/StatsBar.jsx";
+import Eyebrow from "../Components/Eyebrow.jsx";
+import BloodAvailability from "../Components/BloodAvailability.jsx";
 import DoctorsSection from "../Components/DoctorsSection.jsx";
+import PartnersMarquee from "../Components/PartnersMarquee.jsx";
+import HeroesSection from "../Components/HeroesSection.jsx";
+import CtaBanner from "../Components/CtaBanner.jsx";
+import usePublicReport from "../hooks/usePublicReport.js";
 
-function FeatureCard({ icon: Icon, title, description, color, iconColor }) {
-  return (
-    <div className="bg-white p-6 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 border border-slate-100 flex flex-col items-start group">
-      <div className={`p-3.5 rounded-xl ${color} mb-4 group-hover:scale-110 transition-transform`}>
-        <Icon className={`w-6 h-6 ${iconColor}`} />
-      </div>
-      <h3 className="text-lg font-bold text-slate-800 mb-2">{title}</h3>
-      <p className="text-slate-600 text-sm leading-relaxed">{description}</p>
-    </div>
-  );
-}
+const HERO_SLIDES = [
+  {
+    image: "/hero-donation.png",
+    alt: "A donor squeezing a red heart while giving blood: a single donation can save a life",
+    plain: true,
+  },
+  { image: "/hero1.jpg", alt: "Bags of donated blood labelled by blood type", tagline: "A single donation can save a life" },
+  { image: "/hero5.jpg", alt: "A hand holding a bag of donated blood", tagline: "Blood connects us all" },
+  { image: "/hero2.jpg", alt: "Blood bags stored on shelves at a blood bank", tagline: "Together We Save Lives" },
+];
+
+const STEPS = [
+  { icon: UserPlus, title: "1. Register", text: "Create your account as a donor or hospital." },
+  { icon: Droplet, title: "2. Donate", text: "Give blood and save lives." },
+  { icon: HeartPulse, title: "3. Help Others", text: "Your donation helps patients in need." },
+];
 
 function Home() {
-  const heroImages = [
-    { src: "/hero1.jpg", alt: "Blood bags with blood types" },
-    { src: "/hero2.jpg", alt: "Blood storage facility" },
-    { src: "/hero3.jpg", alt: "Blood bags on shelves" },
-    { src: "/hero4.jpg", alt: "Blood donation bag with heart" },
-    { src: "/hero5.jpg", alt: "Blood transfusion bag" },
-  ];
-
-  const [currentSlide, setCurrentSlide] = useState(0);
+  const { report, doctorsCount } = usePublicReport();
   const [leaderboard, setLeaderboard] = useState([]);
-  const [lightboxImage, setLightboxImage] = useState(null); // { src, name }
-  const [reportLoading, setReportLoading] = useState(true);
-  const [reportData, setReportData] = useState({
-    bloodTypeStats: {
-      "A+": { count: 0, percentage: "0.0" },
-      "A-": { count: 0, percentage: "0.0" },
-      "B+": { count: 0, percentage: "0.0" },
-      "B-": { count: 0, percentage: "0.0" },
-      "AB+": { count: 0, percentage: "0.0" },
-      "AB-": { count: 0, percentage: "0.0" },
-      "O+": { count: 0, percentage: "0.0" },
-      "O-": { count: 0, percentage: "0.0" },
-    },
-    monthlyStats: {
-      totalDonationsThisMonth: 0,
-      newDonorsThisMonth: 0,
-      percentageChange: 0,
-    },
-    activityStats: {
-      totalDonors: 0,
-      totalHospitals: 0,
-      totalUsers: 0,
-    },
-  });
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % heroImages.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [heroImages.length]);
-
-  useEffect(() => {
-    axios.get("/api/requests/leaderboard")
-      .then(res => setLeaderboard(res.data))
+    axios
+      .get("/api/requests/leaderboard")
+      .then((res) => setLeaderboard(res.data))
       .catch(() => {});
-
-    axios.get("/api/users/public-report")
-      .then(res => {
-        if (res.data && res.data.bloodTypeStats) {
-          setReportData(res.data);
-        }
-      })
-      .catch(() => {})
-      .finally(() => setReportLoading(false));
   }, []);
 
+  const stats = [
+    { icon: Users, value: report.activityStats.totalDonors, label: "Registered Donors" },
+    { icon: Building2, value: report.activityStats.totalHospitals, label: "Hospitals Connected" },
+    { icon: MapPin, value: report.activityStats.regionsCovered || 0, label: "Regions Covered" },
+    { icon: Stethoscope, value: doctorsCount, label: "Doctors On Board" },
+  ];
+
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Hero Section with SOBDA visual identity — large full-bleed photo banner */}
-      <section className="relative overflow-hidden text-white min-h-[560px] sm:min-h-[640px] lg:min-h-[760px] flex items-center">
-        {/* Large background photo slideshow */}
-        <div className="absolute inset-0">
-          {heroImages.map((img, index) => (
-            <div
-              key={index}
-              className="absolute inset-0 transition-opacity duration-1000 ease-in-out"
-              style={{ opacity: currentSlide === index ? 1 : 0 }}
+    <div className="font-brand bg-white">
+      <SplitHero
+        eyebrow="Somali Blood Donation System"
+        title={
+          <>
+            Donate Blood.
+            <br />
+            <span className="text-brand">Save Lives.</span>
+          </>
+        }
+        text="SOBDA connects blood donors, hospitals and patients across Somalia. Together, we can build a healthier and stronger nation."
+        actions={
+          <>
+            <Link
+              to="/signup"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-white shadow-md shadow-brand/25 transition-colors hover:bg-brand-dark"
             >
-              <img
-                src={img.src}
-                alt={img.alt}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          ))}
-          {/* Scrim so text stays legible over the photos, kept in the brand palette */}
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/75 to-red-950/50" />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-slate-950/40" />
-        </div>
+              <Droplet className="h-4 w-4" /> Become a Donor <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              to="/about"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-navy/40 bg-white px-6 py-3 text-sm font-semibold text-navy transition-colors hover:border-navy hover:bg-soft"
+            >
+              <PlayCircle className="h-4 w-4" /> Learn More
+            </Link>
+          </>
+        }
+        slides={HERO_SLIDES}
+      />
 
-        {/* Top-left: LIVE badge */}
-        <div className="absolute top-6 left-4 sm:left-6 lg:left-8 z-10 flex items-center gap-1.5 bg-red-600/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg">
-          <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-          <span className="text-white text-xs font-bold tracking-wide">LIVE DONATIONS</span>
-        </div>
+      {/* Live platform numbers */}
+      <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        <StatsBar items={stats} />
+      </section>
 
-        {/* Top-right: image counter */}
-        <div className="absolute top-6 right-4 sm:right-6 lg:right-8 z-10 bg-black/40 backdrop-blur-sm px-2.5 py-1 rounded-full">
-          <span className="text-white text-xs font-semibold">
-            {currentSlide + 1} / {heroImages.length}
-          </span>
-        </div>
+      <BloodAvailability stats={report.bloodTypeStats} />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full">
-          <div className="max-w-3xl text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-sky-300 text-xs font-semibold mb-6">
-              <Sparkles className="w-4 h-4 text-sky-400" />
-              <span>National Blood Donation Network • Somalia</span>
-            </div>
-
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-tight mb-6">
-              Every drop connects <br className="hidden sm:block" />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-red-400 to-sky-400">
-                a life to hope
-              </span>
-            </h1>
-
-            <p className="text-base sm:text-lg lg:text-xl text-slate-200 mb-8 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-              SOBDA links Somali blood donors with hospitals and health institutions in real time — because a match found in minutes can save a life.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-              <Link
-                to="/signup"
-                className="flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white px-7 py-3.5 rounded-xl font-bold text-base shadow-lg shadow-red-600/40 hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5"
-              >
-                <Droplet className="w-5 h-5" />
-                <span>Register as Donor</span>
-              </Link>
-
-              <Link
-                to="/signin"
-                className="flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white px-7 py-3.5 rounded-xl font-bold text-base border border-white/20 transition-all duration-200"
-              >
-                <Building2 className="w-5 h-5 text-sky-400" />
-                <span>Hospital Portal</span>
-                <ArrowRight className="w-4 h-4 text-slate-400" />
-              </Link>
-            </div>
-
-            {/* Quick stats pills */}
-            <div className="mt-12 grid grid-cols-2 gap-4 pt-8 border-t border-white/10 max-w-sm mx-auto lg:mx-0">
-              <div>
-                <p className="text-2xl sm:text-3xl font-black text-red-400">8+</p>
-                <p className="text-xs text-slate-300 uppercase tracking-wider font-semibold">Blood Types</p>
+      {/* Emergency request banner */}
+      <section className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-brand-dark via-brand to-[#e0212f] px-6 py-6 text-white shadow-lg sm:px-10">
+          <Droplet className="pointer-events-none absolute -bottom-8 right-1/3 h-40 w-40 text-white/10" />
+          <div className="relative flex flex-col items-start gap-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-white/15">
+                <Siren className="h-7 w-7" />
               </div>
               <div>
-                <p className="text-2xl sm:text-3xl font-black text-emerald-400">100%</p>
-                <p className="text-xs text-slate-300 uppercase tracking-wider font-semibold">WhatsApp Direct</p>
+                <h2 className="text-xl font-extrabold sm:text-2xl">Emergency Blood Request</h2>
+                <p className="mt-1 max-w-xl text-sm text-white/90">
+                  Need blood urgently? Submit a request now and get help from our donor network.
+                </p>
               </div>
             </div>
+            <Link
+              to="/contact"
+              className="inline-flex flex-shrink-0 items-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-semibold text-brand shadow-md transition-colors hover:bg-soft"
+            >
+              Request Blood Now <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
-        </div>
-
-        {/* Bottom: slide dots */}
-        <div className="absolute bottom-6 left-0 right-0 z-10 flex justify-center gap-2">
-          {heroImages.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentSlide(index)}
-              aria-label={`Show slide ${index + 1}`}
-              className={`transition-all duration-300 rounded-full ${
-                currentSlide === index
-                  ? "w-8 h-2.5 bg-red-500"
-                  : "w-2.5 h-2.5 bg-white/40 hover:bg-white/70"
-              }`}
-            />
-          ))}
         </div>
       </section>
 
-      <PartnersMarquee />
-
-      {/* Key System Features */}
-      <section className="py-20 bg-white border-b border-slate-100">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-100 text-red-700 text-xs font-bold uppercase tracking-wider mb-3">
-            <ShieldCheck className="w-4 h-4 text-red-600" />
-            <span>National Platform Standards</span>
+      {/* How it works */}
+      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="grid items-center gap-8 lg:grid-cols-[1.4fr_1fr]">
+          <div>
+            <Eyebrow className="mb-3">How It Works</Eyebrow>
+            <h2 className="text-2xl font-extrabold text-navy sm:text-3xl">
+              It&apos;s simple. You can make a big difference.
+            </h2>
+            <div className="mt-8 grid gap-6 sm:grid-cols-3">
+              {STEPS.map((step, i) => {
+                const Icon = step.icon;
+                return (
+                  <div key={step.title} className="relative flex items-start gap-4 sm:flex-col sm:items-center sm:text-center">
+                    <div className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-full bg-soft ring-8 ring-soft/60">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-brand text-white">
+                        <Icon className="h-5 w-5" />
+                      </div>
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-navy">{step.title}</h3>
+                      <p className="mt-1 text-sm text-slate-600">{step.text}</p>
+                    </div>
+                    {i < STEPS.length - 1 && (
+                      <ArrowRight className="absolute -right-5 top-5 hidden h-5 w-5 text-slate-300 sm:block" />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-black text-slate-800 mb-4">
-            Designed for Speed, Safety & Impact
-          </h2>
-          <p className="text-slate-600 text-base max-w-2xl mx-auto">
-            Everything hospitals and donors need to respond rapidly to critical blood shortages.
-          </p>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <FeatureCard
-            icon={MapPin}
-            title="Location & Blood Type Matching"
-            description="Hospitals can instantly filter available donors by exact location (Mogadishu, Hargeisa, etc.), blood type, and gender."
-            color="bg-red-50"
-            iconColor="text-red-600"
-          />
-
-          <FeatureCard
-            icon={PhoneCall}
-            title="WhatsApp Request Integration"
-            description="Send pre-formatted official donation requests directly to donors' WhatsApp numbers with one click."
-            color="bg-emerald-50"
-            iconColor="text-emerald-600"
-          />
-
-          <FeatureCard
-            icon={Clock}
-            title="Automated 2-Hour Expiration"
-            description="Prevents donor locking by automatically resetting pending requests if arrival is not confirmed within 2 hours."
-            color="bg-amber-50"
-            iconColor="text-amber-600"
-          />
-
-          <FeatureCard
-            icon={Users}
-            title="Multi-Donor Batch Requests"
-            description="Send simultaneous requests to multiple matching donors and auto-release outstanding requests once fulfilled."
-            color="bg-sky-50"
-            iconColor="text-sky-600"
-          />
-
-          <FeatureCard
-            icon={Shield}
-            title="Government ID Verification"
-            description="Secure national ID and phone verification ensuring integrity, trust, and donor privacy protection."
-            color="bg-purple-50"
-            iconColor="text-purple-600"
-          />
-
-          <FeatureCard
-            icon={CheckCircle2}
-            title="Historical Donation Records"
-            description="Complete donation tracking with certificates of appreciation and medical cooldown reminders."
-            color="bg-teal-50"
-            iconColor="text-teal-600"
-          />
-        </div>
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-soft to-white p-6 ring-1 ring-line sm:p-8">
+            <div className="flex items-center gap-5">
+              <div className="flex h-24 w-24 flex-shrink-0 items-center justify-center rounded-full bg-white shadow-md">
+                <HandHeart className="h-12 w-12 text-brand" />
+              </div>
+              <div>
+                <p className="text-2xl font-extrabold text-navy">Small Act...</p>
+                <p className="text-3xl font-extrabold text-brand">Big Impact</p>
+              </div>
+            </div>
+            <p className="mt-4 text-sm text-slate-600">
+              Your blood can give someone a second chance at life.
+            </p>
+          </div>
         </div>
       </section>
 
       <DoctorsSection />
+      <PartnersMarquee />
+      <HeroesSection leaderboard={leaderboard} />
 
-      {/* Live Public Report Section (Blood Type Distribution & Monthly Trends) */}
-      <section className="py-20 bg-slate-100/70 border-t border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-100 text-red-700 text-xs font-bold uppercase tracking-wider mb-3">
-              <BarChart3 className="w-4 h-4 text-red-600" />
-              <span>Real-Time Network Analytics</span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 mb-3">
-              Blood Distribution & Monthly Trends
-            </h2>
-            <p className="text-slate-600 text-sm sm:text-base max-w-2xl mx-auto">
-              Real-time statistical breakdown of registered donor blood groups and monthly life-saving activities
-            </p>
-          </div>
+      {/* FAQ & eligibility */}
+      <FAQSection stats={report} />
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            {/* 1. Blood Type Distribution Card */}
-            <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-6 sm:p-8 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
-                  <div className="p-2.5 rounded-xl bg-blue-50 text-blue-600">
-                    <PieChart className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-slate-800">Blood Type Distribution</h3>
-                    <p className="text-xs text-slate-500">Live proportion across all registered donors</p>
-                  </div>
-                </div>
+      <CtaBanner
+        variant="navy"
+        title="Become a Donor Today"
+        text="Your donation can save lives. Join our community of heroes and make a real difference."
+        label="Register as a Donor"
+        to="/signup"
+      />
 
-                {reportLoading ? (
-                  <div className="py-12 text-center text-slate-400 text-sm">Loading blood group statistics...</div>
-                ) : (
-                  <div className="space-y-3.5">
-                    {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((type) => {
-                      const data = reportData.bloodTypeStats[type] || { count: 0, percentage: "0.0" };
-                      const pct = Number(data.percentage);
-                      return (
-                        <div key={type} className="flex items-center justify-between gap-3">
-                          <span className="text-sm font-bold text-slate-700 w-10">{type}</span>
-                          <div className="flex-1 bg-slate-100 rounded-full h-3 overflow-hidden shadow-inner">
-                            <div
-                              className="bg-gradient-to-r from-red-600 to-rose-500 h-3 rounded-full transition-all duration-700"
-                              style={{ width: `${Math.max(pct, data.count > 0 ? 5 : 0)}%` }}
-                            />
-                          </div>
-                          <span className="text-xs font-semibold text-slate-600 w-20 text-right font-mono">
-                            {data.count} <span className="text-slate-400">({data.percentage}%)</span>
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-medium">
-                <span>Total Donors Recorded:</span>
-                <span className="font-bold text-slate-800">{reportData.activityStats.totalDonors} Registered</span>
-              </div>
-            </div>
-
-            {/* 2. Monthly Trends Card */}
-            <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-6 sm:p-8 flex flex-col justify-between">
-              <div>
-                <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
-                  <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-600">
-                    <TrendingUp className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-slate-800">Monthly Trends</h3>
-                    <p className="text-xs text-slate-500">Activity and growth for the current month</p>
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  {/* Total Donations Card (Green) */}
-                  <div className="bg-emerald-50/80 border border-emerald-100 p-5 rounded-2xl">
-                    <p className="text-xs font-bold text-emerald-900 uppercase tracking-wider">Total Donations This Month</p>
-                    <p className="text-4xl font-black text-emerald-600 my-2">
-                      {reportData.monthlyStats.totalDonationsThisMonth}
-                    </p>
-                    <p className={`text-xs font-semibold flex items-center gap-1.5 ${reportData.monthlyStats.percentageChange >= 0 ? 'text-emerald-700' : 'text-rose-600'}`}>
-                      <TrendingUp className="w-4 h-4" />
-                      <span>
-                        {reportData.monthlyStats.percentageChange >= 0 ? '+' : ''}
-                        {reportData.monthlyStats.percentageChange}% from last month
-                      </span>
-                    </p>
-                  </div>
-
-                  {/* New Donors Card (Blue) */}
-                  <div className="bg-sky-50/80 border border-sky-100 p-5 rounded-2xl">
-                    <p className="text-xs font-bold text-sky-900 uppercase tracking-wider">New Donors Registered</p>
-                    <p className="text-4xl font-black text-sky-600 my-2">
-                      {reportData.monthlyStats.newDonorsThisMonth}
-                    </p>
-                    <p className="text-xs font-semibold text-sky-700 flex items-center gap-1.5">
-                      <TrendingUp className="w-4 h-4" />
-                      <span>Active this month</span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Activity Overview Footer */}
-              <div className="mt-6 pt-4 border-t border-slate-100 grid grid-cols-3 gap-2 text-center">
-                <div className="p-2.5 rounded-xl bg-slate-50">
-                  <p className="text-lg font-black text-slate-800">{reportData.activityStats.totalDonors}</p>
-                  <p className="text-[10px] font-bold text-slate-500 uppercase">Donors</p>
-                </div>
-                <div className="p-2.5 rounded-xl bg-slate-50">
-                  <p className="text-lg font-black text-slate-800">{reportData.activityStats.totalHospitals}</p>
-                  <p className="text-[10px] font-bold text-slate-500 uppercase">Hospitals</p>
-                </div>
-                <div className="p-2.5 rounded-xl bg-slate-50">
-                  <p className="text-lg font-black text-slate-800">{reportData.activityStats.totalUsers}</p>
-                  <p className="text-[10px] font-bold text-slate-500 uppercase">Total Users</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Call to Action Banner */}
-      <section className="bg-gradient-to-r from-red-600 via-red-700 to-sky-600 py-16 text-white text-center">
-        <div className="max-w-4xl mx-auto px-4">
-          <h2 className="text-3xl sm:text-4xl font-black mb-4">
-            Be a Hero in Your Community Today
-          </h2>
-          <p className="text-base sm:text-lg text-red-100 mb-8 max-w-2xl mx-auto">
-            Every donation can save up to three lives. Register now to be notified when a hospital near you urgently needs your blood type.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              to="/signup"
-              className="bg-white text-red-600 px-8 py-3.5 rounded-xl font-bold text-base hover:bg-slate-100 transition-all shadow-lg"
-            >
-              Sign Up as a Donor
-            </Link>
-            <Link
-              to="/signin"
-              className="bg-red-950/60 hover:bg-red-950/80 text-white px-8 py-3.5 rounded-xl font-bold text-base border border-white/20 transition-all"
-            >
-              Sign In
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ─── Lightbox overlay ─── */}
-      {lightboxImage && (
-        <div
-          className="fixed inset-0 z-[999] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm"
-          onClick={() => setLightboxImage(null)}
-        >
-          <div
-            className="relative max-w-sm w-full"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={() => setLightboxImage(null)}
-              className="absolute -top-4 -right-4 w-9 h-9 bg-white rounded-full flex items-center justify-center text-slate-700 hover:bg-red-50 hover:text-red-600 shadow-lg text-xl font-bold z-10"
-            >
-              ×
-            </button>
-            <div className="rounded-2xl overflow-hidden shadow-2xl border-4 border-white">
-              <img
-                src={lightboxImage.src}
-                alt={lightboxImage.name}
-                className="w-full h-auto object-cover"
-              />
-            </div>
-            <p className="text-white text-center mt-3 font-bold text-lg tracking-wide drop-shadow">
-              {lightboxImage.name}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Top 3 Donors Leaderboard (White Background) */}
-      <section className="py-20 bg-white border-t border-slate-200">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold mb-4 shadow-sm">
-            <Trophy className="w-4 h-4 text-amber-500" />
-            <span>Hall of Heroes — Top Donors</span>
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 mb-3">Our Blood Heroes 🏆</h2>
-          <p className="text-slate-600 text-sm max-w-xl mx-auto mb-12">
-            These amazing donors have saved the most lives on SOBDA. Keep going!
-          </p>
-
-          {/* Show up to 3 real donors; only pad with placeholder slots if fewer than 3 donated */}
-          {leaderboard.length === 0 ? (
-            <p className="text-slate-400 text-sm py-4">Be the first hero — donate blood today! 🩸</p>
-          ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-            {Array.from({ length: Math.max(leaderboard.length, 3) }).map((_, index) => {
-              // Only render placeholder if we have < 3 real donors AND this slot is empty
-              if (index >= 3) return null;
-              const donor = leaderboard[index] || null;
-              const medals = ["🥇", "🥈", "🥉"];
-              const rankLabels = ["1st Place", "2nd Place", "3rd Place"];
-              const cardStyles = [
-                "bg-gradient-to-b from-amber-50/80 to-white border-2 border-amber-300/80 shadow-md shadow-amber-500/10",
-                "bg-gradient-to-b from-slate-50 to-white border-2 border-slate-300 shadow-md shadow-slate-500/10",
-                "bg-gradient-to-b from-orange-50/80 to-white border-2 border-orange-300/80 shadow-md shadow-orange-500/10",
-              ];
-              const getMessage = (d, idx) => {
-                if (!d) return "";
-                if (d.donationCount === 1) {
-                  const singleQuotes = [
-                    "You saved 1 person! Keep saving lives! 🏆",
-                    "Saved 1 person! You're a true hero! ⭐",
-                    "Saved 1 person! Fantastic effort! 💪",
-                  ];
-                  return singleQuotes[idx] || "You saved 1 person! Keep it up! 🏆";
-                }
-                const multiQuotes = [
-                  `Saved ${d.donationCount} people! Keep saving lives! 🏆`,
-                  `Saved ${d.donationCount} people! You're a true hero! ⭐`,
-                  `Saved ${d.donationCount} people! Fantastic effort! 💪`,
-                ];
-                return multiQuotes[idx] || `Saved ${d.donationCount} people! 🏆`;
-              };
-
-              return (
-                <div
-                  key={index}
-                  className={`${cardStyles[index]} rounded-2xl p-6 text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300`}
-                >
-                  {/* Hero Avatar with Medal Overlay */}
-                  <div className="relative w-20 h-20 mx-auto mb-3">
-                    {donor ? (
-                      <div
-                        onClick={() => {
-                          if (donor.profileImage) {
-                            setLightboxImage({ src: donor.profileImage, name: `${donor.firstName}${donor.lastInitial ? " " + donor.lastInitial + "." : ""}` });
-                          }
-                        }}
-                        className={`w-20 h-20 rounded-full overflow-hidden border-2 border-white shadow-lg bg-gradient-to-tr from-red-600 to-rose-500 flex items-center justify-center text-white font-black text-2xl ${donor.profileImage ? "cursor-pointer hover:opacity-90 hover:scale-105 transition-all" : "cursor-default"}`}
-                        title={donor.profileImage ? "Click to enlarge" : ""}
-                      >
-                        {donor.profileImage ? (
-                          <img
-                            src={donor.profileImage}
-                            alt={donor.firstName}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <span>{donor.firstName ? donor.firstName.charAt(0).toUpperCase() : "D"}</span>
-                        )}
-                      </div>
-                    ) : (
-                      /* Placeholder empty slot */
-                      <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-slate-300 text-3xl">
-                        ?
-                      </div>
-                    )}
-                    <div className="absolute -top-1.5 -right-1.5 text-2xl drop-shadow-md">
-                      {medals[index]}
-                    </div>
-                  </div>
-
-                  {donor ? (
-                    <>
-                      <p className="text-xl font-black text-slate-900">
-                        {donor.firstName}{donor.lastInitial ? ` ${donor.lastInitial}.` : ""}
-                      </p>
-                      <div className="my-2.5">
-                        <span className="inline-block px-3 py-1 rounded-full bg-red-50 text-red-700 border border-red-200 text-xs font-black">
-                          Blood Type: {donor.bloodType}
-                        </span>
-                      </div>
-                      <p className="text-slate-500 text-xs font-medium">{donor.location}</p>
-                      <div className="mt-4 py-2.5 px-4 bg-slate-50 border border-slate-100 rounded-xl">
-                        <p className="text-2xl font-black text-slate-900">{donor.donationCount}</p>
-                        <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                          {donor.donationCount === 1 ? "Donation Completed" : "Donations Completed"}
-                        </p>
-                        <div className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/70 px-2.5 py-0.5 rounded-full">
-                          <span>❤️</span>
-                          <span>{donor.donationCount === 1 ? "1 Person Saved" : `${donor.donationCount} People Saved`}</span>
-                        </div>
-                      </div>
-                      <p className="text-xs text-red-600 mt-3 font-semibold italic">"{getMessage(donor, index)}"</p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-base font-bold text-slate-400 mt-1">{rankLabels[index]}</p>
-                      <p className="text-xs text-slate-400 mt-1">No donor yet</p>
-                      <div className="mt-4 py-2.5 px-4 bg-slate-50 border border-dashed border-slate-200 rounded-xl">
-                        <p className="text-2xl font-black text-slate-300">—</p>
-                        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                          Donations Completed
-                        </p>
-                        <p className="text-[11px] font-medium text-slate-400 mt-1">
-                          0 People Saved
-                        </p>
-                      </div>
-                      <p className="text-xs text-slate-400 mt-3 italic">Could this be you? 🩸</p>
-                    </>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          )}
-
-          <p className="text-slate-400 text-xs">
-            🔒 Only first name shown for privacy. Rankings update in real time.
-          </p>
-        </div>
-      </section>
-
-
-      {/* FAQ & Eligibility & Impact Section */}
-      <FAQSection stats={reportData} />
-
-      {/* ChatBot */}
       <ChatBot />
     </div>
   );

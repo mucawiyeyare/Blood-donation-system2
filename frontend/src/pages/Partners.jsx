@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import axios from "axios";
-import { Handshake } from "lucide-react";
+import { Handshake, ArrowRight, Mail } from "lucide-react";
+import SplitHero from "../Components/SplitHero.jsx";
 import PartnerLogo from "../Components/PartnerLogo.jsx";
+import CtaBanner from "../Components/CtaBanner.jsx";
+import Eyebrow from "../Components/Eyebrow.jsx";
 
 function Partners() {
   const [partners, setPartners] = useState([]);
@@ -16,33 +20,67 @@ function Partners() {
   }, []);
 
   return (
-    <div className="min-h-[70vh] bg-white">
-      <div className="bg-gradient-to-br from-slate-900 via-red-950 to-slate-900 text-white py-14 sm:py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/20 text-sky-300 text-xs font-semibold mb-4">
-            <Handshake className="w-4 h-4" />
-            <span>Our Partners</span>
-          </div>
-          <h1 className="text-3xl sm:text-5xl font-black mb-3">Working together to save lives</h1>
-          <p className="text-slate-300 max-w-2xl mx-auto">
-            Hospitals and institutions working with SOBDA. Select a partner to visit their website.
-          </p>
-        </div>
-      </div>
+    <div className="font-brand bg-white">
+      <SplitHero
+        eyebrow="Our Partners"
+        title={
+          <>
+            Working Together to <span className="text-brand">Save Lives</span>
+          </>
+        }
+        text="We work closely with trusted organizations and institutions, from the Ministry of Health to hospitals and health centers, to make our mission possible."
+        actions={
+          <Link
+            to="/contact"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand px-6 py-3 text-sm font-semibold text-white shadow-md shadow-brand/25 transition-colors hover:bg-brand-dark"
+          >
+            <Handshake className="h-4 w-4" /> Become a Partner <ArrowRight className="h-4 w-4" />
+          </Link>
+        }
+        image="/hero2.jpg"
+        imageAlt="Blood bags stored on shelves at a blood bank"
+        tagline="Stronger together"
+      />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-14">
+      <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-14 lg:px-8">
+        <Eyebrow className="mb-2">Partners &amp; supporters</Eyebrow>
+        <h2 className="text-2xl font-extrabold text-navy sm:text-3xl">Institutions working with SOBDA</h2>
+        <p className="mt-2 mb-8 max-w-2xl text-slate-600">
+          Select a partner to visit their website.
+        </p>
+
         {loading ? (
-          <p className="text-center text-slate-400 text-sm py-12">Loading partners...</p>
+          <p className="py-12 text-center text-sm text-slate-400">Loading partners...</p>
         ) : partners.length === 0 ? (
-          <p className="text-center text-slate-400 text-sm py-12">No partners are listed yet. Please check back soon.</p>
+          <p className="py-12 text-center text-sm text-slate-400">
+            No partners are listed yet. Please check back soon.
+          </p>
         ) : (
-          <div className="flex flex-wrap justify-center gap-x-10 gap-y-10">
+          <div className="flex flex-wrap gap-4 sm:gap-5">
             {partners.map((partner) => (
               <PartnerLogo key={partner._id} partner={partner} />
             ))}
           </div>
         )}
-      </div>
+
+        <div className="mt-10 flex items-center gap-3 rounded-2xl border border-line bg-soft/70 p-5 text-sm text-navy">
+          <Mail className="h-5 w-5 flex-shrink-0 text-brand" />
+          <p>
+            Want your organization listed here?{" "}
+            <Link to="/contact" className="font-semibold text-brand underline-offset-2 hover:underline">
+              Get in touch with us.
+            </Link>
+          </p>
+        </div>
+      </section>
+
+      <CtaBanner
+        variant="red"
+        title="Be Part of the Change"
+        text="Donate blood today and help build a healthier Somalia."
+        label="Become Donor"
+        to="/signup"
+      />
     </div>
   );
 }

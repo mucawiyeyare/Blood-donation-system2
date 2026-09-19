@@ -1,307 +1,198 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
 import {
-  Droplet,
+  HeartPulse,
   Target,
   Eye,
   Heart,
-  Shield,
   Users,
-  MapPin,
-  Clock,
-  CheckCircle,
+  Droplet,
   Building2,
-  Phone,
-  MessageCircle,
-  Activity,
-  Zap,
-  Award,
-  Sparkles,
+  MapPin,
+  Stethoscope,
+  Star,
+  Quote,
   ArrowRight,
-  ChevronRight,
 } from "lucide-react";
-import ChatBot from "../Components/ChatBot.jsx";
+import SplitHero from "../Components/SplitHero.jsx";
+import Eyebrow from "../Components/Eyebrow.jsx";
+import PartnerLogo from "../Components/PartnerLogo.jsx";
+import CtaBanner from "../Components/CtaBanner.jsx";
+import usePublicReport from "../hooks/usePublicReport.js";
+
+const PILLARS = [
+  {
+    icon: Target,
+    title: "Our Mission",
+    text: "To ensure safe, reliable and efficient blood donation services for every person in Somalia.",
+  },
+  {
+    icon: Eye,
+    title: "Our Vision",
+    text: "A Somalia where no one dies because of a lack of blood.",
+  },
+  {
+    icon: Heart,
+    title: "Our Values",
+    text: "Life  •  Trust  •  Solidarity  •  Transparency  •  Service",
+  },
+  {
+    icon: Users,
+    title: "What We Do",
+    text: "Connect donors with hospitals, manage blood requests, support health centers and build a strong blood donation community.",
+  },
+];
 
 function About() {
-  const bloodGroups = [
-    { type: "O-", canGiveTo: "All Blood Types (Universal Donor)", canReceiveFrom: "O-" },
-    { type: "O+", canGiveTo: "O+, A+, B+, AB+", canReceiveFrom: "O+, O-" },
-    { type: "A-", canGiveTo: "A-, A+, AB-, AB+", canReceiveFrom: "A-, O-" },
-    { type: "A+", canGiveTo: "A+, AB+", canReceiveFrom: "A+, A-, O+, O-" },
-    { type: "B-", canGiveTo: "B-, B+, AB-, AB+", canReceiveFrom: "B-, O-" },
-    { type: "B+", canGiveTo: "B+, AB+", canReceiveFrom: "B+, B-, O+, O-" },
-    { type: "AB-", canGiveTo: "AB-, AB+", canReceiveFrom: "AB-, A-, B-, O-" },
-    { type: "AB+", canGiveTo: "AB+ Only", canReceiveFrom: "All Blood Types (Universal Recipient)" },
+  const { report, doctorsCount } = usePublicReport();
+  const [partners, setPartners] = useState([]);
+
+  useEffect(() => {
+    axios
+      .get("/api/partners")
+      .then((res) => setPartners(res.data || []))
+      .catch(() => {});
+  }, []);
+
+  const impact = [
+    { icon: Droplet, value: report.activityStats.totalDonors, label: "Registered Donors" },
+    { icon: Building2, value: report.activityStats.totalHospitals, label: "Hospitals Connected" },
+    { icon: MapPin, value: report.activityStats.regionsCovered || 0, label: "Regions Covered" },
+    { icon: Stethoscope, value: doctorsCount, label: "Doctors On Board" },
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-red-950 to-slate-900 text-white py-20 px-4 sm:px-6 lg:px-8 border-b border-red-900/30">
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#ef4444_1px,transparent_1px)] [background-size:16px_16px]"></div>
-        <div className="max-w-7xl mx-auto relative z-10 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-red-600/20 border border-red-500/30 text-red-300 text-xs sm:text-sm font-semibold uppercase tracking-wider mb-6">
-            <Sparkles className="w-4 h-4 text-red-400" />
-            Somalia's National Blood Donation Network
-          </div>
-
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight mb-6 leading-tight">
-            Saving Lives Across Somalia Through <br />
-            <span className="bg-gradient-to-r from-red-400 via-rose-300 to-red-500 bg-clip-text text-transparent">
-              Direct & Instant Connection
-            </span>
-          </h1>
-
-          <p className="text-base sm:text-lg lg:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed mb-10">
-            SOBDA is a mission-driven digital healthcare platform that directly bridges hospitals, emergency
-            clinics, and verified voluntary blood donors with real-time availability and automated WhatsApp dispatching.
-          </p>
-
-          {/* Key Impact Stats */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-4xl mx-auto pt-6 border-t border-slate-800/80">
-            <div className="p-4 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10">
-              <p className="text-3xl sm:text-4xl font-black text-red-400">2 Hours</p>
-              <p className="text-xs text-slate-300 mt-1 uppercase tracking-wider font-semibold">Response Window</p>
-            </div>
-            <div className="p-4 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10">
-              <p className="text-3xl sm:text-4xl font-black text-white">8 Groups</p>
-              <p className="text-xs text-slate-300 mt-1 uppercase tracking-wider font-semibold">Blood Types Covered</p>
-            </div>
-            <div className="p-4 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10">
-              <p className="text-3xl sm:text-4xl font-black text-emerald-400">100%</p>
-              <p className="text-xs text-slate-300 mt-1 uppercase tracking-wider font-semibold">Voluntary Donors</p>
-            </div>
-            <div className="p-4 rounded-2xl bg-white/5 backdrop-blur-sm border border-white/10">
-              <p className="text-3xl sm:text-4xl font-black text-sky-400">24/7</p>
-              <p className="text-xs text-slate-300 mt-1 uppercase tracking-wider font-semibold">Emergency Support</p>
+    <div className="font-brand bg-white">
+      <SplitHero
+        eyebrow="About Us"
+        title={
+          <>
+            Together for a Healthier <span className="text-brand">Somalia</span>
+          </>
+        }
+        text="SOBDA (Somali Blood Donation System) is a national platform that connects blood donors, hospitals and patients across Somalia. We make it easier, safer and faster to donate blood and save lives."
+        extra={
+          <div className="inline-flex items-center gap-4 rounded-2xl border border-line bg-white/80 px-5 py-4 shadow-sm">
+            <HeartPulse className="h-9 w-9 flex-shrink-0 text-brand" />
+            <div className="text-sm text-navy">
+              <p className="font-bold">One donation can save up to three lives.</p>
+              <p className="text-slate-600">Be a hero. Donate blood.</p>
             </div>
           </div>
-        </div>
-      </section>
+        }
+        image="/hero5.jpg"
+        imageAlt="A hand holding a bag of donated blood"
+        tagline="Blood connects us all"
+      />
 
-      {/* Mission & Vision Section */}
-      <section className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Mission */}
-          <div className="bg-white rounded-3xl p-8 sm:p-10 shadow-sm border border-slate-200/80 hover:shadow-md transition-shadow relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-red-50 rounded-bl-full -z-0 transition-transform group-hover:scale-110"></div>
-            <div className="relative z-10">
-              <div className="w-14 h-14 rounded-2xl bg-red-600 text-white flex items-center justify-center mb-6 shadow-lg shadow-red-600/30">
-                <Target className="w-7 h-7" />
-              </div>
-              <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mb-4">Our Mission</h3>
-              <p className="text-slate-600 leading-relaxed text-sm sm:text-base">
-                To build a resilient, technology-driven blood supply network across Somalia where no patient or mother
-                in labor loses their life due to delays in finding compatible blood. We make donor registration simple,
-                verification rigorous, and hospital requests instant.
-              </p>
-            </div>
-          </div>
-
-          {/* Vision */}
-          <div className="bg-white rounded-3xl p-8 sm:p-10 shadow-sm border border-slate-200/80 hover:shadow-md transition-shadow relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-sky-50 rounded-bl-full -z-0 transition-transform group-hover:scale-110"></div>
-            <div className="relative z-10">
-              <div className="w-14 h-14 rounded-2xl bg-slate-900 text-white flex items-center justify-center mb-6 shadow-lg shadow-slate-900/30">
-                <Eye className="w-7 h-7" />
-              </div>
-              <h3 className="text-2xl sm:text-3xl font-black text-slate-900 mb-4">Our Vision</h3>
-              <p className="text-slate-600 leading-relaxed text-sm sm:text-base">
-                To become the most reliable and interconnected healthcare emergency response system in the Horn of Africa,
-                transforming voluntary blood donation into a widespread community culture powered by real-time mobile
-                collaboration.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 3-Step Emergency Workflow */}
-      <section className="bg-white py-16 sm:py-24 px-4 sm:px-6 lg:px-8 border-y border-slate-200">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-xs sm:text-sm font-bold uppercase tracking-widest text-red-600 mb-3">
-              How SOBDA Works
-            </h2>
-            <p className="text-3xl sm:text-4xl font-black text-slate-900">
-              The 3-Step Rapid Emergency Blood Workflow
+      {/* About SOBDA */}
+      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="grid items-stretch gap-6 rounded-3xl border border-line bg-soft/60 p-5 sm:p-7 lg:grid-cols-2">
+          <div className="flex flex-col justify-center">
+            <Eyebrow className="mb-3">About SOBDA</Eyebrow>
+            <p className="text-slate-700 leading-relaxed">
+              SOBDA is a modern and secure blood donation management system built for Somalia. Our
+              goal is to build a stronger, safer and healthier nation by connecting generous donors
+              with those in need of blood.
             </p>
-            <p className="text-slate-600 mt-3 text-sm sm:text-base">
-              Hospitals can request single or multiple donors in seconds with immediate mobile outreach.
+            <p className="mt-4 text-slate-700 leading-relaxed">
+              We work with hospitals, health centers, donors, partners and the Ministry of Health to
+              ensure blood is available when and where it&apos;s needed most.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-            {/* Step 1 */}
-            <div className="bg-slate-50 rounded-3xl p-8 border border-slate-200/80 flex flex-col justify-between hover:border-red-300 transition-colors">
-              <div>
-                <span className="inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-red-600 text-white font-black text-sm mb-6 shadow-md shadow-red-600/30">
-                  01
-                </span>
-                <h4 className="text-xl font-bold text-slate-900 mb-3">1. Hospital Request</h4>
-                <p className="text-slate-600 text-sm leading-relaxed">
-                  Medical staff search available donors by blood group and location, then click <strong>Send Request</strong>.
-                  A 2-hour pending window is instantly initiated in the system.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-slate-200/60 flex items-center gap-2 text-xs font-bold text-red-600">
-                <Building2 className="w-4 h-4" />
-                <span>Verified Hospital Action</span>
-              </div>
-            </div>
-
-            {/* Step 2 */}
-            <div className="bg-slate-50 rounded-3xl p-8 border border-slate-200/80 flex flex-col justify-between hover:border-emerald-300 transition-colors">
-              <div>
-                <span className="inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-emerald-600 text-white font-black text-sm mb-6 shadow-md shadow-emerald-600/30">
-                  02
-                </span>
-                <h4 className="text-xl font-bold text-slate-900 mb-3">2. Instant WhatsApp Alert</h4>
-                <p className="text-slate-600 text-sm leading-relaxed">
-                  A pre-formatted official WhatsApp message (<em>"Asc wll waxa laga raba in add dhiiig shubto"</em>)
-                  is dispatched directly to the donor's mobile phone for immediate awareness.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-slate-200/60 flex items-center gap-2 text-xs font-bold text-emerald-600">
-                <MessageCircle className="w-4 h-4" />
-                <span>Automated WhatsApp Dispatch</span>
-              </div>
-            </div>
-
-            {/* Step 3 */}
-            <div className="bg-slate-50 rounded-3xl p-8 border border-slate-200/80 flex flex-col justify-between hover:border-sky-300 transition-colors">
-              <div>
-                <span className="inline-flex items-center justify-center w-10 h-10 rounded-2xl bg-sky-600 text-white font-black text-sm mb-6 shadow-md shadow-sky-600/30">
-                  03
-                </span>
-                <h4 className="text-xl font-bold text-slate-900 mb-3">3. Donation & Safe Cooldown</h4>
-                <p className="text-slate-600 text-sm leading-relaxed">
-                  The donor arrives at the hospital clinic. Once donation is completed, the system records donation history
-                  and safely places the donor into a 90-day cooldown before future eligibility.
-                </p>
-              </div>
-              <div className="mt-6 pt-4 border-t border-slate-200/60 flex items-center gap-2 text-xs font-bold text-sky-600">
-                <Shield className="w-4 h-4" />
-                <span>90-Day Safety Cooldown</span>
-              </div>
-            </div>
+          <div className="relative min-h-[220px] overflow-hidden rounded-2xl bg-gradient-to-br from-[#4189dd] via-[#3a7bcc] to-[#2c63b0]">
+            <Star className="absolute left-[36%] top-[42%] h-40 w-40 -translate-x-1/2 -translate-y-1/2 fill-white/90 text-white/90 sm:h-48 sm:w-48" />
+            <p className="absolute bottom-5 right-6 max-w-[14rem] text-right font-script text-3xl leading-[1.05] text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.4)] sm:text-4xl">
+              Healthy People Stronger Somalia
+              <span className="ml-auto mt-1 block h-1 w-28 rounded bg-brand" />
+            </p>
           </div>
         </div>
       </section>
 
-      {/* Blood Compatibility Guide */}
-      <section className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-xs sm:text-sm font-bold uppercase tracking-widest text-red-600 mb-3">
-            Medical Compatibility
-          </h2>
-          <p className="text-3xl sm:text-4xl font-black text-slate-900">
-            Blood Group Compatibility Guide
-          </p>
-          <p className="text-slate-600 mt-3 text-sm sm:text-base">
-            Understand who you can donate to and receive blood from during emergency situations.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {bloodGroups.map((bg) => (
-            <div
-              key={bg.type}
-              className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/80 hover:shadow-md transition-all flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-4">
-                  <span className="w-12 h-12 rounded-2xl bg-gradient-to-br from-red-600 to-red-700 text-white flex items-center justify-center font-black text-lg shadow-md shadow-red-600/30">
-                    {bg.type}
-                  </span>
-                  {bg.type === "O-" && (
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
-                      Universal Donor
-                    </span>
-                  )}
-                  {bg.type === "AB+" && (
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800 border border-sky-300">
-                      Universal Recipient
-                    </span>
-                  )}
+      {/* Mission / Vision / Values / What we do */}
+      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="grid gap-y-8 sm:grid-cols-2 lg:grid-cols-4 lg:divide-x lg:divide-line">
+          {PILLARS.map((pillar) => {
+            const Icon = pillar.icon;
+            return (
+              <div key={pillar.title} className="flex flex-col items-center px-6 text-center">
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-soft text-brand">
+                  <Icon className="h-7 w-7" />
                 </div>
+                <h3 className="text-lg font-extrabold text-navy">{pillar.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-slate-600">{pillar.text}</p>
+              </div>
+            );
+          })}
+        </div>
+      </section>
 
-                <div className="space-y-3 text-xs">
-                  <div>
-                    <p className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Can Donate To:</p>
-                    <p className="font-semibold text-slate-800 mt-0.5">{bg.canGiveTo}</p>
-                  </div>
-                  <div>
-                    <p className="font-bold text-slate-500 uppercase tracking-wider text-[10px]">Can Receive From:</p>
-                    <p className="font-semibold text-slate-800 mt-0.5">{bg.canReceiveFrom}</p>
-                  </div>
+      {/* Our impact */}
+      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="grid items-center gap-6 rounded-3xl border border-line bg-soft/70 p-5 sm:p-7 lg:grid-cols-[1fr_3fr]">
+          <div>
+            <Eyebrow className="mb-2">Our Impact</Eyebrow>
+            <p className="text-sm text-slate-600">Together, we are saving lives across Somalia.</p>
+          </div>
+          <div className="grid grid-cols-2 gap-y-6 lg:grid-cols-4 lg:divide-x lg:divide-line">
+            {impact.map((item) => {
+              const Icon = item.icon;
+              return (
+                <div key={item.label} className="flex flex-col items-center px-4 text-center">
+                  <Icon className="mb-2 h-7 w-7 text-brand" />
+                  <p className="text-2xl font-extrabold text-navy sm:text-3xl">{item.value}</p>
+                  <p className="mt-1 text-xs text-slate-600 sm:text-sm">{item.label}</p>
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Regional Network Presence */}
-      <section className="bg-slate-900 text-white py-16 sm:py-24 px-4 sm:px-6 lg:px-8 border-t border-slate-800">
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/10 text-sky-400 text-xs sm:text-sm font-semibold uppercase tracking-wider mb-4">
-            <MapPin className="w-4 h-4" />
-            Nationwide Reach
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-black mb-6">
-            Serving Hospitals & Donors Across Somalia
-          </h2>
-          <p className="text-slate-300 max-w-2xl mx-auto text-sm sm:text-base leading-relaxed mb-12">
-            Connecting medical facilities from Banadir to Puntland, Somaliland, Jubaland, South West, Hirshabelle, and Galmudug.
-          </p>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 max-w-5xl mx-auto">
-            {["Mogadishu", "Hargeisa", "Garowe", "Kismayo", "Baidoa", "Beledweyne"].map((city) => (
-              <div
-                key={city}
-                className="bg-white/5 border border-white/10 p-4 rounded-2xl text-center hover:bg-white/10 transition-colors"
-              >
-                <MapPin className="w-5 h-5 text-red-400 mx-auto mb-2" />
-                <span className="font-bold text-sm text-slate-200">{city}</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* Call to Action */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-red-600 via-red-700 to-slate-900 text-white text-center">
-        <div className="max-w-4xl mx-auto">
-          <Droplet className="w-16 h-16 text-red-200 mx-auto mb-6 animate-pulse" />
-          <h2 className="text-3xl sm:text-5xl font-black mb-6 tracking-tight">
-            Ready to Make a Life-Saving Difference?
-          </h2>
-          <p className="text-base sm:text-xl text-red-100 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Register today as a voluntary blood donor or onboard your healthcare institution to Somalia's central
-            blood network.
-          </p>
-
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+      {/* Partners + quote */}
+      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
+          <div className="rounded-3xl border border-line bg-white p-5 shadow-sm sm:p-7">
+            <Eyebrow className="mb-2">Our Partners</Eyebrow>
+            <p className="mb-5 max-w-lg text-sm text-slate-600">
+              We work closely with trusted organizations and institutions to make our mission possible.
+            </p>
+            {partners.length > 0 && (
+              <div className="mb-6 flex flex-wrap gap-4">
+                {partners.slice(0, 4).map((partner) => (
+                  <PartnerLogo key={partner._id} partner={partner} />
+                ))}
+              </div>
+            )}
             <Link
-              to="/signup"
-              className="bg-white text-red-700 hover:bg-red-50 px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-wider shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
+              to="/partners"
+              className="inline-flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-brand/25 transition-colors hover:bg-brand-dark"
             >
-              <span>Become a Donor</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-            <Link
-              to="/signin"
-              className="bg-slate-900/60 hover:bg-slate-900/90 text-white border border-white/20 px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-wider transition-all"
-            >
-              Sign In to Portal
+              Our Partners <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
+
+          <div className="flex flex-col justify-center rounded-3xl bg-gradient-to-br from-navy to-navy-deep p-7 text-white shadow-lg sm:p-9">
+            <Quote className="mb-3 h-9 w-9 text-brand" />
+            <p className="text-xl font-semibold leading-snug sm:text-2xl">
+              Blood donation is not just a gift of blood, it is a gift of life.
+            </p>
+            <span className="mt-5 block h-0.5 w-10 rounded bg-brand" />
+            <p className="mt-3 text-sm font-semibold text-white/80">SOBDA Team</p>
+          </div>
         </div>
       </section>
 
-      {/* Floating AI ChatBot */}
-      <ChatBot />
+      <CtaBanner
+        variant="red"
+        title="Be Part of the Change"
+        text="Donate blood today and help build a healthier Somalia."
+        label="Become Donor"
+        to="/signup"
+      />
     </div>
   );
 }

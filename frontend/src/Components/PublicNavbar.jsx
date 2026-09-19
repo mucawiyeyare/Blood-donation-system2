@@ -1,167 +1,136 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { Menu, X, User, Droplet } from "lucide-react";
 import SobdaLogo from "./SobdaLogo.jsx";
+
+const NAV_LINKS = [
+  { to: "/", label: "Home" },
+  { to: "/about", label: "About" },
+  { to: "/doctors", label: "Doctors" },
+  { to: "/partners", label: "Partners" },
+  { to: "/contact", label: "Contact" },
+];
 
 function PublicNavbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const loggedIn = Boolean(localStorage.getItem("token"));
 
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen);
-  };
+  const isActive = (path) => location.pathname === path;
 
-  const isActive = (path) => {
-    return location.pathname === path;
-  };
+  const desktopLink = (path) =>
+    `relative px-1 py-2 text-sm font-semibold transition-colors ${
+      isActive(path) ? "text-brand" : "text-navy hover:text-brand"
+    }`;
 
-  const navLinkClass = (path) => {
-    const baseClass = "px-4 py-2 rounded-lg font-medium transition-all duration-200 text-sm tracking-wide";
-    return isActive(path)
-      ? `${baseClass} bg-red-600 text-white shadow-md font-semibold`
-      : `${baseClass} text-gray-700 hover:bg-red-50 hover:text-red-600`;
-  };
-
-  const mobileNavLinkClass = (path) => {
-    const baseClass = "block px-4 py-3 rounded-lg font-medium transition-all duration-200 text-sm";
-    return isActive(path)
-      ? `${baseClass} bg-red-600 text-white font-semibold`
-      : `${baseClass} text-gray-700 hover:bg-red-50 hover:text-red-600`;
-  };
+  const mobileLink = (path) =>
+    `block rounded-lg px-4 py-3 text-sm font-semibold transition-colors ${
+      isActive(path) ? "bg-soft text-brand" : "text-navy hover:bg-soft hover:text-brand"
+    }`;
 
   return (
-    <nav className="bg-white/95 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-gray-100">
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
-          {/* SOBDA Brand Logo */}
-          <Link to="/" className="flex items-center group transition-transform hover:scale-105">
+    <nav className="font-brand sticky top-0 z-50 border-b border-line bg-white/95 backdrop-blur-md">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex h-[72px] items-center justify-between gap-6">
+          {/* Brand */}
+          <Link to="/" className="flex items-center gap-4" onClick={() => setIsMenuOpen(false)}>
             <SobdaLogo size="md" />
           </Link>
 
-          {/* Desktop Navigation (No Icons) */}
-          <div className="hidden lg:flex items-center space-x-2">
-            <Link to="/" className={navLinkClass("/")}>
-              Home
-            </Link>
-            <Link to="/about" className={navLinkClass("/about")}>
-              About
-            </Link>
-            <Link to="/doctors" className={navLinkClass("/doctors")}>
-              Doctors
-            </Link>
-            <Link to="/#eligibility" className="px-4 py-2 rounded-lg font-medium transition-all duration-200 text-sm tracking-wide text-gray-700 hover:bg-red-50 hover:text-red-600">
-              Eligibility
-            </Link>
-            <Link to="/#faq" className="px-4 py-2 rounded-lg font-medium transition-all duration-200 text-sm tracking-wide text-gray-700 hover:bg-red-50 hover:text-red-600">
-              FAQ
-            </Link>
-            <Link to="/contact" className={navLinkClass("/contact")}>
-              Contact
-            </Link>
-            {localStorage.getItem("token") ? (
+          {/* Desktop navigation */}
+          <div className="hidden lg:flex items-center gap-8">
+            {NAV_LINKS.map((link) => (
+              <Link key={link.to} to={link.to} className={desktopLink(link.to)}>
+                {link.label}
+                {isActive(link.to) && (
+                  <span className="absolute inset-x-0 -bottom-[13px] h-0.5 rounded bg-brand" />
+                )}
+              </Link>
+            ))}
+          </div>
+
+          {/* Desktop actions */}
+          <div className="hidden lg:flex items-center gap-3">
+            {loggedIn ? (
               <Link
                 to="/dashboard"
-                className="bg-gradient-to-r from-slate-900 to-slate-800 text-white px-5 py-2.5 rounded-lg font-semibold hover:from-black hover:to-slate-900 transition-all duration-200 shadow-md hover:shadow-lg ml-2 text-sm"
+                className="rounded-xl bg-navy px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-navy-deep"
               >
                 Dashboard
               </Link>
             ) : (
               <>
-                <Link to="/signin" className={navLinkClass("/signin")}>
-                  Sign In
+                <Link
+                  to="/signin"
+                  className="inline-flex items-center gap-2 rounded-xl border border-navy/40 bg-white px-5 py-2.5 text-sm font-semibold text-navy transition-colors hover:border-navy hover:bg-soft"
+                >
+                  <User className="h-4 w-4" />
+                  Login
                 </Link>
                 <Link
                   to="/signup"
-                  className="bg-gradient-to-r from-red-600 to-red-700 text-white px-5 py-2.5 rounded-lg font-semibold hover:from-red-700 hover:to-red-800 transition-all duration-200 shadow-md hover:shadow-lg ml-2 text-sm"
+                  className="inline-flex items-center gap-2 rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-brand/25 transition-colors hover:bg-brand-dark"
                 >
-                  Become a Donor
+                  <Droplet className="h-4 w-4" />
+                  Become Donor
                 </Link>
               </>
             )}
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile menu button */}
           <button
-            onClick={toggleMenu}
-            className="lg:hidden p-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-colors"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="lg:hidden rounded-lg p-2 text-navy transition-colors hover:bg-soft"
             aria-label="Toggle menu"
+            aria-expanded={isMenuOpen}
           >
-            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6 text-red-600" />}
+            {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
         </div>
 
-        {/* Mobile Navigation (No Icons) */}
+        {/* Mobile navigation */}
         {isMenuOpen && (
-          <div className="lg:hidden py-4 border-t border-gray-100 bg-white">
-            <div className="flex flex-col space-y-2">
-              <Link
-                to="/"
-                className={mobileNavLinkClass("/")}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Home
-              </Link>
-              <Link
-                to="/about"
-                className={mobileNavLinkClass("/about")}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                About
-              </Link>
-              <Link
-                to="/doctors"
-                className={mobileNavLinkClass("/doctors")}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Doctors
-              </Link>
-              <Link
-                to="/#eligibility"
-                className="block px-4 py-3 rounded-lg font-medium transition-all duration-200 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Eligibility
-              </Link>
-              <Link
-                to="/#faq"
-                className="block px-4 py-3 rounded-lg font-medium transition-all duration-200 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                FAQ
-              </Link>
-              <Link
-                to="/contact"
-                className={mobileNavLinkClass("/contact")}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Contact
-              </Link>
-              {localStorage.getItem("token") ? (
+          <div className="lg:hidden border-t border-line py-4">
+            <div className="flex flex-col gap-1">
+              {NAV_LINKS.map((link) => (
                 <Link
-                  to="/dashboard"
-                  className="block text-center bg-slate-900 text-white px-4 py-3 rounded-lg font-semibold hover:bg-black transition-all duration-200 text-sm mt-2"
+                  key={link.to}
+                  to={link.to}
+                  className={mobileLink(link.to)}
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  Go to Dashboard
+                  {link.label}
                 </Link>
-              ) : (
-                <>
+              ))}
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                {loggedIn ? (
                   <Link
-                    to="/signin"
-                    className={mobileNavLinkClass("/signin")}
+                    to="/dashboard"
+                    className="rounded-xl bg-navy px-4 py-3 text-center text-sm font-semibold text-white"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    Sign In
+                    Go to Dashboard
                   </Link>
-                  <Link
-                    to="/signup"
-                    className="block text-center bg-red-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-red-700 transition-all duration-200 text-sm mt-2"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Become a Donor
-                  </Link>
-                </>
-              )}
+                ) : (
+                  <>
+                    <Link
+                      to="/signin"
+                      className="rounded-xl border border-navy/40 px-4 py-3 text-center text-sm font-semibold text-navy"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Login
+                    </Link>
+                    <Link
+                      to="/signup"
+                      className="rounded-xl bg-brand px-4 py-3 text-center text-sm font-semibold text-white"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Become Donor
+                    </Link>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         )}

@@ -40,6 +40,9 @@ const COMMON_SUBJECTS = [
   "Technical Support"
 ];
 
+import SplitHero from "../Components/SplitHero.jsx";
+import CtaBanner from "../Components/CtaBanner.jsx";
+
 function Contact() {
   const [formData, setFormData] = useState({
     fullName: "",
@@ -259,44 +262,37 @@ function Contact() {
   const formattedDisplayPhone = `${formData.carrierCode} ${formData.phone || "XXXXXXX"}`;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="font-brand min-h-screen bg-white">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-red-600 to-red-700 text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <div className="flex justify-center mb-4">
-              <div className="bg-white/20 backdrop-blur-sm p-4 rounded-full">
-                <Phone className="w-12 h-12 text-white" />
-              </div>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">Contact Us</h1>
-            <p className="text-xl text-red-100 max-w-2xl mx-auto">
-              Blood Donation Management System - Ministry of Health, Federal Government of Somalia
-            </p>
-            <p className="text-lg text-red-100 mt-2">
-              We're here to help you save lives. Reach out to us anytime.
-            </p>
-          </div>
-        </div>
-      </section>
+      <SplitHero
+        eyebrow="Contact Us"
+        title={
+          <>
+            We&apos;re here to <span className="text-brand">help</span>
+          </>
+        }
+        text="Blood Donation Management System - Ministry of Health, Federal Government of Somalia. We're here to help you save lives. Reach out to us anytime."
+        image="/hero3.jpg"
+        imageAlt="Blood bags stored at a blood bank"
+        tagline="Reach out anytime"
+      />
 
       {/* Emergency Hotline Banner */}
-      <section className="bg-blue-900 text-white py-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row items-center justify-center gap-4 text-center md:text-left">
-            <div className="flex items-center gap-3">
-              <div className="bg-red-600 p-3 rounded-full animate-pulse">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        <div className="rounded-3xl bg-gradient-to-r from-brand-dark via-brand to-[#e0212f] px-6 py-6 text-white shadow-lg sm:px-10">
+          <div className="flex flex-col items-start gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-white/15 animate-pulse">
                 <Phone className="w-6 h-6" />
               </div>
               <div>
-                <p className="text-sm text-blue-200">24/7 Emergency Hotline</p>
-                <p className="text-2xl font-bold">888 (Toll-Free)</p>
+                <p className="text-sm text-white/80">24/7 Emergency Hotline</p>
+                <p className="text-2xl font-extrabold">888 (Toll-Free)</p>
               </div>
             </div>
-            <div className="hidden md:block w-px h-12 bg-blue-700"></div>
-            <div className="flex items-center gap-3">
-              <AlertCircle className="w-6 h-6 text-yellow-400" />
-              <p className="text-lg">For urgent blood requirements, call immediately</p>
+            <div className="flex items-center gap-3 text-white/95">
+              <AlertCircle className="w-6 h-6 flex-shrink-0 text-yellow-300" />
+              <p className="text-base sm:text-lg">For urgent blood requirements, call immediately</p>
             </div>
           </div>
         </div>
@@ -313,8 +309,6 @@ function Contact() {
               "Mogadishu, Somalia",
               "Blood Donation Division"
             ]}
-            bgColor="bg-blue-50"
-            iconColor="text-blue-600"
           />
           <ContactInfoCard
             icon={Phone}
@@ -324,8 +318,6 @@ function Contact() {
               "Emergency: 061 640 8886 (24/7)",
               "Mon-Fri: 8:00 AM - 5:00 PM"
             ]}
-            bgColor="bg-red-50"
-            iconColor="text-red-600"
           />
           <ContactInfoCard
             icon={Mail}
@@ -335,8 +327,6 @@ function Contact() {
               "support@bdms.gov.so",
               "Response within 24 hours"
             ]}
-            bgColor="bg-green-50"
-            iconColor="text-green-600"
           />
           <ContactInfoCard
             icon={Clock}
@@ -346,8 +336,6 @@ function Contact() {
               "8:00 AM - 5:00 PM",
               "Emergency: 24/7"
             ]}
-            bgColor="bg-purple-50"
-            iconColor="text-purple-600"
           />
         </div>
       </section>
@@ -355,8 +343,8 @@ function Contact() {
       {/* Department Directory */}
       <section className="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="text-center mb-10">
-          <h2 className="text-3xl font-bold text-gray-800 mb-3">Department Directory</h2>
-          <p className="text-lg text-gray-600">Contact specific departments for specialized assistance</p>
+          <h2 className="text-3xl font-extrabold text-navy mb-3">Department Directory</h2>
+          <p className="text-base text-slate-600">Contact specific departments for specialized assistance</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <DepartmentCard
@@ -392,13 +380,13 @@ function Contact() {
 
       {/* Contact Form Section */}
       <section className="py-12 px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto">
-        <div className="bg-white rounded-3xl shadow-xl p-8 md:p-12 border border-slate-100">
+        <div className="bg-white rounded-3xl shadow-sm p-6 sm:p-8 md:p-12 border border-line">
           <div className="text-center mb-10">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 text-red-700 text-xs font-bold uppercase tracking-wider mb-3">
               <Sparkles className="w-3.5 h-3.5" />
               <span>Direct Emergency & Inquiry Dispatch</span>
             </div>
-            <h2 className="text-3xl md:text-4xl font-black text-slate-800 mb-3">Send Us a Message</h2>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-navy mb-3">Send Us a Message</h2>
             <p className="text-slate-600 text-sm sm:text-base max-w-lg mx-auto">
               Submit blood requests, hospital verifications, or general inquiries with medical justification documents
             </p>
@@ -823,8 +811,8 @@ function Contact() {
       {/* Quick Links Section */}
       <section className="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="text-center mb-10">
-          <h2 className="text-3xl font-bold text-gray-800 mb-3">Quick Links</h2>
-          <p className="text-lg text-gray-600">Find answers and resources</p>
+          <h2 className="text-3xl font-extrabold text-navy mb-3">Quick Links</h2>
+          <p className="text-base text-slate-600">Find answers and resources</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <QuickLinkCard
@@ -856,10 +844,10 @@ function Contact() {
 
       {/* Location Section */}
       <section className="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="bg-white rounded-3xl border border-line shadow-sm overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2">
             <div className="p-8 md:p-10">
-              <h2 className="text-3xl font-bold text-gray-800 mb-4">Visit Our Office</h2>
+              <h2 className="text-3xl font-extrabold text-navy mb-4">Visit Our Office</h2>
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
                   <MapPin className="w-6 h-6 text-red-600 flex-shrink-0 mt-1" />
@@ -888,7 +876,7 @@ function Contact() {
                 </div>
               </div>
             </div>
-            <div className="bg-gradient-to-br from-red-100 to-blue-100 p-8 md:p-10 flex items-center justify-center">
+            <div className="bg-gradient-to-br from-soft to-white p-8 md:p-10 flex items-center justify-center">
               <div className="text-center">
                 <MapPin className="w-24 h-24 text-red-600 mx-auto mb-4" />
                 <p className="text-lg font-semibold text-gray-800 mb-2">Location Map</p>
@@ -899,21 +887,32 @@ function Contact() {
           </div>
         </div>
       </section>
+
+      <CtaBanner
+        variant="red"
+        title="Be Part of the Change"
+        text="Donate blood today and help build a healthier Somalia."
+        label="Become Donor"
+        to="/signup"
+      />
+
+      {/* Floating AI ChatBot */}
+      <ChatBot />
     </div>
   );
 }
 
 // Contact Info Card Component
-function ContactInfoCard({ icon: Icon, title, lines, bgColor, iconColor }) {
+function ContactInfoCard({ icon: Icon, title, lines }) {
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-      <div className={`${bgColor} w-14 h-14 rounded-lg flex items-center justify-center mb-4`}>
-        <Icon className={`${iconColor} w-7 h-7`} />
+    <div className="rounded-2xl border border-line bg-white p-6 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md">
+      <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-soft text-brand">
+        <Icon className="h-7 w-7" />
       </div>
-      <h3 className="text-lg font-bold text-gray-800 mb-3">{title}</h3>
+      <h3 className="mb-3 text-lg font-extrabold text-navy">{title}</h3>
       <div className="space-y-1">
         {lines.map((line, index) => (
-          <p key={index} className="text-gray-600 text-sm">{line}</p>
+          <p key={index} className="text-sm text-slate-600">{line}</p>
         ))}
       </div>
     </div>
@@ -923,33 +922,30 @@ function ContactInfoCard({ icon: Icon, title, lines, bgColor, iconColor }) {
 // Department Card Component
 function DepartmentCard({ icon: Icon, title, description, email, phone }) {
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-all duration-300 border border-gray-200">
+    <div className="rounded-2xl border border-line bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
       <div className="flex items-start gap-4">
-        <div className="bg-red-100 p-3 rounded-lg flex-shrink-0">
-          <Icon className="w-6 h-6 text-red-600" />
+        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-soft text-brand">
+          <Icon className="h-6 w-6" />
         </div>
-        <div className="flex-1">
-          <h3 className="text-xl font-bold text-gray-800 mb-2">{title}</h3>
-          <p className="text-gray-600 mb-4">{description}</p>
+        <div className="min-w-0 flex-1">
+          <h3 className="mb-1 text-lg font-extrabold text-navy">{title}</h3>
+          <p className="mb-4 text-sm text-slate-600">{description}</p>
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-sm">
-              <Mail className="w-4 h-4 text-gray-500" />
-              <a href={`mailto:${email}`} className="text-red-600 hover:text-red-700 hover:underline">
+              <Mail className="h-4 w-4 flex-shrink-0 text-slate-400" />
+              <a href={`mailto:${email}`} className="break-all text-brand hover:text-brand-dark hover:underline">
                 {email}
               </a>
             </div>
             <div className="flex items-center gap-2 text-sm">
-              <Phone className="w-4 h-4 text-gray-500" />
-              <a href={`tel:${phone}`} className="text-gray-700 hover:text-red-600">
+              <Phone className="h-4 w-4 flex-shrink-0 text-slate-400" />
+              <a href={`tel:${phone}`} className="text-slate-700 hover:text-brand">
                 {phone}
               </a>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Floating AI ChatBot */}
-      <ChatBot />
     </div>
   );
 }
@@ -959,13 +955,13 @@ function QuickLinkCard({ icon: Icon, title, description, link }) {
   return (
     <a
       href={link}
-      className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-all duration-300 hover:border-red-600 border-2 border-transparent group"
+      className="group rounded-2xl border border-line bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-brand/40 hover:shadow-md"
     >
-      <div className="bg-gray-100 w-12 h-12 rounded-lg flex items-center justify-center mb-4 group-hover:bg-red-100 transition-colors">
-        <Icon className="w-6 h-6 text-gray-700 group-hover:text-red-600 transition-colors" />
+      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-soft text-navy transition-colors group-hover:bg-brand group-hover:text-white">
+        <Icon className="h-6 w-6" />
       </div>
-      <h3 className="text-lg font-bold text-gray-800 mb-2 group-hover:text-red-600 transition-colors">{title}</h3>
-      <p className="text-gray-600 text-sm">{description}</p>
+      <h3 className="mb-2 text-lg font-extrabold text-navy transition-colors group-hover:text-brand">{title}</h3>
+      <p className="text-sm text-slate-600">{description}</p>
     </a>
   );
 }

@@ -1,5 +1,6 @@
 import React from "react";
 
+// Partner card: logo above the name, links out to the partner's website.
 function PartnerLogo({ partner }) {
   return (
     <a
@@ -7,12 +8,12 @@ function PartnerLogo({ partner }) {
       target="_blank"
       rel="noreferrer"
       title={partner.name}
-      className="group flex flex-col items-center text-center w-32 sm:w-40 flex-shrink-0"
+      className="group flex w-40 flex-shrink-0 flex-col items-center rounded-2xl border border-line bg-white p-4 text-center shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-md sm:w-44"
     >
-      <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-white border border-slate-200 shadow-sm overflow-hidden flex items-center justify-center group-hover:shadow-lg group-hover:-translate-y-1 transition-all duration-300">
-        <img src={partner.logo} alt={partner.name} className="w-full h-full object-cover" />
+      <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-soft sm:h-[72px] sm:w-[72px]">
+        <img src={partner.logo} alt={partner.name} className="h-full w-full object-cover" />
       </div>
-      <span className="mt-3 text-sm font-semibold text-slate-700 leading-snug line-clamp-2">
+      <span className="mt-3 line-clamp-2 text-xs font-semibold leading-snug text-navy sm:text-sm">
         {partner.name}
       </span>
     </a>
