@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { MessageCircle, ArrowRight } from "lucide-react";
+import DoctorPhoto from "./DoctorPhoto.jsx";
 import AskDoctorModal from "./AskDoctorModal.jsx";
 import DoctorProfileModal from "./DoctorProfileModal.jsx";
 import { doctorDisplayName, initialsOf } from "../utils/doctorName.js";
@@ -39,7 +40,7 @@ function DoctorCard({ doctor, preview = false, adminActions = null, dimmed = fal
         className={`block w-full overflow-hidden rounded-2xl bg-soft ${preview ? "cursor-default" : ""}`}
       >
         {doctor.photo ? (
-          <img src={doctor.photo} alt={displayName} className="aspect-[4/3] w-full object-cover object-top" />
+          <DoctorPhoto src={doctor.photo} alt={displayName} className="aspect-[4/3] w-full" />
         ) : (
           <span className="flex aspect-[4/3] w-full items-center justify-center text-5xl font-extrabold text-navy">
             {initialsOf(doctor.name)}

@@ -15,11 +15,15 @@ export default function ImageCropModal({
   onCancel,
   onCropComplete,
   isSaving = false,
+  shape = "circle",
 }) {
   const [scale, setScale] = useState(1);
   const [rotation, setRotation] = useState(0);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
+  const isRect = shape === "rect";
+  const VW = isRect ? 320 : 260;
+  const VH = 260;
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imgNaturalSize, setImgNaturalSize] = useState({ width: 1, height: 1 });
@@ -135,10 +139,12 @@ export default function ImageCropModal({
   const handleApplyCrop = () => {
     if (!imageRef.current || !containerRef.current) return;
 
-    const outputSize = 400; // 400x400 high resolution avatar
+    const outW = isRect ? 800 : 400;
+    const outH = isRect ? 600 : 400;
+    const outputSize = outW;
     const canvas = document.createElement("canvas");
-    canvas.width = outputSize;
-    canvas.height = outputSize;
+    canvas.width = outW;
+    canvas.height = outH;
     const ctx = canvas.getContext("2d");
 
     if (!ctx) return;
@@ -148,41 +154,37 @@ export default function ImageCropModal({
     ctx.imageSmoothingQuality = "high";
 
     // Viewport circle size (260px in DOM)
-    const viewportSize = 260;
-    const ratio = outputSize / viewportSize;
+    const ratio = outputSize / VW;
 
-    // Clear canvas
-    ctx.clearRect(0, 0, outputSize, outputSize);
-
-    // Apply circular clip
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(outputSize / 2, outputSize / 2, outputSize / 2, 0, Math.PI * 2);
-    ctx.closePath();
-    ctx.clip();
-
-    // Fill background with white or subtle neutral
+    // White background first, so nothing outside the crop turns black in the JPEG
     ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, outputSize, outputSize);
+    ctx.fillRect(0, 0, outW, outH);
+
+    ctx.save();
+    if (!isRect) {
+      ctx.beginPath();
+      ctx.arc(outW / 2, outH / 2, outW / 2, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.clip();
+    }
 
     // Coordinate transforms
-    ctx.translate(outputSize / 2, outputSize / 2);
+    ctx.translate(outW / 2, outH / 2);
     ctx.translate(position.x * ratio, position.y * ratio);
     ctx.rotate((rotation * Math.PI) / 180);
     ctx.scale(scale * ratio, scale * ratio);
 
     // Calculate image render dimensions preserving aspect ratio
     const imgAspect = imgNaturalSize.width / imgNaturalSize.height;
+    const fitHeight = imgAspect >= VW / VH;
     let drawWidth, drawHeight;
 
-    if (imgAspect >= 1) {
-      // Landscape or square: fit height to viewport
-      drawHeight = viewportSize;
-      drawWidth = viewportSize * imgAspect;
+    if (fitHeight) {
+      drawHeight = VH;
+      drawWidth = VH * imgAspect;
     } else {
-      // Portrait: fit width to viewport
-      drawWidth = viewportSize;
-      drawHeight = viewportSize / imgAspect;
+      drawWidth = VW;
+      drawHeight = VW / imgAspect;
     }
 
     ctx.drawImage(
@@ -233,7 +235,8 @@ export default function ImageCropModal({
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
             onWheel={handleWheel}
-            className="relative w-[260px] h-[260px] rounded-full overflow-hidden border-4 border-white/90 shadow-2xl cursor-grab active:cursor-grabbing select-none bg-slate-950 flex items-center justify-center touch-none"
+            style={{ width: VW, height: VH }}
+            className={`relative ${isRect ? "rounded-2xl" : "rounded-full"} overflow-hidden border-4 border-white/90 shadow-2xl cursor-grab active:cursor-grabbing select-none bg-slate-950 flex items-center justify-center touch-none`}
           >
             {/* Image being manipulated */}
             <img
@@ -247,21 +250,15 @@ export default function ImageCropModal({
                 transformOrigin: "center center",
                 maxWidth: "none",
                 maxHeight: "none",
-                width:
-                  imgNaturalSize.width >= imgNaturalSize.height
-                    ? "auto"
-                    : "260px",
-                height:
-                  imgNaturalSize.width >= imgNaturalSize.height
-                    ? "260px"
-                    : "auto",
+                width: imgNaturalSize.width / imgNaturalSize.height >= VW / VH ? "auto" : VW,
+                height: imgNaturalSize.width / imgNaturalSize.height >= VW / VH ? VH : "auto",
                 transition: isDragging ? "none" : "transform 0.05s ease-out",
               }}
               className="pointer-events-none"
             />
 
             {/* Grid overlay for alignment */}
-            <div className="absolute inset-0 pointer-events-none rounded-full border border-white/20 grid grid-cols-3 grid-rows-3">
+            <div className={`absolute inset-0 pointer-events-none ${isRect ? "rounded-2xl" : "rounded-full"} border border-white/20 grid grid-cols-3 grid-rows-3`}>
               <div className="border-r border-b border-white/10" />
               <div className="border-r border-b border-white/10" />
               <div className="border-b border-white/10" />

@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { X, MessageCircle } from "lucide-react";
+import DoctorPhoto from "./DoctorPhoto.jsx";
 import { doctorDisplayName, initialsOf } from "../utils/doctorName.js";
 import { accentFor, SOCIAL_LINKS, safeUrl } from "../utils/doctorStyle.js";
 
@@ -38,11 +39,10 @@ function DoctorProfileModal({ doctor, onClose, onAsk }) {
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-4">
             <div className="relative flex-shrink-0">
-              <span className={`absolute -inset-1.5 rounded-[1.8rem] bg-gradient-to-br ${accent.blob}`} />
               {doctor.photo ? (
-                <img src={doctor.photo} alt={displayName} className="relative h-28 w-24 rounded-[1.4rem] bg-soft object-cover" />
+                <DoctorPhoto src={doctor.photo} alt={displayName} className="h-28 w-24 rounded-xl bg-soft" />
               ) : (
-                <span className="relative flex h-28 w-24 items-center justify-center rounded-[1.4rem] bg-soft text-3xl font-extrabold text-navy">
+                <span className="flex h-28 w-24 items-center justify-center rounded-xl bg-soft text-3xl font-extrabold text-navy">
                   {initialsOf(doctor.name)}
                 </span>
               )}

@@ -284,7 +284,7 @@ function DoctorsManagement() {
                 <input type="file" ref={fileInputRef} onChange={handlePhotoSelect} accept="image/*" className="hidden" />
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-20 h-20 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center cursor-pointer hover:border-red-400 overflow-hidden bg-slate-50"
+                  className="w-32 h-24 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center cursor-pointer hover:border-red-400 overflow-hidden bg-slate-50"
                 >
                   {form.photo ? (
                     <img src={form.photo} alt="Doctor preview" className="w-full h-full object-cover" />
@@ -407,7 +407,7 @@ function DoctorsManagement() {
       )}
 
       {cropImageSrc && (
-        <ImageCropModal imageSrc={cropImageSrc} onCancel={() => setCropImageSrc(null)} onCropComplete={handleCropComplete} />
+        <ImageCropModal shape="rect" imageSrc={cropImageSrc} onCancel={() => setCropImageSrc(null)} onCropComplete={handleCropComplete} />
       )}
     </div>
   );
