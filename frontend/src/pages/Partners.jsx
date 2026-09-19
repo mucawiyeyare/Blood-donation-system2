@@ -56,7 +56,7 @@ function Partners() {
             No partners are listed yet. Please check back soon.
           </p>
         ) : (
-          <div className="flex flex-wrap gap-4 sm:gap-5">
+          <div className="flex flex-wrap justify-center gap-x-12 gap-y-10">
             {partners.map((partner) => (
               <PartnerLogo key={partner._id} partner={partner} />
             ))}

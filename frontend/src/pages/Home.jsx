@@ -64,7 +64,7 @@ function Home() {
   return (
     <div className="font-brand bg-white">
       <SplitHero
-        eyebrow="Somali Blood Donation System"
+        eyebrow="Somali Blood Donation Association"
         title={
           <>
             Donate Blood.

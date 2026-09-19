@@ -4,14 +4,14 @@ export default function SobdaLogo({ size = "md", showText = true, className = ""
   const [imgError, setImgError] = useState(false);
 
   const sizeMap = {
-    sm: { img: "h-8 w-auto max-w-[36px]", icon: "w-9 h-9", text: "text-lg" },
-    md: { img: "h-11 w-auto max-w-[48px]", icon: "w-12 h-12", text: "text-2xl" },
-    lg: { img: "h-16 w-auto max-w-[70px]", icon: "w-16 h-16", text: "text-3xl" },
-    xl: { img: "h-24 w-auto max-w-[100px]", icon: "w-24 h-24", text: "text-4xl" },
+    sm: { img: "h-8 w-auto max-w-[36px]", icon: "w-9 h-9", text: "text-xl" },
+    md: { img: "h-12 w-auto max-w-[52px]", icon: "w-12 h-12", text: "text-3xl" },
+    lg: { img: "h-16 w-auto max-w-[70px]", icon: "w-16 h-16", text: "text-4xl" },
+    xl: { img: "h-24 w-auto max-w-[100px]", icon: "w-24 h-24", text: "text-5xl" },
   };
 
   const currentSize = sizeMap[size] || sizeMap.md;
-  // Show the "Somali Blood Donation System" line under the wordmark except in the compact size.
+  // Show the "Somali Blood Donation Association" line under the wordmark except in the compact size.
   const showTagline = tagline ?? size !== "sm";
 
   return (
@@ -61,12 +61,13 @@ export default function SobdaLogo({ size = "md", showText = true, className = ""
 
       {showText && (
         <div className="flex flex-col leading-tight text-left">
-          <div className={`font-extrabold tracking-wide ${currentSize.text} ${light ? "text-white" : "text-navy"}`}>
-            SOBDA
+          <div className={`font-extrabold leading-none tracking-wide ${currentSize.text}`}>
+            <span className={light ? "text-[#ff4d59]" : "text-[#e60012]"}>SOB</span>
+            <span className={light ? "text-sky-300" : "text-[#00a3f0]"}>DA</span>
           </div>
           {showTagline && (
             <span className={`text-[10px] sm:text-[11px] font-medium leading-tight ${light ? "text-white/75" : "text-slate-600"}`}>
-              Somali Blood Donation System
+              Somali Blood Donation Association
             </span>
           )}
         </div>

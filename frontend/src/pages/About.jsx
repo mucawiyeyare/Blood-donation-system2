@@ -71,7 +71,7 @@ function About() {
             Together for a Healthier <span className="text-brand">Somalia</span>
           </>
         }
-        text="SOBDA (Somali Blood Donation System) is a national platform that connects blood donors, hospitals and patients across Somalia. We make it easier, safer and faster to donate blood and save lives."
+        text="SOBDA (Somali Blood Donation Association) is a national platform that connects blood donors, hospitals and patients across Somalia. We make it easier, safer and faster to donate blood and save lives."
         extra={
           <div className="inline-flex items-center gap-4 rounded-2xl border border-line bg-white/80 px-5 py-4 shadow-sm">
             <HeartPulse className="h-9 w-9 flex-shrink-0 text-brand" />
