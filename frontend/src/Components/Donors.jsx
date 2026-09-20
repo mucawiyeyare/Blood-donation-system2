@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import RegionDistrictSelect from "./RegionDistrictSelect.jsx";
+import { SOMALIA_REGIONS } from "../utils/somaliaLocations.js";
 import {
   Search,
   Filter,
@@ -52,7 +54,8 @@ function Donors() {
 
   // Filters
   const [searchName, setSearchName] = useState("");
-  const [selectedLocation, setSelectedLocation] = useState("");
+  const [selectedRegion, setSelectedRegion] = useState("");
+  const [selectedDistrict, setSelectedDistrict] = useState("");
   const [selectedBloodType, setSelectedBloodType] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedGender, setSelectedGender] = useState("");
@@ -192,8 +195,11 @@ function Donors() {
           (d.nationalId && d.nationalId.toLowerCase().includes(term))
       );
     }
-    if (selectedLocation) {
-      list = list.filter((d) => d.location?.toLowerCase().includes(selectedLocation.toLowerCase()));
+    if (selectedRegion || selectedDistrict) {
+      list = list.filter((d) => {
+        const loc = (d.location || "").toLowerCase();
+        return (!selectedRegion || loc.includes(selectedRegion.toLowerCase())) && (!selectedDistrict || loc.includes(selectedDistrict.toLowerCase()));
+      });
     }
     if (selectedBloodType) {
       list = list.filter((d) => d.bloodType === selectedBloodType);
@@ -206,7 +212,7 @@ function Donors() {
     }
 
     setFilteredDonors(list);
-  }, [donors, searchName, selectedLocation, selectedBloodType, selectedStatus, selectedGender]);
+  }, [donors, searchName, selectedRegion, selectedDistrict, selectedBloodType, selectedStatus, selectedGender]);
 
   // Multi-select helpers
   const handleSelectDonor = (id) => {
@@ -689,7 +695,7 @@ function Donors() {
 
       {/* Filters Bar */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 mb-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5">
           {/* Search Term */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -716,14 +722,37 @@ function Donors() {
             ))}
           </select>
 
-          {/* Location */}
-          <input
-            type="text"
-            placeholder="Filter location (e.g. Mogadishu)..."
-            value={selectedLocation}
-            onChange={(e) => setSelectedLocation(e.target.value)}
+          {/* Region */}
+          <select
+            value={selectedRegion}
+            onChange={(e) => {
+              setSelectedRegion(e.target.value);
+              setSelectedDistrict("");
+            }}
             className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-red-500"
-          />
+          >
+            <option value="">All Regions</option>
+            {Object.keys(SOMALIA_REGIONS).map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
+          </select>
+
+          {/* District (depends on region) */}
+          <select
+            value={selectedDistrict}
+            onChange={(e) => setSelectedDistrict(e.target.value)}
+            disabled={!selectedRegion}
+            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-red-500 disabled:opacity-60"
+          >
+            <option value="">{selectedRegion ? "All Districts" : "Choose region first"}</option>
+            {(SOMALIA_REGIONS[selectedRegion] || []).map((d) => (
+              <option key={d} value={d}>
+                {d}
+              </option>
+            ))}
+          </select>
 
           {/* Status */}
           <select
@@ -771,11 +800,12 @@ function Donors() {
             </span>
           </div>
 
-          {(searchName || selectedLocation || selectedBloodType || selectedStatus || selectedGender) && (
+          {(searchName || selectedRegion || selectedDistrict || selectedBloodType || selectedStatus || selectedGender) && (
             <button
               onClick={() => {
                 setSearchName("");
-                setSelectedLocation("");
+                setSelectedRegion("");
+                setSelectedDistrict("");
                 setSelectedBloodType("");
                 setSelectedStatus("");
                 setSelectedGender("");
@@ -1396,13 +1426,7 @@ function Donors() {
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Location *</label>
-                <input
-                  value={addForm.location}
-                  onChange={(e) => setAddForm({ ...addForm, location: e.target.value })}
-                  placeholder="e.g. Mogadishu (Hodan)"
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-red-500"
-                  required
-                />
+                <RegionDistrictSelect value={addForm.location} onChange={(location) => setAddForm({ ...addForm, location })} required />
               </div>
 
               <div>
@@ -1519,12 +1543,7 @@ function Donors() {
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Location *</label>
-                <input
-                  value={editForm.location}
-                  onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-red-500"
-                  required
-                />
+                <RegionDistrictSelect value={editForm.location} onChange={(location) => setEditForm({ ...editForm, location })} required />
               </div>
 
               <div>
