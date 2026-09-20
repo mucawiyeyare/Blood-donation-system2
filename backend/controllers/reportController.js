@@ -2,6 +2,34 @@ import User from "../models/usermodel.js";
 import DonorRequest from "../models/donorRequestModel.js";
 import Donation from "../models/donationModel.js";
 
+// Donor status is not stored on the user: it is derived (90-day cooldown, open request, manual availability),
+// the same way the donors list derives it. Reports must use this, or every donor looks status-less.
+const withDonorStatus = async (donors) => {
+  const now = new Date();
+  const ids = donors.map((d) => d._id);
+  const open = await DonorRequest.find({ donorId: { $in: ids }, status: { $in: ["Pending", "Arrived", "Accepted"] } })
+    .select("donorId status")
+    .lean();
+  const openByDonor = new Map();
+  open.forEach((r) => {
+    const key = String(r.donorId);
+    if (!openByDonor.has(key) || r.status === "Arrived") openByDonor.set(key, r.status);
+  });
+  return donors.map((d) => {
+    let status = "Available";
+    if (d.lastDonationDate) {
+      const end = new Date(d.lastDonationDate);
+      end.setDate(end.getDate() + 90);
+      if (end > now) status = "Donated";
+    }
+    if (status === "Available" && openByDonor.has(String(d._id))) {
+      status = openByDonor.get(String(d._id)) === "Arrived" ? "Arrived" : "Pending";
+    }
+    if (status === "Available" && d.isAvailable === false) status = "Unavailable";
+    return { ...d, status };
+  });
+};
+
 const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
 /**
@@ -17,7 +45,7 @@ export const getReportOverview = async (req, res) => {
       allRequests,
       allDonations
     ] = await Promise.all([
-      User.find({ role: "donor" }).select("-password").lean(),
+      User.find({ role: "donor" }).select("-password").lean().then(withDonorStatus),
       User.find({ role: "hospital" }).select("-password").lean(),
       DonorRequest.find().populate("hospitalId", "name location phone").populate("donorId", "name bloodType phone location").lean(),
       Donation.find().populate("donorId", "name bloodType location").populate("hospitalId", "name location").lean(),
@@ -156,7 +184,7 @@ export const getReportOverview = async (req, res) => {
 export const getBloodGroupReports = async (req, res) => {
   try {
     const [donors, requests, donations] = await Promise.all([
-      User.find({ role: "donor" }).select("-password").lean(),
+      User.find({ role: "donor" }).select("-password").lean().then(withDonorStatus),
       DonorRequest.find().populate("hospitalId", "name").lean(),
       Donation.find().populate("donorId", "name bloodType").lean(),
     ]);
@@ -208,9 +236,6 @@ export const getBloodGroupDetails = async (req, res) => {
     const { status, location, search } = req.query;
 
     let donorQuery = { role: "donor", bloodType };
-    if (status && status !== "All") {
-      donorQuery.status = status;
-    }
     if (location && location !== "All") {
       donorQuery.location = { $regex: location, $options: "i" };
     }
@@ -222,13 +247,14 @@ export const getBloodGroupDetails = async (req, res) => {
       ];
     }
 
-    const [donors, requests, donations] = await Promise.all([
-      User.find(donorQuery).select("-password").sort({ createdAt: -1 }).lean(),
+    const [derivedDonors, requests, donations] = await Promise.all([
+      User.find(donorQuery).select("-password").sort({ createdAt: -1 }).lean().then(withDonorStatus),
       DonorRequest.find({ bloodType }).populate("hospitalId", "name location phone").populate("donorId", "name phone").sort({ requestDate: -1 }).lean(),
       Donation.find({ $or: [{ bloodType }, { "donorId.bloodType": bloodType }] }).populate("donorId", "name bloodType location").populate("hospitalId", "name location").sort({ donationDate: -1 }).lean(),
     ]);
 
-    const allGroupDonors = await User.find({ role: "donor", bloodType }).select("-password").lean();
+    const donors = status && status !== "All" ? derivedDonors.filter((d) => d.status === status) : derivedDonors;
+    const allGroupDonors = await withDonorStatus(await User.find({ role: "donor", bloodType }).select("-password").lean());
     const availableCount = allGroupDonors.filter(d => d.status === "Available").length;
     const activeCount = allGroupDonors.filter(d => d.status === "Available" || d.status === "Donated").length;
 
