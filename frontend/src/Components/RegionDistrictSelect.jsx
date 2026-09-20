@@ -6,10 +6,11 @@ const cls = "w-full px-3 py-2 border border-slate-200 rounded-xl text-xs sm:text
 // Linked dropdowns: region, then district. With `withRoad` a text box for the road / specific area (xafada) follows.
 // The value is stored as "District, Region", or "Road, District, Region" when withRoad is on.
 export default function RegionDistrictSelect({ value, onChange, required = false, withRoad = false }) {
-  const parts = (value || "").split(",").map((p) => p.trim());
-  const region = parts.length > 1 ? parts[parts.length - 1] : "";
-  const district = parts.length > 1 ? parts[parts.length - 2] : "";
-  const road = withRoad && parts.length > 2 ? parts.slice(0, -2).join(", ") : "";
+  // The road is left untrimmed while typing, so spaces between words are kept.
+  const parts = (value || "").split(",");
+  const region = parts.length > 1 ? parts[parts.length - 1].trim() : "";
+  const district = parts.length > 1 ? parts[parts.length - 2].trim() : "";
+  const road = withRoad && parts.length > 2 ? parts.slice(0, -2).join(",") : "";
   const knownRegion = SOMALIA_REGIONS[region] ? region : "";
   const knownDistrict = knownRegion && SOMALIA_REGIONS[knownRegion].includes(district) ? district : "";
 
@@ -44,6 +45,7 @@ export default function RegionDistrictSelect({ value, onChange, required = false
         <input
           value={road}
           onChange={(e) => emit(knownRegion, knownDistrict, e.target.value)}
+          onBlur={() => road !== road.trim() && emit(knownRegion, knownDistrict, road.trim())}
           disabled={!knownDistrict}
           placeholder="Road / specific area (xafada), e.g. Maka Al-Mukarama Road"
           className={`${cls} disabled:opacity-60`}
