@@ -228,6 +228,7 @@ function Reports() {
   const matrix = overviewData?.bloodGroupMatrix || [];
   const monthly = overviewData?.monthlyDonations || [];
   const activities = overviewData?.recentActivities || [];
+  const patientsSaved = overviewData?.patientsSaved || [];
 
   return (
     <div className="min-h-screen bg-slate-50/70 p-4 sm:p-6 lg:p-8">
@@ -423,14 +424,81 @@ function Reports() {
               <p className="text-[11px] text-slate-500 mt-1 font-medium">Unfulfilled requests</p>
             </div>
 
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-red-200 bg-red-600 text-white shadow-lg shadow-red-600/20">
-              <div className="flex items-center justify-between text-red-100 mb-2">
-                <span className="text-xs font-black uppercase tracking-wider">Total Lives Impacted</span>
-                <Sparkles className="w-4 h-4 text-white" />
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm">
+              <div className="flex items-center justify-between text-slate-500 mb-2">
+                <span className="text-xs font-bold uppercase tracking-wider">Patients Saved</span>
+                <Sparkles className="w-4 h-4 text-brand" />
               </div>
-              <p className="text-2xl sm:text-3xl font-black text-white">{(summary.completedRequests || 0) * 3}</p>
-              <p className="text-[11px] text-red-100 mt-1 font-semibold">Estimated lives saved (3x/unit)</p>
+              <p className="text-2xl sm:text-3xl font-black text-slate-900">{summary.patientsSaved || 0}</p>
+              <p className="text-[11px] text-slate-500 mt-1 font-medium">Patients who received blood</p>
             </div>
+          </div>
+
+          {/* Patients saved: names */}
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
+              <div>
+                <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-brand" />
+                  Patients Saved ({patientsSaved.length})
+                </h3>
+                <p className="text-xs text-slate-500 font-medium mt-0.5">Patients whose blood request was completed, with their hospital and donors</p>
+              </div>
+              <button
+                onClick={() =>
+                  exportToCSV(
+                    patientsSaved.map((p) => ({
+                      Patient: p.name,
+                      Age: p.age,
+                      Condition: p.diagnosis,
+                      Hospital: p.hospital,
+                      BloodType: p.bloodType,
+                      Donors: p.donors,
+                      Date: p.date ? new Date(p.date).toLocaleDateString() : "",
+                    })),
+                    "patients_saved.csv"
+                  )
+                }
+                className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-2 transition-all self-start"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Export CSV</span>
+              </button>
+            </div>
+            {patientsSaved.length === 0 ? (
+              <p className="text-sm text-slate-500">No completed requests yet.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-100 bg-slate-50/70 text-slate-600 text-xs font-black uppercase tracking-wider">
+                      <th className="px-4 py-3">#</th>
+                      <th className="px-4 py-3">Patient</th>
+                      <th className="px-4 py-3">Hospital</th>
+                      <th className="px-4 py-3">Blood</th>
+                      <th className="px-4 py-3">Donors</th>
+                      <th className="px-4 py-3">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {patientsSaved.map((p, i) => (
+                      <tr key={i}>
+                        <td className="px-4 py-3 text-slate-400">{i + 1}</td>
+                        <td className="px-4 py-3 font-bold text-slate-900">
+                          {p.name}
+                          {p.age ? <span className="ml-1 font-normal text-slate-500">({p.age} yrs)</span> : null}
+                          {p.diagnosis ? <p className="text-xs font-normal text-slate-500">{p.diagnosis}</p> : null}
+                        </td>
+                        <td className="px-4 py-3 text-slate-700">{p.hospital}</td>
+                        <td className="px-4 py-3 font-bold text-brand">{p.bloodType}</td>
+                        <td className="px-4 py-3 text-slate-700">{p.donors}</td>
+                        <td className="px-4 py-3 text-slate-500">{p.date ? new Date(p.date).toLocaleDateString() : "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           {/* Blood Group Matrix Statistics Bar */}

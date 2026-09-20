@@ -151,6 +151,30 @@ export const getReportOverview = async (req, res) => {
       });
     });
 
+    // Patients saved: one entry per patient whose request was completed (several donors for one patient count once)
+    const savedMap = new Map();
+    allRequests
+      .filter((r) => r.status === "Completed")
+      .forEach((r) => {
+        const name = (r.patientInfo?.name || "").trim();
+        const hospital = r.hospitalId?.name || "Hospital";
+        const key = name ? `${name.toLowerCase()}|${hospital}` : `anon|${r._id}`;
+        const when = r.completedAt || r.updatedAt || r.requestDate || r.createdAt;
+        const entry = savedMap.get(key) || {
+          name: name || "Unnamed patient",
+          age: r.patientInfo?.age || "",
+          diagnosis: r.patientInfo?.diagnosis || "",
+          hospital,
+          bloodType: r.bloodType,
+          donors: 0,
+          date: when,
+        };
+        entry.donors += 1;
+        if (when && (!entry.date || new Date(when) > new Date(entry.date))) entry.date = when;
+        savedMap.set(key, entry);
+      });
+    const patientsSaved = Array.from(savedMap.values()).sort((a, b) => new Date(b.date) - new Date(a.date));
+
     recentActivities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
     res.json({
@@ -166,7 +190,9 @@ export const getReportOverview = async (req, res) => {
         completedRequests,
         cancelledRequests,
         totalDonations,
+        patientsSaved: patientsSaved.length,
       },
+      patientsSaved,
       bloodGroupMatrix,
       urgencyCounts,
       monthlyDonations,
