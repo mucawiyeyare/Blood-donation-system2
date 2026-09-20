@@ -63,8 +63,8 @@ function Home() {
         eyebrow="Somali Blood Donation Association"
         title={
           <>
-            <span className="block text-[0.75em] leading-[1.15]">
-              Hal deeq dhiig ah <span className="text-brand">waxay noqon kartaa bilowga nolol cusub.</span>
+            <span className="block text-[0.66em] leading-[1.2]">
+              Dhiigga aad bixiso,<br /><span className="text-brand">waa nolol aad qof ugu hibeysay.</span>
             </span>
           </>
         }
