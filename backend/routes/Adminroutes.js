@@ -1,5 +1,5 @@
 import express from "express";
-import { protect, adminOnly } from "../middleware/authMiddleware.js";
+import { protect, adminOnly, adminOrHealthInstitution } from "../middleware/authMiddleware.js";
 import User from "../models/usermodel.js";
 import DonorRequest from "../models/donorRequestModel.js";
 import Donation from "../models/donationModel.js";
@@ -182,7 +182,7 @@ router.delete("/delete-user/:id", protect, adminOnly, async (req, res) => {
 });
 
 // 6. Admin Hospital Management: Get all hospitals with donation & request statistics
-router.get("/hospitals", protect, adminOnly, async (req, res) => {
+router.get("/hospitals", protect, adminOrHealthInstitution, async (req, res) => {
   try {
     const hospitals = await User.find({ role: "hospital" }).select("-password").sort({ name: 1 });
 
@@ -211,7 +211,7 @@ router.get("/hospitals", protect, adminOnly, async (req, res) => {
 });
 
 // 7. System Stats & Overview
-router.get("/stats", protect, adminOnly, async (req, res) => {
+router.get("/stats", protect, adminOrHealthInstitution, async (req, res) => {
   try {
     const totalUsers = await User.countDocuments({});
     const totalDonors = await User.countDocuments({ role: "donor" });
