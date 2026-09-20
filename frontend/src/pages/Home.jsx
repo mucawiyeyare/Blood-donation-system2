@@ -63,9 +63,9 @@ function Home() {
         eyebrow="Somali Blood Donation Association"
         title={
           <>
-            Donate Blood.
-            <br />
-            <span className="text-brand">Save Lives.</span>
+            <span className="block text-[0.75em] leading-[1.15]">
+              Hal deeq dhiig ah <span className="text-brand">waxay noqon kartaa bilowga nolol cusub.</span>
+            </span>
           </>
         }
         text="SOBDA connects blood donors, hospitals and patients across Somalia. Together, we can build a healthier and stronger nation."
