@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Heart, Phone, Mail, Star } from "lucide-react";
+import { Heart, Phone, Mail } from "lucide-react";
+import SomaliaFlag from "./SomaliaFlag.jsx";
 import SobdaLogo from "./SobdaLogo.jsx";
 
 const FOOTER_LINKS = [
@@ -49,9 +50,7 @@ function Footer() {
           <p>&copy; {new Date().getFullYear()} SOBDA. All rights reserved.</p>
           <p className="hidden md:block">Together We Save Lives.</p>
           <p className="flex items-center gap-2">
-            <span className="flex h-5 w-7 items-center justify-center rounded-sm bg-[#4189dd]">
-              <Star className="h-3 w-3 fill-white text-white" />
-            </span>
+            <SomaliaFlag className="h-5 w-auto" />
             Made in Somalia
             <Heart className="h-4 w-4 fill-brand text-brand" />
           </p>
