@@ -27,11 +27,7 @@ import CtaBanner from "../Components/CtaBanner.jsx";
 import usePublicReport from "../hooks/usePublicReport.js";
 
 const HERO_SLIDES = [
-  {
-    image: "/hero-donation.png",
-    alt: "A donor squeezing a red heart while giving blood: a single donation can save a life",
-    plain: true,
-  },
+  { image: "/hero-dhibic.jpg", alt: "A donor squeezing a red ball while giving blood: Hal dhibic oo dhiig ah ayaa badbaadin karta naf", full: true },
   { image: "/hero1.jpg", alt: "Bags of donated blood labelled by blood type", tagline: "A single donation can save a life" },
   { image: "/hero5.jpg", alt: "A hand holding a bag of donated blood", tagline: "Blood connects us all" },
   { image: "/hero2.jpg", alt: "Blood bags stored on shelves at a blood bank", tagline: "Together We Save Lives" },
