@@ -14,20 +14,11 @@ function Slide({ slide }) {
     );
   }
 
-  if (slide.full) {
-    // A finished picture with its own text: show all of it (never crop), just round the corners.
-    return (
-      <div className="flex h-full items-center p-4 sm:p-6 lg:p-0 lg:pl-6">
-        <img src={slide.image} alt={slide.alt || ""} className="h-auto w-full rounded-3xl shadow-xl ring-1 ring-line" />
-      </div>
-    );
-  }
-
   return (
     <div className="h-full p-4 sm:p-6 lg:p-0">
       <div className="relative h-full overflow-hidden rounded-3xl shadow-xl ring-8 ring-white/70 lg:ml-6 lg:rounded-l-[220px] lg:rounded-r-none">
-        <img src={slide.image} alt={slide.alt || ""} className="h-full w-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-navy/35 via-transparent to-transparent" />
+        <img src={slide.image} alt={slide.alt || ""} className={`h-full w-full object-cover ${slide.focusRight ? "object-right" : ""}`} />
+        {!slide.focusRight && <div className="absolute inset-0 bg-gradient-to-t from-navy/35 via-transparent to-transparent" />}
         {slide.tagline && (
           <p className="absolute bottom-6 right-6 max-w-[11rem] text-right font-script text-2xl leading-[1.05] text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.55)] sm:max-w-[13rem] sm:text-3xl lg:bottom-12 lg:right-12 lg:text-4xl">
             {slide.tagline}
