@@ -40,6 +40,7 @@ function Signup() {
     dialCode: "+252",
     region: "",
     district: "",
+    road: "",
   });
 
   const [hospitalPendingSubmitted, setHospitalPendingSubmitted] = useState(null);
@@ -78,7 +79,7 @@ function Signup() {
 
   const handleHospitalRegionChange = (e) => {
     const region = e.target.value;
-    setHospitalData((prev) => ({ ...prev, region, district: "" }));
+    setHospitalData((prev) => ({ ...prev, region, district: "", road: "" }));
   };
 
   const handleSubmit = async (e) => {
@@ -163,7 +164,7 @@ function Signup() {
           email: hospitalData.email,
           password: hospitalData.password,
           phone: formattedPhone,
-          location: `${hospitalData.district}, ${hospitalData.region}`,
+          location: [hospitalData.road.trim(), hospitalData.district, hospitalData.region].filter(Boolean).join(", "),
         };
 
         const res = await axios.post("/api/users/register", payload);
@@ -171,7 +172,7 @@ function Signup() {
           name: hospitalData.name,
           email: hospitalData.email,
           phone: formattedPhone,
-          location: `${hospitalData.district}, ${hospitalData.region}`,
+          location: [hospitalData.road.trim(), hospitalData.district, hospitalData.region].filter(Boolean).join(", "),
           license: hospitalData.hospitalLicense,
         });
       } catch (error) {
@@ -731,6 +732,21 @@ function Signup() {
                       ))}
                     </select>
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Road / Specific Area (Xafada)
+                  </label>
+                  <input
+                    type="text"
+                    name="road"
+                    value={hospitalData.road}
+                    onChange={handleHospitalChange}
+                    disabled={!hospitalData.district}
+                    placeholder="Enter the road or area of the hospital in this district"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm transition-all disabled:opacity-50"
+                  />
                 </div>
 
                 {/* Hospital Email & Password */}
