@@ -655,7 +655,8 @@ function Profile() {
         <NotificationDevices />
       </div>
 
-      {/* 3. Donation History Section */}
+      {/* 3. Donation History Section (donors only: hospitals and staff do not donate) */}
+      {profile?.role === "donor" && (
       <div className="mt-8 bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8">
         <div className="flex items-center justify-between pb-4 mb-6 border-b border-slate-100">
           <div>
@@ -722,6 +723,7 @@ function Profile() {
           </div>
         )}
       </div>
+      )}
 
       {/* Certificate Modal */}
       {selectedCertificate && (
