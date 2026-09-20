@@ -345,73 +345,73 @@ function Reports() {
             <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm">
               <div className="flex items-center justify-between text-slate-500 mb-2">
                 <span className="text-xs font-bold uppercase tracking-wider">Registered Donors</span>
-                <Users className="w-4 h-4 text-blue-600" />
+                <Users className="w-4 h-4 text-brand" />
               </div>
               <p className="text-2xl sm:text-3xl font-black text-slate-900">{summary.totalDonors || 0}</p>
               <p className="text-[11px] text-slate-500 mt-1 font-medium">Voluntary registered network</p>
             </div>
 
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-emerald-100 bg-emerald-50/20 shadow-sm">
-              <div className="flex items-center justify-between text-emerald-700 mb-2">
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm">
+              <div className="flex items-center justify-between text-slate-500 mb-2">
                 <span className="text-xs font-bold uppercase tracking-wider">Available Donors</span>
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <CheckCircle2 className="w-4 h-4 text-brand" />
               </div>
-              <p className="text-2xl sm:text-3xl font-black text-emerald-700">{summary.availableDonors || 0}</p>
-              <p className="text-[11px] text-emerald-600 mt-1 font-medium">Ready for immediate dispatch</p>
+              <p className="text-2xl sm:text-3xl font-black text-slate-900">{summary.availableDonors || 0}</p>
+              <p className="text-[11px] text-slate-500 mt-1 font-medium">Ready for immediate dispatch</p>
             </div>
 
             <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm">
               <div className="flex items-center justify-between text-slate-500 mb-2">
                 <span className="text-xs font-bold uppercase tracking-wider">In Cooldown (90d)</span>
-                <Clock className="w-4 h-4 text-amber-600" />
+                <Clock className="w-4 h-4 text-brand" />
               </div>
-              <p className="text-2xl sm:text-3xl font-black text-amber-700">{summary.cooldownDonors || 0}</p>
+              <p className="text-2xl sm:text-3xl font-black text-slate-900">{summary.cooldownDonors || 0}</p>
               <p className="text-[11px] text-slate-500 mt-1 font-medium">Protected safety period</p>
             </div>
 
             <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm">
               <div className="flex items-center justify-between text-slate-500 mb-2">
                 <span className="text-xs font-bold uppercase tracking-wider">Total Hospitals</span>
-                <Building2 className="w-4 h-4 text-indigo-600" />
+                <Building2 className="w-4 h-4 text-brand" />
               </div>
               <p className="text-2xl sm:text-3xl font-black text-slate-900">{summary.totalHospitals || 0}</p>
               <p className="text-[11px] text-slate-500 mt-1 font-medium">Verified medical facilities</p>
             </div>
 
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-red-100 bg-red-50/20 shadow-sm">
-              <div className="flex items-center justify-between text-red-700 mb-2">
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm">
+              <div className="flex items-center justify-between text-slate-500 mb-2">
                 <span className="text-xs font-bold uppercase tracking-wider">Total Requests</span>
-                <Droplet className="w-4 h-4 text-red-600" />
+                <Droplet className="w-4 h-4 text-brand" />
               </div>
-              <p className="text-2xl sm:text-3xl font-black text-red-700">{summary.totalRequests || 0}</p>
-              <p className="text-[11px] text-red-600 mt-1 font-medium">Emergency blood calls</p>
+              <p className="text-2xl sm:text-3xl font-black text-slate-900">{summary.totalRequests || 0}</p>
+              <p className="text-[11px] text-slate-500 mt-1 font-medium">Emergency blood calls</p>
             </div>
 
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-amber-200 bg-amber-50/30 shadow-sm">
-              <div className="flex items-center justify-between text-amber-800 mb-2">
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm">
+              <div className="flex items-center justify-between text-slate-500 mb-2">
                 <span className="text-xs font-bold uppercase tracking-wider">Pending Requests</span>
-                <Clock className="w-4 h-4 text-amber-600" />
+                <Clock className="w-4 h-4 text-brand" />
               </div>
-              <p className="text-2xl sm:text-3xl font-black text-amber-800">{summary.pendingRequests || 0}</p>
-              <p className="text-[11px] text-amber-700 mt-1 font-medium">2-hour arrival window</p>
+              <p className="text-2xl sm:text-3xl font-black text-slate-900">{summary.pendingRequests || 0}</p>
+              <p className="text-[11px] text-slate-500 mt-1 font-medium">2-hour arrival window</p>
             </div>
 
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-blue-200 bg-blue-50/30 shadow-sm">
-              <div className="flex items-center justify-between text-blue-800 mb-2">
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm">
+              <div className="flex items-center justify-between text-slate-500 mb-2">
                 <span className="text-xs font-bold uppercase tracking-wider">Arrived Donors</span>
-                <UserCheck className="w-4 h-4 text-blue-600" />
+                <UserCheck className="w-4 h-4 text-brand" />
               </div>
-              <p className="text-2xl sm:text-3xl font-black text-blue-800">{summary.arrivedRequests || 0}</p>
-              <p className="text-[11px] text-blue-700 mt-1 font-medium">Checked in at hospital</p>
+              <p className="text-2xl sm:text-3xl font-black text-slate-900">{summary.arrivedRequests || 0}</p>
+              <p className="text-[11px] text-slate-500 mt-1 font-medium">Checked in at hospital</p>
             </div>
 
-            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-emerald-200 bg-emerald-50/30 shadow-sm">
-              <div className="flex items-center justify-between text-emerald-800 mb-2">
+            <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm">
+              <div className="flex items-center justify-between text-slate-500 mb-2">
                 <span className="text-xs font-bold uppercase tracking-wider">Completed Donations</span>
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <CheckCircle2 className="w-4 h-4 text-brand" />
               </div>
-              <p className="text-2xl sm:text-3xl font-black text-emerald-800">{summary.completedRequests || 0}</p>
-              <p className="text-[11px] text-emerald-700 mt-1 font-medium">Verified fulfilled transfers</p>
+              <p className="text-2xl sm:text-3xl font-black text-slate-900">{summary.completedRequests || 0}</p>
+              <p className="text-[11px] text-slate-500 mt-1 font-medium">Verified fulfilled transfers</p>
             </div>
 
             <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm">
