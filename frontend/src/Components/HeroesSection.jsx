@@ -84,7 +84,7 @@ export default function HeroesSection({ leaderboard }) {
                     >
                       {donor ? (
                         donor.profileImage ? (
-                          <img src={donor.profileImage} alt={displayName} className="aspect-[4/3] w-full object-cover" />
+                          <img src={donor.profileImage} alt={displayName} className="aspect-[4/3] w-full object-cover object-right" />
                         ) : (
                           <span className="flex aspect-[4/3] w-full items-center justify-center bg-gradient-to-tr from-red-600 to-rose-500 text-4xl font-extrabold text-white">
                             {donor.firstName ? donor.firstName.charAt(0).toUpperCase() : "D"}
