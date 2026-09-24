@@ -38,7 +38,7 @@ function DoctorsSection() {
       <div className="relative mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         <DoctorsHeading />
 
-        <div className="mt-12 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <div className="mt-12 grid gap-6 md:grid-cols-2">
           {doctors.slice(0, HOME_LIMIT).map((doctor) => (
             <DoctorCard key={doctor._id} doctor={doctor} />
           ))}

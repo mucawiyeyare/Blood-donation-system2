@@ -62,7 +62,7 @@ function Doctors() {
                 No doctors are listed yet. Please check back soon.
               </p>
             ) : (
-              <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+              <div className="grid gap-6 md:grid-cols-2">
                 {doctors.map((doctor) => (
                   <DoctorCard key={doctor._id} doctor={doctor} />
                 ))}
