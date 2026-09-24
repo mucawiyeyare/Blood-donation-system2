@@ -1,7 +1,21 @@
 import React, { useState } from "react";
-import { Trophy } from "lucide-react";
+import { Trophy, Droplet, Heart, Sparkles } from "lucide-react";
 
-// "Our Blood Heroes": the public top-3 donors leaderboard, with a click-to-enlarge photo lightbox.
+// Rank styling for the top 3 slots: medal, label and a small accent colour, echoing gold/silver/bronze.
+const RANKS = [
+  { medal: "🥇", label: "1st Place", badge: "bg-amber-50 text-amber-700 border border-amber-200", icon: "text-amber-500" },
+  { medal: "🥈", label: "2nd Place", badge: "bg-slate-100 text-slate-600 border border-slate-200", icon: "text-slate-400" },
+  { medal: "🥉", label: "3rd Place", badge: "bg-orange-50 text-orange-700 border border-orange-200", icon: "text-orange-500" },
+];
+
+const QUOTES = [
+  "You're a true hero! Keep saving lives! 🏆",
+  "You're a true hero! ⭐",
+  "Fantastic effort! 💪",
+];
+
+// "Our Blood Heroes": the public top-3 donors leaderboard, built with the same card structure as
+// the doctor cards (photo, badge, name/subtitle, a highlights list, then a footer line).
 export default function HeroesSection({ leaderboard }) {
   const [lightboxImage, setLightboxImage] = useState(null); // { src, name }
 
@@ -13,10 +27,7 @@ export default function HeroesSection({ leaderboard }) {
           className="fixed inset-0 z-[999] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm"
           onClick={() => setLightboxImage(null)}
         >
-          <div
-            className="relative max-w-sm w-full"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="relative max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
             <button
               onClick={() => setLightboxImage(null)}
               className="absolute -top-4 -right-4 w-9 h-9 bg-white rounded-full flex items-center justify-center text-slate-700 hover:bg-red-50 hover:text-red-600 shadow-lg text-xl font-bold z-10"
@@ -24,22 +35,16 @@ export default function HeroesSection({ leaderboard }) {
               ×
             </button>
             <div className="rounded-2xl overflow-hidden shadow-2xl border-4 border-white">
-              <img
-                src={lightboxImage.src}
-                alt={lightboxImage.name}
-                className="w-full h-auto object-cover"
-              />
+              <img src={lightboxImage.src} alt={lightboxImage.name} className="w-full h-auto object-cover" />
             </div>
-            <p className="text-white text-center mt-3 font-bold text-lg tracking-wide drop-shadow">
-              {lightboxImage.name}
-            </p>
+            <p className="text-white text-center mt-3 font-bold text-lg tracking-wide drop-shadow">{lightboxImage.name}</p>
           </div>
         </div>
       )}
 
-      {/* Top 3 Donors Leaderboard (White Background) */}
-      <section className="py-20 bg-white border-t border-slate-200">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      {/* Top 3 Donors Leaderboard */}
+      <section className="py-20 bg-white border-t border-line">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-soft border border-line text-navy text-xs font-bold mb-4 shadow-sm">
             <Trophy className="w-4 h-4 text-amber-500" />
             <span>Hall of Heroes — Top Donors</span>
@@ -49,129 +54,88 @@ export default function HeroesSection({ leaderboard }) {
             These amazing donors have saved the most lives on SOBDA. Keep going!
           </p>
 
-          {/* Show up to 3 real donors; only pad with placeholder slots if fewer than 3 donated */}
           {leaderboard.length === 0 ? (
             <p className="text-slate-400 text-sm py-4">Be the first hero — donate blood today! 🩸</p>
           ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-            {Array.from({ length: Math.max(leaderboard.length, 3) }).map((_, index) => {
-              // Only render placeholder if we have < 3 real donors AND this slot is empty
-              if (index >= 3) return null;
-              const donor = leaderboard[index] || null;
-              const medals = ["🥇", "🥈", "🥉"];
-              const rankLabels = ["1st Place", "2nd Place", "3rd Place"];
-              const cardStyles = [
-                "bg-white border border-line shadow-sm",
-                "bg-white border border-line shadow-sm",
-                "bg-white border border-line shadow-sm",
-              ];
-              const getMessage = (d, idx) => {
-                if (!d) return "";
-                if (d.donationCount === 1) {
-                  const singleQuotes = [
-                    "You saved 1 person! Keep saving lives! 🏆",
-                    "Saved 1 person! You're a true hero! ⭐",
-                    "Saved 1 person! Fantastic effort! 💪",
-                  ];
-                  return singleQuotes[idx] || "You saved 1 person! Keep it up! 🏆";
-                }
-                const multiQuotes = [
-                  `Saved ${d.donationCount} people! Keep saving lives! 🏆`,
-                  `Saved ${d.donationCount} people! You're a true hero! ⭐`,
-                  `Saved ${d.donationCount} people! Fantastic effort! 💪`,
-                ];
-                return multiQuotes[idx] || `Saved ${d.donationCount} people! 🏆`;
-              };
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 text-left">
+              {Array.from({ length: Math.max(leaderboard.length, 3) }).map((_, index) => {
+                if (index >= 3) return null;
+                const donor = leaderboard[index] || null;
+                const rank = RANKS[index];
+                const displayName = donor ? `${donor.firstName}${donor.lastInitial ? ` ${donor.lastInitial}.` : ""}` : "";
 
-              return (
-                <div
-                  key={index}
-                  className={`${cardStyles[index]} rounded-2xl p-6 text-center hover:-translate-y-1 hover:shadow-xl transition-all duration-300`}
-                >
-                  {/* Hero Avatar with Medal Overlay */}
-                  <div className="relative w-20 h-20 mx-auto mb-3">
-                    {donor ? (
-                      <div
-                        onClick={() => {
-                          if (donor.profileImage) {
-                            setLightboxImage({ src: donor.profileImage, name: `${donor.firstName}${donor.lastInitial ? " " + donor.lastInitial + "." : ""}` });
-                          }
-                        }}
-                        className={`w-20 h-20 rounded-full overflow-hidden border-2 border-white shadow-lg bg-gradient-to-tr from-red-600 to-rose-500 flex items-center justify-center text-white font-black text-2xl ${donor.profileImage ? "cursor-pointer hover:opacity-90 hover:scale-105 transition-all" : "cursor-default"}`}
-                        title={donor.profileImage ? "Click to enlarge" : ""}
-                      >
-                        {donor.profileImage ? (
-                          <img
-                            src={donor.profileImage}
-                            alt={donor.firstName}
-                            className="w-full h-full object-cover"
-                          />
+                const highlights = donor
+                  ? [
+                      { Icon: Droplet, text: `Blood Type: ${donor.bloodType}` },
+                      { Icon: Heart, text: `${donor.donationCount} ${donor.donationCount === 1 ? "Donation" : "Donations"} Completed` },
+                      { Icon: Sparkles, text: `${donor.donationCount} ${donor.donationCount === 1 ? "Person" : "People"} Saved` },
+                    ]
+                  : [];
+
+                return (
+                  <article
+                    key={index}
+                    className="relative flex h-full flex-col rounded-3xl border border-line/60 bg-white p-5 shadow-[0_12px_40px_-18px_rgba(15,60,140,0.3)] transition-shadow duration-300 hover:shadow-[0_18px_50px_-18px_rgba(15,60,140,0.4)] sm:p-6"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => donor?.profileImage && setLightboxImage({ src: donor.profileImage, name: displayName })}
+                      aria-label={donor ? `View ${displayName}'s photo` : "Empty leaderboard slot"}
+                      className={`block w-full overflow-hidden rounded-2xl bg-soft ${donor?.profileImage ? "" : "cursor-default"}`}
+                    >
+                      {donor ? (
+                        donor.profileImage ? (
+                          <img src={donor.profileImage} alt={displayName} className="aspect-[4/3] w-full object-cover" />
                         ) : (
-                          <span>{donor.firstName ? donor.firstName.charAt(0).toUpperCase() : "D"}</span>
-                        )}
-                      </div>
-                    ) : (
-                      /* Placeholder empty slot */
-                      <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center text-slate-300 text-3xl">
-                        ?
-                      </div>
-                    )}
-                    <div className="absolute -top-1.5 -right-1.5 text-2xl drop-shadow-md">
-                      {medals[index]}
-                    </div>
-                  </div>
-
-                  {donor ? (
-                    <>
-                      <p className="text-xl font-black text-slate-900">
-                        {donor.firstName}{donor.lastInitial ? ` ${donor.lastInitial}.` : ""}
-                      </p>
-                      <div className="my-2.5">
-                        <span className="inline-block px-3 py-1 rounded-full bg-red-50 text-red-700 border border-red-200 text-xs font-black">
-                          Blood Type: {donor.bloodType}
+                          <span className="flex aspect-[4/3] w-full items-center justify-center bg-gradient-to-tr from-red-600 to-rose-500 text-4xl font-extrabold text-white">
+                            {donor.firstName ? donor.firstName.charAt(0).toUpperCase() : "D"}
+                          </span>
+                        )
+                      ) : (
+                        <span className="flex aspect-[4/3] w-full items-center justify-center border-2 border-dashed border-slate-300 text-3xl text-slate-300">
+                          ?
                         </span>
-                      </div>
-                      <p className="text-slate-500 text-xs font-medium">{donor.location}</p>
-                      <div className="mt-4 py-2.5 px-4 bg-slate-50 border border-slate-100 rounded-xl">
-                        <p className="text-2xl font-black text-slate-900">{donor.donationCount}</p>
-                        <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                          {donor.donationCount === 1 ? "Donation Completed" : "Donations Completed"}
-                        </p>
-                        <div className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200/70 px-2.5 py-0.5 rounded-full">
-                          <span>❤️</span>
-                          <span>{donor.donationCount === 1 ? "1 Person Saved" : `${donor.donationCount} People Saved`}</span>
-                        </div>
-                      </div>
-                      <p className="text-xs text-red-600 mt-3 font-semibold italic">"{getMessage(donor, index)}"</p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-base font-bold text-slate-400 mt-1">{rankLabels[index]}</p>
-                      <p className="text-xs text-slate-400 mt-1">No donor yet</p>
-                      <div className="mt-4 py-2.5 px-4 bg-slate-50 border border-dashed border-slate-200 rounded-xl">
-                        <p className="text-2xl font-black text-slate-300">—</p>
-                        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                          Donations Completed
-                        </p>
-                        <p className="text-[11px] font-medium text-slate-400 mt-1">
-                          0 People Saved
-                        </p>
-                      </div>
-                      <p className="text-xs text-slate-400 mt-3 italic">Could this be you? 🩸</p>
-                    </>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                      )}
+                    </button>
+
+                    <div className="mt-4 min-w-0">
+                      <span className={`inline-flex max-w-full items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold sm:text-sm ${rank.badge}`}>
+                        <span>{rank.medal}</span>
+                        <span className="truncate">{rank.label}</span>
+                      </span>
+                      <h3 className="mt-3 break-words text-xl font-extrabold leading-tight text-navy sm:text-2xl">
+                        {donor ? displayName : "No donor yet"}
+                      </h3>
+                      <p className="mt-1 text-sm text-slate-500 sm:text-base">
+                        {donor ? donor.location : "Could this be you?"}
+                      </p>
+                    </div>
+
+                    {highlights.length > 0 && (
+                      <ul className="mt-4 space-y-2.5 border-t border-line pt-4">
+                        {highlights.map(({ Icon, text }, i) => (
+                          <li key={i} className="flex items-center gap-3 text-sm text-slate-600">
+                            <Icon className={`h-5 w-5 flex-shrink-0 ${rank.icon}`} />
+                            <span className="min-w-0 break-words">{text}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+
+                    <p className={`mt-auto pt-5 text-xs font-semibold italic ${donor ? "text-red-600" : "text-slate-400"}`}>
+                      {donor ? `"${QUOTES[index] || QUOTES[0]}"` : "Donate blood to claim this spot 🩸"}
+                    </p>
+                  </article>
+                );
+              })}
+            </div>
           )}
 
-          <p className="text-slate-400 text-xs">
+          <p className="text-slate-400 text-xs mt-8">
             🔒 Only first name shown for privacy. Rankings update in real time.
           </p>
         </div>
       </section>
-
     </>
   );
 }
