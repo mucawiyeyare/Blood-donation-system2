@@ -75,7 +75,10 @@ function trimVignette(src) {
         if (isRoundMask) {
           // Must stay centred on the circle: any offset shrinks the margin that keeps corners
           // photo-coloured, so there's no room here for the "headroom" the other branch adds.
-          const inscribed = Math.min(boxW, boxH) * 0.68;
+          // 0.7071 (1/sqrt(2)) is the exact largest square that fits inside a circle without any
+          // corner poking out; 0.70 stays just under that for anti-aliasing/JPEG softness at the
+          // circle's edge, while showing noticeably more of the photo than a more conservative crop.
+          const inscribed = Math.min(boxW, boxH) * 0.7;
           const midX = (left + right) / 2;
           const midY = (top + bottom) / 2;
           x0 = midX - inscribed / 2;
