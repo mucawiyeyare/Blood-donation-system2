@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Trophy, Droplet, Heart, Sparkles } from "lucide-react";
+import { Trophy, Droplet, Sparkles } from "lucide-react";
 
 // Rank styling for the top 3 slots: medal, label and a small accent colour, echoing gold/silver/bronze.
 const RANKS = [
@@ -62,12 +62,11 @@ export default function HeroesSection({ leaderboard }) {
                 if (index >= 3) return null;
                 const donor = leaderboard[index] || null;
                 const rank = RANKS[index];
-                const displayName = donor ? `${donor.firstName}${donor.lastInitial ? ` ${donor.lastInitial}.` : ""}` : "";
+                const displayName = donor ? donor.donorName || donor.firstName : "";
 
                 const highlights = donor
                   ? [
                       { Icon: Droplet, text: `Blood Type: ${donor.bloodType}` },
-                      { Icon: Heart, text: `${donor.donationCount} ${donor.donationCount === 1 ? "Donation" : "Donations"} Completed` },
                       { Icon: Sparkles, text: `${donor.donationCount} ${donor.donationCount === 1 ? "Person" : "People"} Saved` },
                     ]
                   : [];
@@ -106,9 +105,6 @@ export default function HeroesSection({ leaderboard }) {
                       <h3 className="mt-3 break-words text-xl font-extrabold leading-tight text-navy sm:text-2xl">
                         {donor ? displayName : "No donor yet"}
                       </h3>
-                      <p className="mt-1 text-sm text-slate-500 sm:text-base">
-                        {donor ? donor.location : "Could this be you?"}
-                      </p>
                     </div>
 
                     {highlights.length > 0 && (
@@ -131,9 +127,7 @@ export default function HeroesSection({ leaderboard }) {
             </div>
           )}
 
-          <p className="text-slate-400 text-xs mt-8">
-            🔒 Only first name shown for privacy. Rankings update in real time.
-          </p>
+          <p className="text-slate-400 text-xs mt-8">Rankings update in real time.</p>
         </div>
       </section>
     </>

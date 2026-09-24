@@ -867,8 +867,8 @@ export const getLeaderboard = async (req, res) => {
       // Secondary sort: same count → alphabetical by donor name
       { $sort: { donationCount: -1, donorName: 1 } },
       { $limit: 3 },
-      // Remove helper fields before sending
-      { $project: { donorId: 0, donorName: 0 } },
+      // Keep the full name (donorName) for display; drop only the internal id
+      { $project: { donorId: 0 } },
     ]);
     res.json(top);
   } catch (err) {
