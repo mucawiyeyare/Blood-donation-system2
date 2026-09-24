@@ -38,6 +38,14 @@ function trimVignette(src) {
         for (let x = w - 1; x >= 0; x--) if (differs(x, cy)) { right = x; break; }
         if (top < 0 || bottom <= top || left < 0 || right <= left) return resolve(src);
 
+        // The circle already touches (or nearly touches) opposite edges of the canvas: it's
+        // full-bleed, with only tiny background triangles at the corners, so there's no
+        // meaningful margin left to crop away. (Shrinking inward here would cut into real
+        // content — this can happen for real, not just when detection went wrong: e.g. a light
+        // shirt near the bottom of the circle reads as "background" against a light canvas and
+        // shortens the measured box, while the circle itself still spans the full width.)
+        if (right - left > w * 0.9 || bottom - top > h * 0.9) return resolve(src);
+
         const boxW = right - left;
         const boxH = bottom - top;
 
