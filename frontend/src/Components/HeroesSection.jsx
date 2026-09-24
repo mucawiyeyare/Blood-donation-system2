@@ -34,7 +34,7 @@ export default function HeroesSection({ leaderboard }) {
         {leaderboard.length === 0 ? (
           <p className="text-slate-400 text-sm py-4">Be the first hero — donate blood today! 🩸</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-left">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 text-left">
             {Array.from({ length: Math.max(leaderboard.length, 3) }).map((_, index) => {
               if (index >= 3) return null;
               const donor = leaderboard[index] || null;

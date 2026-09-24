@@ -222,7 +222,7 @@ function DoctorsManagement() {
           <p className="text-sm text-slate-500">No doctors added yet. Click "Add Doctor" to add the first one.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6">
           {doctors.map((doctor) => (
             <div key={doctor._id} className="flex flex-col gap-2">
               <div className="flex-1 [&>article]:h-full">
