@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Trophy, Droplet, Sparkles } from "lucide-react";
+import DoctorPhoto from "./DoctorPhoto.jsx";
 
 // Rank styling for the top 3 slots: medal, label and a small accent colour, echoing gold/silver/bronze.
 const RANKS = [
@@ -84,7 +85,7 @@ export default function HeroesSection({ leaderboard }) {
                     >
                       {donor ? (
                         donor.profileImage ? (
-                          <img src={donor.profileImage} alt={displayName} className="aspect-[4/3] w-full object-cover object-right" />
+                          <DoctorPhoto src={donor.profileImage} alt={displayName} className="aspect-[4/3] w-full" />
                         ) : (
                           <span className="flex aspect-[4/3] w-full items-center justify-center bg-gradient-to-tr from-red-600 to-rose-500 text-4xl font-extrabold text-white">
                             {donor.firstName ? donor.firstName.charAt(0).toUpperCase() : "D"}

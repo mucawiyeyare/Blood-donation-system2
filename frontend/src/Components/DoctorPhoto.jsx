@@ -34,7 +34,7 @@ function trimDarkCorners(src) {
   });
 }
 
-// The doctor's uploaded photo, shown as-is in a rectangle (parent sets the size).
+// An uploaded photo (doctor, donor, ...), shown as-is in a rectangle (parent sets the size).
 export default function DoctorPhoto({ src, alt, className = "" }) {
   const [shown, setShown] = useState(src);
   useEffect(() => {
