@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
 
-// Older uploads were cut into a circle and saved as a JPEG, which left black corners.
-// If all four corners are dark, crop to the largest square inside that circle so the photo shows clean.
-function trimDarkCorners(src) {
+// Many uploads are a "circle profile picture" template exported as a plain rectangle: the actual
+// photo sits in a circle with a solid-colour margin around it (black, white, or any other colour).
+// If the four corners share close to the same colour, that's a template margin, not real photo
+// content — scan inward from the edges to find where the real photo starts, then crop tight to it
+// (with extra room above, so a head doesn't sit right at the top edge) instead of showing the margin.
+function trimVignette(src) {
   return new Promise((resolve) => {
     if (!src.startsWith("data:")) return resolve(src);
     const img = new Image();
@@ -14,16 +17,46 @@ function trimDarkCorners(src) {
         c.height = h;
         const ctx = c.getContext("2d");
         ctx.drawImage(img, 0, 0);
-        const dark = [[2, 2], [w - 3, 2], [2, h - 3], [w - 3, h - 3]].every(([x, y]) => {
-          const [r, g, b, a] = ctx.getImageData(x, y, 1, 1).data;
-          return a < 20 || r + g + b < 60;
-        });
-        if (!dark) return resolve(src);
-        const side = Math.round(Math.min(w, h) * 0.7);
+
+        const pixelAt = (x, y) => ctx.getImageData(x, y, 1, 1).data;
+        const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+        const corners = [[2, 2], [w - 3, 2], [2, h - 3], [w - 3, h - 3]].map(([x, y]) => pixelAt(x, y));
+        const bg = [0, 1, 2].map((i) => corners.reduce((sum, p) => sum + p[i], 0) / 4);
+        const isUniform = corners.every((p) => p[3] < 20 || dist(p, bg) < 18);
+        if (!isUniform) return resolve(src);
+
+        const differs = (x, y) => {
+          const p = pixelAt(x, y);
+          return p[3] >= 20 && dist(p, bg) > 42;
+        };
+        const cx = Math.floor(w / 2);
+        const cy = Math.floor(h / 2);
+        let top = -1, bottom = -1, left = -1, right = -1;
+        for (let y = 0; y < h; y++) if (differs(cx, y)) { top = y; break; }
+        for (let y = h - 1; y >= 0; y--) if (differs(cx, y)) { bottom = y; break; }
+        for (let x = 0; x < w; x++) if (differs(x, cy)) { left = x; break; }
+        for (let x = w - 1; x >= 0; x--) if (differs(x, cy)) { right = x; break; }
+        if (top < 0 || bottom <= top || left < 0 || right <= left) return resolve(src);
+
+        // Pad around the found box — generously on top, so hair/heads keep breathing room.
+        const boxW = right - left;
+        const boxH = bottom - top;
+        const x0 = Math.max(0, left - boxW * 0.12);
+        const x1 = Math.min(w, right + boxW * 0.12);
+        const y0 = Math.max(0, top - boxH * 0.28);
+        const y1 = Math.min(h, bottom + boxH * 0.12);
+
+        // Square the crop around that padded box, clamped inside the original image.
+        const side = Math.min(w, h, Math.max(x1 - x0, y1 - y0));
+        let sx = x0 - (side - (x1 - x0)) / 2;
+        let sy = y0 - (side - (y1 - y0)) / 2;
+        sx = Math.max(0, Math.min(sx, w - side));
+        sy = Math.max(0, Math.min(sy, h - side));
+
         const o = document.createElement("canvas");
         o.width = side;
         o.height = side;
-        o.getContext("2d").drawImage(c, (w - side) / 2, (h - side) / 2, side, side, 0, 0, side, side);
+        o.getContext("2d").drawImage(c, sx, sy, side, side, 0, 0, side, side);
         resolve(o.toDataURL("image/jpeg", 0.9));
       } catch {
         resolve(src);
@@ -49,7 +82,7 @@ export default function DoctorPhoto({ src, alt, className = "", position = "cent
   useEffect(() => {
     let live = true;
     setShown(src);
-    trimDarkCorners(src).then((s) => live && setShown(s));
+    trimVignette(src).then((s) => live && setShown(s));
     return () => {
       live = false;
     };
