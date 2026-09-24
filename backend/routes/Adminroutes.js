@@ -42,7 +42,7 @@ router.get("/users/:id", protect, async (req, res) => {
 // 3. Admin registers a new user (Donor, Hospital, Admin, Health Institution)
 router.post("/register-user", protect, adminOnly, async (req, res) => {
   try {
-    const { name, email, password, phone, location, bloodType, role, nationalId, gender, age, hospitalLicense, specialty, bio } = req.body;
+    const { name, email, password, phone, location, bloodType, role, nationalId, gender, age, hospitalLicense, specialty, bio, profileImage } = req.body;
 
     if (!name || !email || !password || !phone || !location) {
       return res.status(400).json({ message: "Name, email, password, phone, and location are required." });
@@ -79,6 +79,7 @@ router.post("/register-user", protect, adminOnly, async (req, res) => {
       gender: gender || "Male",
       age: age ? Number(age) : undefined,
       hospitalLicense,
+      profileImage: profileImage || undefined,
       isAvailable: true,
     });
 
@@ -116,7 +117,7 @@ router.post("/register-user", protect, adminOnly, async (req, res) => {
 // 4. Admin updates user profile (Generic Edit)
 router.put("/update-user/:id", protect, adminOnly, async (req, res) => {
   try {
-    const { name, email, phone, location, bloodType, role, isAvailable, lastDonationDate, nationalId, gender, age, hospitalLicense } = req.body;
+    const { name, email, phone, location, bloodType, role, isAvailable, lastDonationDate, nationalId, gender, age, hospitalLicense, profileImage } = req.body;
 
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: "User not found" });
@@ -131,6 +132,7 @@ router.put("/update-user/:id", protect, adminOnly, async (req, res) => {
     if (gender) user.gender = gender;
     if (age !== undefined) user.age = Number(age);
     if (hospitalLicense !== undefined) user.hospitalLicense = hospitalLicense;
+    if (profileImage !== undefined) user.profileImage = profileImage;
     if (typeof isAvailable !== "undefined") user.isAvailable = isAvailable;
     if (lastDonationDate !== undefined) user.lastDonationDate = lastDonationDate ? new Date(lastDonationDate) : null;
 
@@ -153,6 +155,7 @@ router.put("/update-user/:id", protect, adminOnly, async (req, res) => {
         nationalId: user.nationalId,
         gender: user.gender,
         age: user.age,
+        profileImage: user.profileImage,
       },
     });
   } catch (err) {

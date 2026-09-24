@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import RegionDistrictSelect from "./RegionDistrictSelect.jsx";
+import ImageCropModal from "./ImageCropModal.jsx";
 import {
   Building2,
   Plus,
@@ -17,6 +18,7 @@ import {
   CheckCircle2,
   Inbox,
   Award,
+  Image as ImageIcon,
 } from "lucide-react";
 
 function HospitalManagement() {
@@ -38,6 +40,7 @@ function HospitalManagement() {
     phone: "",
     location: "",
     hospitalLicense: "",
+    profileImage: "",
   });
 
   const [editForm, setEditForm] = useState({
@@ -45,9 +48,33 @@ function HospitalManagement() {
     phone: "",
     location: "",
     hospitalLicense: "",
+    profileImage: "",
   });
 
   const [submitting, setSubmitting] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState(null);
+  const photoInputRef = useRef(null);
+
+  const handlePhotoSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      alert("Photo is too large (max 10MB). Please choose a smaller image.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCropImageSrc(reader.result);
+      if (photoInputRef.current) photoInputRef.current.value = "";
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleCropComplete = (croppedBase64) => {
+    if (showEditModal) setEditForm((f) => ({ ...f, profileImage: croppedBase64 }));
+    else setAddForm((f) => ({ ...f, profileImage: croppedBase64 }));
+    setCropImageSrc(null);
+  };
 
   useEffect(() => {
     fetchHospitals();
@@ -113,7 +140,7 @@ function HospitalManagement() {
 
       alert("Hospital registered successfully!");
       setShowAddModal(false);
-      setAddForm({ name: "", email: "", password: "", phone: "", location: "", hospitalLicense: "" });
+      setAddForm({ name: "", email: "", password: "", phone: "", location: "", hospitalLicense: "", profileImage: "" });
       fetchHospitals();
     } catch (err) {
       alert(err.response?.data?.message || "Failed to add hospital");
@@ -129,6 +156,7 @@ function HospitalManagement() {
       phone: hospital.phone,
       location: hospital.location,
       hospitalLicense: hospital.hospitalLicense || "",
+      profileImage: hospital.profileImage || "",
     });
     setShowEditModal(true);
   };
@@ -416,6 +444,23 @@ function HospitalManagement() {
             </div>
 
             <form onSubmit={handleAddSubmit} className="space-y-3.5">
+              <div className="flex flex-col items-center gap-2">
+                <input type="file" ref={photoInputRef} onChange={handlePhotoSelect} accept="image/*" className="hidden" />
+                <div
+                  onClick={() => photoInputRef.current?.click()}
+                  className="w-32 h-24 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center cursor-pointer hover:border-red-400 overflow-hidden bg-slate-50"
+                >
+                  {addForm.profileImage ? (
+                    <img src={addForm.profileImage} alt="Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <ImageIcon className="w-7 h-7 text-slate-300" />
+                  )}
+                </div>
+                <button type="button" onClick={() => photoInputRef.current?.click()} className="text-xs font-bold text-red-600 hover:underline">
+                  {addForm.profileImage ? "Change Logo" : "Upload Logo (optional)"}
+                </button>
+              </div>
+
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Hospital / Clinic Name *</label>
                 <input
@@ -513,6 +558,23 @@ function HospitalManagement() {
             </div>
 
             <form onSubmit={handleEditSubmit} className="space-y-3.5">
+              <div className="flex flex-col items-center gap-2">
+                <input type="file" ref={photoInputRef} onChange={handlePhotoSelect} accept="image/*" className="hidden" />
+                <div
+                  onClick={() => photoInputRef.current?.click()}
+                  className="w-32 h-24 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center cursor-pointer hover:border-red-400 overflow-hidden bg-slate-50"
+                >
+                  {editForm.profileImage ? (
+                    <img src={editForm.profileImage} alt="Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <ImageIcon className="w-7 h-7 text-slate-300" />
+                  )}
+                </div>
+                <button type="button" onClick={() => photoInputRef.current?.click()} className="text-xs font-bold text-red-600 hover:underline">
+                  {editForm.profileImage ? "Change Logo" : "Upload Logo (optional)"}
+                </button>
+              </div>
+
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Hospital Name *</label>
                 <input
@@ -566,6 +628,9 @@ function HospitalManagement() {
             </form>
           </div>
         </div>
+      )}
+      {cropImageSrc && (
+        <ImageCropModal shape="rect" imageSrc={cropImageSrc} onCancel={() => setCropImageSrc(null)} onCropComplete={handleCropComplete} />
       )}
     </div>
   );

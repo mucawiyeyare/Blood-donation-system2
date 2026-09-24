@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import RegionDistrictSelect from "./RegionDistrictSelect.jsx";
+import ImageCropModal from "./ImageCropModal.jsx";
 import { SOMALIA_REGIONS } from "../utils/somaliaLocations.js";
 import {
   Search,
@@ -31,6 +32,7 @@ import {
   MessageSquare,
   Hospital,
   ChevronDown,
+  Image as ImageIcon,
 } from "lucide-react";
 import WhatsAppConnectModal from "./WhatsAppConnectModal";
 
@@ -99,6 +101,7 @@ function Donors() {
     email: "",
     password: "",
     age: "",
+    profileImage: "",
   });
 
   const [editForm, setEditForm] = useState({
@@ -110,10 +113,34 @@ function Donors() {
     bloodType: "",
     age: "",
     isAvailable: true,
+    profileImage: "",
   });
 
   const [submitting, setSubmitting] = useState(false);
   const [actionLoadingId, setActionLoadingId] = useState(null);
+  const [cropImageSrc, setCropImageSrc] = useState(null);
+  const photoInputRef = useRef(null);
+
+  const handlePhotoSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      alert("Photo is too large (max 10MB). Please choose a smaller image.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCropImageSrc(reader.result);
+      if (photoInputRef.current) photoInputRef.current.value = "";
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleCropComplete = (croppedBase64) => {
+    if (showEditModal) setEditForm((f) => ({ ...f, profileImage: croppedBase64 }));
+    else setAddForm((f) => ({ ...f, profileImage: croppedBase64 }));
+    setCropImageSrc(null);
+  };
   const [toastMessage, setToastMessage] = useState(null);
 
   const bloodTypes = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
@@ -381,6 +408,7 @@ function Donors() {
         email: "",
         password: "",
         age: "",
+        profileImage: "",
       });
       fetchDonors();
     } catch (err) {
@@ -402,6 +430,7 @@ function Donors() {
       bloodType: donor.bloodType,
       age: donor.age || "",
       isAvailable: donor.isAvailable !== false,
+      profileImage: donor.profileImage || "",
     });
     setShowEditModal(true);
   };
@@ -508,6 +537,10 @@ function Donors() {
   return (
     <div className="p-4 sm:p-6 lg:p-8 bg-slate-50 min-h-screen">
       {/* Lightbox Overlay for Enlarged Donor Profile Photos */}
+      {cropImageSrc && (
+        <ImageCropModal shape="rect" imageSrc={cropImageSrc} onCancel={() => setCropImageSrc(null)} onCropComplete={handleCropComplete} />
+      )}
+
       {lightboxImage && (
         <div
           className="fixed inset-0 z-[999] bg-black/85 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in"
@@ -1362,6 +1395,23 @@ function Donors() {
             </div>
 
             <form onSubmit={handleAddSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div className="sm:col-span-2 flex flex-col items-center gap-2">
+                <input type="file" ref={photoInputRef} onChange={handlePhotoSelect} accept="image/*" className="hidden" />
+                <div
+                  onClick={() => photoInputRef.current?.click()}
+                  className="w-32 h-24 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center cursor-pointer hover:border-red-400 overflow-hidden bg-slate-50"
+                >
+                  {addForm.profileImage ? (
+                    <img src={addForm.profileImage} alt="Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <ImageIcon className="w-7 h-7 text-slate-300" />
+                  )}
+                </div>
+                <button type="button" onClick={() => photoInputRef.current?.click()} className="text-xs font-bold text-red-600 hover:underline">
+                  {addForm.profileImage ? "Change Photo" : "Upload Photo (optional)"}
+                </button>
+              </div>
+
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Government ID *</label>
                 <input
@@ -1500,6 +1550,23 @@ function Donors() {
             </div>
 
             <form onSubmit={handleEditSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div className="sm:col-span-2 flex flex-col items-center gap-2">
+                <input type="file" ref={photoInputRef} onChange={handlePhotoSelect} accept="image/*" className="hidden" />
+                <div
+                  onClick={() => photoInputRef.current?.click()}
+                  className="w-32 h-24 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center cursor-pointer hover:border-red-400 overflow-hidden bg-slate-50"
+                >
+                  {editForm.profileImage ? (
+                    <img src={editForm.profileImage} alt="Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <ImageIcon className="w-7 h-7 text-slate-300" />
+                  )}
+                </div>
+                <button type="button" onClick={() => photoInputRef.current?.click()} className="text-xs font-bold text-red-600 hover:underline">
+                  {editForm.profileImage ? "Change Photo" : "Upload Photo (optional)"}
+                </button>
+              </div>
+
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Government ID</label>
                 <input
