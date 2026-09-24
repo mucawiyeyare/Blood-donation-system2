@@ -40,7 +40,7 @@ function DoctorCard({ doctor, preview = false, adminActions = null, dimmed = fal
         className={`block w-full overflow-hidden rounded-2xl bg-soft ${preview ? "cursor-default" : ""}`}
       >
         {doctor.photo ? (
-          <DoctorPhoto src={doctor.photo} alt={displayName} className="aspect-[4/3] w-full" />
+          <DoctorPhoto src={doctor.photo} alt={displayName} className="aspect-[4/3] w-full" position="top" />
         ) : (
           <span className="flex aspect-[4/3] w-full items-center justify-center text-5xl font-extrabold text-navy">
             {initialsOf(doctor.name)}

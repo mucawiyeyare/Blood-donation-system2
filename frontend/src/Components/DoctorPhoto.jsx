@@ -34,8 +34,17 @@ function trimDarkCorners(src) {
   });
 }
 
+// Tailwind's object-position utilities all carry equal specificity, so appending one via
+// `className` can't reliably override another already baked into this component — hence a prop.
+const POSITION_CLASS = {
+  center: "object-center",
+  top: "object-top",
+  right: "object-right",
+  bottom: "object-bottom",
+};
+
 // An uploaded photo (doctor, donor, ...), shown as-is in a rectangle (parent sets the size).
-export default function DoctorPhoto({ src, alt, className = "" }) {
+export default function DoctorPhoto({ src, alt, className = "", position = "center" }) {
   const [shown, setShown] = useState(src);
   useEffect(() => {
     let live = true;
@@ -45,5 +54,5 @@ export default function DoctorPhoto({ src, alt, className = "" }) {
       live = false;
     };
   }, [src]);
-  return <img src={shown} alt={alt} className={`object-cover object-top ${className}`} />;
+  return <img src={shown} alt={alt} className={`object-cover ${POSITION_CLASS[position] || POSITION_CLASS.center} ${className}`} />;
 }

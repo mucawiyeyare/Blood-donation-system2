@@ -40,7 +40,7 @@ function DoctorProfileModal({ doctor, onClose, onAsk }) {
           <div className="flex items-center gap-4">
             <div className="relative flex-shrink-0">
               {doctor.photo ? (
-                <DoctorPhoto src={doctor.photo} alt={displayName} className="h-28 w-24 rounded-xl bg-soft" />
+                <DoctorPhoto src={doctor.photo} alt={displayName} className="h-28 w-24 rounded-xl bg-soft" position="top" />
               ) : (
                 <span className="flex h-28 w-24 items-center justify-center rounded-xl bg-soft text-3xl font-extrabold text-navy">
                   {initialsOf(doctor.name)}
