@@ -38,15 +38,51 @@ function trimVignette(src) {
         for (let x = w - 1; x >= 0; x--) if (differs(x, cy)) { right = x; break; }
         if (top < 0 || bottom <= top || left < 0 || right <= left) return resolve(src);
 
-        // Pad around the found box — generously on top, so hair/heads keep breathing room.
         const boxW = right - left;
         const boxH = bottom - top;
-        const x0 = Math.max(0, left - boxW * 0.12);
-        const x1 = Math.min(w, right + boxW * 0.12);
-        const y0 = Math.max(0, top - boxH * 0.28);
-        const y1 = Math.min(h, bottom + boxH * 0.12);
 
-        // Square the crop around that padded box, clamped inside the original image.
+        // A round mask (a circular profile-picture export) keeps the background colour along most
+        // of its own bounding box's edge, since a circle only touches a square at 4 points; a real
+        // rectangular photo's content reaches most of its box's edge. Sample many points around
+        // that edge (not just the 4 corners, which a slightly off-round mask can still miss).
+        const N = 8;
+        let bgHits = 0;
+        let sampled = 0;
+        for (let i = 0; i <= N; i++) {
+          const t = i / N;
+          for (const [x, y] of [
+            [left + t * boxW, top],
+            [left + t * boxW, bottom],
+            [left, top + t * boxH],
+            [right, top + t * boxH],
+          ]) {
+            const p = pixelAt(Math.max(0, Math.min(w - 1, Math.round(x))), Math.max(0, Math.min(h - 1, Math.round(y))));
+            sampled++;
+            if (p[3] < 20 || dist(p, bg) < 30) bgHits++;
+          }
+        }
+        const isRoundMask = bgHits / sampled > 0.55;
+
+        let x0, x1, y0, y1;
+        if (isRoundMask) {
+          // Must stay centred on the circle: any offset shrinks the margin that keeps corners
+          // photo-coloured, so there's no room here for the "headroom" the other branch adds.
+          const inscribed = Math.min(boxW, boxH) * 0.68;
+          const midX = (left + right) / 2;
+          const midY = (top + bottom) / 2;
+          x0 = midX - inscribed / 2;
+          x1 = midX + inscribed / 2;
+          y0 = midY - inscribed / 2;
+          y1 = midY + inscribed / 2;
+        } else {
+          // Pad around the found box — generously on top, so hair/heads keep breathing room.
+          x0 = Math.max(0, left - boxW * 0.12);
+          x1 = Math.min(w, right + boxW * 0.12);
+          y0 = Math.max(0, top - boxH * 0.28);
+          y1 = Math.min(h, bottom + boxH * 0.12);
+        }
+
+        // Square the crop around that box, clamped inside the original image.
         const side = Math.min(w, h, Math.max(x1 - x0, y1 - y0));
         let sx = x0 - (side - (x1 - x0)) / 2;
         let sy = y0 - (side - (y1 - y0)) / 2;
