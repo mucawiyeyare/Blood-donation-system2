@@ -9,11 +9,13 @@ import { accentFor, SOCIAL_LINKS, safeUrl } from "../utils/doctorStyle.js";
 // Doctor card: portrait + specialty badge + name, then highlights, social links and an action button.
 // `preview` (used in the admin dashboard) shows the same card without opening pop-ups;
 // `adminActions` are the edit / hide / delete buttons the dashboard overlays on the card.
-function DoctorCard({ doctor, preview = false, adminActions = null, dimmed = false }) {
+// `titled` adds the "Dr." prefix; other reuses of this card (e.g. the Blood Heroes leaderboard)
+// pass real people who aren't doctors, so they set this to false and show the plain name.
+function DoctorCard({ doctor, preview = false, adminActions = null, dimmed = false, titled = true }) {
   const [asking, setAsking] = useState(false);
   const [viewing, setViewing] = useState(false);
 
-  const displayName = doctorDisplayName(doctor.name);
+  const displayName = titled ? doctorDisplayName(doctor.name) : doctor.name;
   const accent = accentFor(doctor._id);
   const { BadgeIcon } = accent;
   const highlights = (doctor.highlights || []).filter(Boolean).slice(0, 3);
@@ -111,6 +113,7 @@ function DoctorCard({ doctor, preview = false, adminActions = null, dimmed = fal
       {viewing && (
         <DoctorProfileModal
           doctor={doctor}
+          titled={titled}
           onClose={() => setViewing(false)}
           onAsk={() => {
             setViewing(false);

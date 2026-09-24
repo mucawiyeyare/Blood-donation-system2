@@ -5,9 +5,10 @@ import DoctorPhoto from "./DoctorPhoto.jsx";
 import { doctorDisplayName, initialsOf } from "../utils/doctorName.js";
 import { accentFor, SOCIAL_LINKS, safeUrl } from "../utils/doctorStyle.js";
 
-// Full profile of a doctor ("View Profile").
-function DoctorProfileModal({ doctor, onClose, onAsk }) {
-  const displayName = doctorDisplayName(doctor.name);
+// Full profile of a doctor ("View Profile"). `titled` is false for non-doctor reuses of this
+// modal (e.g. the Blood Heroes leaderboard), so the "Dr." prefix isn't added to a real name.
+function DoctorProfileModal({ doctor, onClose, onAsk, titled = true }) {
+  const displayName = titled ? doctorDisplayName(doctor.name) : doctor.name;
   const accent = accentFor(doctor._id);
   const { BadgeIcon } = accent;
   const highlights = (doctor.highlights || []).filter(Boolean).slice(0, 3);
