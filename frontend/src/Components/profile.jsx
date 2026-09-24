@@ -355,7 +355,7 @@ function Profile() {
             <div
               onClick={() => profile?.profileImage && setCropImageSrc(profile.profileImage)}
               title={profile?.profileImage ? "Click to rearrange" : ""}
-              className={`w-24 h-24 rounded-full overflow-hidden border-4 border-white shadow-xl bg-gradient-to-tr from-red-600 to-rose-500 flex items-center justify-center text-white font-black text-2xl ${profile?.profileImage ? "cursor-pointer" : ""}`}
+              className={`w-28 h-24 rounded-2xl overflow-hidden border-4 border-white shadow-xl bg-gradient-to-tr from-red-600 to-rose-500 flex items-center justify-center text-white font-black text-2xl ${profile?.profileImage ? "cursor-pointer" : ""}`}
             >
               {profile?.profileImage ? (
                 <img
@@ -795,6 +795,7 @@ function Profile() {
       {/* Image Crop & Arrange Modal */}
       {cropImageSrc && (
         <ImageCropModal
+          shape="rect"
           imageSrc={cropImageSrc}
           isSaving={uploadingImage}
           onCancel={() => setCropImageSrc(null)}
