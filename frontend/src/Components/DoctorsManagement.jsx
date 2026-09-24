@@ -283,7 +283,8 @@ function DoctorsManagement() {
               <div className="flex flex-col items-center gap-2">
                 <input type="file" ref={fileInputRef} onChange={handlePhotoSelect} accept="image/*" className="hidden" />
                 <div
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => (form.photo ? setCropImageSrc(form.photo) : fileInputRef.current?.click())}
+                  title={form.photo ? "Click to rearrange" : "Click to upload"}
                   className="w-32 h-24 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center cursor-pointer hover:border-red-400 overflow-hidden bg-slate-50"
                 >
                   {form.photo ? (

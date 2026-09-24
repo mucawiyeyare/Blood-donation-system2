@@ -237,7 +237,8 @@ function PartnersManagement() {
                   id="partner-logo-input"
                 />
                 <div
-                  onClick={() => fileInputRef.current?.click()}
+                  onClick={() => (form.logo ? setCropImageSrc(form.logo) : fileInputRef.current?.click())}
+                  title={form.logo ? "Click to rearrange" : "Click to upload"}
                   className="w-20 h-20 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center cursor-pointer hover:border-red-400 overflow-hidden bg-slate-50"
                 >
                   {form.logo ? (

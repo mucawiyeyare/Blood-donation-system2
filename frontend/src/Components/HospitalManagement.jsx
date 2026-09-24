@@ -447,7 +447,8 @@ function HospitalManagement() {
               <div className="flex flex-col items-center gap-2">
                 <input type="file" ref={photoInputRef} onChange={handlePhotoSelect} accept="image/*" className="hidden" />
                 <div
-                  onClick={() => photoInputRef.current?.click()}
+                  onClick={() => (addForm.profileImage ? setCropImageSrc(addForm.profileImage) : photoInputRef.current?.click())}
+                  title={addForm.profileImage ? "Click to rearrange" : "Click to upload"}
                   className="w-32 h-24 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center cursor-pointer hover:border-red-400 overflow-hidden bg-slate-50"
                 >
                   {addForm.profileImage ? (
@@ -561,7 +562,8 @@ function HospitalManagement() {
               <div className="flex flex-col items-center gap-2">
                 <input type="file" ref={photoInputRef} onChange={handlePhotoSelect} accept="image/*" className="hidden" />
                 <div
-                  onClick={() => photoInputRef.current?.click()}
+                  onClick={() => (editForm.profileImage ? setCropImageSrc(editForm.profileImage) : photoInputRef.current?.click())}
+                  title={editForm.profileImage ? "Click to rearrange" : "Click to upload"}
                   className="w-32 h-24 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center cursor-pointer hover:border-red-400 overflow-hidden bg-slate-50"
                 >
                   {editForm.profileImage ? (
