@@ -38,15 +38,41 @@ function trimVignette(src) {
         for (let x = w - 1; x >= 0; x--) if (differs(x, cy)) { right = x; break; }
         if (top < 0 || bottom <= top || left < 0 || right <= left) return resolve(src);
 
-        // Pad around the found box — generously on top, so hair/heads keep breathing room.
         const boxW = right - left;
         const boxH = bottom - top;
-        const x0 = Math.max(0, left - boxW * 0.12);
-        const x1 = Math.min(w, right + boxW * 0.12);
-        const y0 = Math.max(0, top - boxH * 0.28);
-        const y1 = Math.min(h, bottom + boxH * 0.12);
 
-        // Square the crop around that padded box, clamped inside the original image.
+        // A round mask (a circular profile-picture export) still has background colour right at
+        // the corners of its own bounding box — a real rectangular photo's content reaches them.
+        // A square inscribed in a circle can be at most ~71% of that circle's width without
+        // clipping in any real photo content, so shrink inward instead of padding outward for one.
+        const boxCorners = [
+          [left + 2, top + 2],
+          [right - 2, top + 2],
+          [left + 2, bottom - 2],
+          [right - 2, bottom - 2],
+        ].map(([x, y]) => pixelAt(x, y));
+        const isRoundMask = boxCorners.every((p) => p[3] < 20 || dist(p, bg) < 42);
+
+        let x0, x1, y0, y1;
+        if (isRoundMask) {
+          // Must stay centred on the circle: any offset shrinks the margin that keeps corners
+          // photo-coloured, so there's no room here for the "headroom" the other branch adds.
+          const inscribed = Math.min(boxW, boxH) * 0.68;
+          const midX = (left + right) / 2;
+          const midY = (top + bottom) / 2;
+          x0 = midX - inscribed / 2;
+          x1 = midX + inscribed / 2;
+          y0 = midY - inscribed / 2;
+          y1 = midY + inscribed / 2;
+        } else {
+          // Pad around the found box — generously on top, so hair/heads keep breathing room.
+          x0 = Math.max(0, left - boxW * 0.12);
+          x1 = Math.min(w, right + boxW * 0.12);
+          y0 = Math.max(0, top - boxH * 0.28);
+          y1 = Math.min(h, bottom + boxH * 0.12);
+        }
+
+        // Square the crop around that box, clamped inside the original image.
         const side = Math.min(w, h, Math.max(x1 - x0, y1 - y0));
         let sx = x0 - (side - (x1 - x0)) / 2;
         let sy = y0 - (side - (y1 - y0)) / 2;
