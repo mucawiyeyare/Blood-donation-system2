@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu, X, User, Droplet } from "lucide-react";
 import SobdaLogo from "./SobdaLogo.jsx";
 import ThemeToggle from "./ThemeToggle.jsx";
+import InstallAppButton from "./InstallAppButton.jsx";
 
 const NAV_LINKS = [
   { to: "/", label: "Home" },
@@ -52,6 +53,7 @@ function PublicNavbar() {
 
           {/* Desktop actions */}
           <div className="hidden lg:flex items-center gap-3">
+            <InstallAppButton />
             <ThemeToggle />
             {loggedIn ? (
               <Link
@@ -136,6 +138,7 @@ function PublicNavbar() {
                   </>
                 )}
               </div>
+              <InstallAppButton className="mt-3 w-full justify-center" />
             </div>
           </div>
         )}

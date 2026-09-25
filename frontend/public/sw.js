@@ -1,10 +1,43 @@
-// SOBDA Service Worker for OS-Level Emergency Warning Notifications
+// SOBDA Service Worker: OS-level emergency push notifications, plus enough offline
+// caching to make the site installable as a Progressive Web App.
+const CACHE_NAME = "sobda-shell-v1";
+
 self.addEventListener("install", (event) => {
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    Promise.all([
+      self.clients.claim(),
+      // Drop any caches from a previous service worker version.
+      caches.keys().then((names) => Promise.all(names.filter((n) => n !== CACHE_NAME).map((n) => caches.delete(n)))),
+    ])
+  );
+});
+
+// Network-first for page loads and static assets, falling back to the last cached copy
+// when offline — this is what lets an installed PWA still open with no connection.
+// API calls always go straight to the network: cached data would go stale immediately
+// and isn't useful offline anyway.
+self.addEventListener("fetch", (event) => {
+  const { request } = event;
+  if (request.method !== "GET") return;
+
+  const url = new URL(request.url);
+  if (url.origin !== self.location.origin || url.pathname.startsWith("/api/")) return;
+
+  event.respondWith(
+    fetch(request)
+      .then((response) => {
+        if (response.ok) {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+        }
+        return response;
+      })
+      .catch(() => caches.match(request).then((cached) => cached || caches.match("/")))
+  );
 });
 
 // Handle incoming Web Push notification (wakes up phone over YouTube/other apps)
