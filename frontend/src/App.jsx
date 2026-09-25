@@ -16,6 +16,7 @@ import Footer from "./Components/Footer.jsx";
 import Donors from "./Components/Donors.jsx";
 import Users from "./Components/User.jsx";
 import Profile from "./Components/profile.jsx";
+import InstallPwaPrompt from "./Components/InstallPwaPrompt.jsx";
 import DashboardHome from "./Components/DashboardHome.jsx";
 import Analysis from "./Components/Analysis.jsx";
 import Reports from "./Components/Reports.jsx";
@@ -100,6 +101,7 @@ function App() {
       <ScrollToTop />
       {/* Heads-up Mobile Push Notification Banner (WhatsApp / Phone Top Notification) */}
       <MobileNotificationBanner />
+      <InstallPwaPrompt />
       <Routes>
       {/* Public Routes with Navbar and Footer */}
       <Route
