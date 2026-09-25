@@ -2,6 +2,7 @@ import express from "express";
 import { registerDonor, loginUser, getAllUsers, getProfile, getDonors } from "../controllers/usercontrollers.js";
 import { adminOnly, protect, adminOrHospital, adminOrHealthInstitution, adminOrHospitalOrHealthInstitution } from "../middleware/authMiddleware.js";
 import User from "../models/usermodel.js";
+import Doctor from "../models/doctorModel.js";
 import bcrypt from "bcryptjs";
 
 // Route to fetch all donors
@@ -17,28 +18,85 @@ router.get("/donors", protect, adminOrHospitalOrHealthInstitution, getDonors); /
 
 router.get("/profile", protect, getProfile);
 
-// Update profile
+// Update profile (donor, doctor, hospital, admin, health institution — anyone editing themselves)
 router.put("/profile", protect, async (req, res) => {
   try {
     const { name, phone, location, bloodType, nationalId, gender, age, profileImage, allowPublicLeaderboard } = req.body;
-    
+
     const user = await User.findById(req.user._id);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
+    // Validate before touching anything, so a bad field can't leave a half-saved profile.
+    // The edit form always resends every field, changed or not, so a field is only checked
+    // against these (new, stricter) rules when its value is actually different from what's
+    // already saved — an old record that predates a rule (e.g. a placeholder phone number)
+    // can otherwise never be edited again for anything else.
+    const isChanged = (incoming, current) => incoming !== undefined && incoming.trim() !== (current || "").trim();
+
+    if (isChanged(name, user.name)) {
+      const trimmed = name.trim();
+      if (trimmed.length < 2 || trimmed.length > 100) {
+        return res.status(400).json({ message: "Name must be between 2 and 100 characters." });
+      }
+    }
+
+    if (isChanged(phone, user.phone)) {
+      const trimmed = phone.trim();
+      if (!/^\+?[0-9\s-]{6,20}$/.test(trimmed)) {
+        return res.status(400).json({ message: "Please enter a valid phone number." });
+      }
+      const phoneOwner = await User.findOne({ phone: trimmed, _id: { $ne: user._id } });
+      if (phoneOwner) {
+        return res.status(400).json({ message: "That phone number is already registered to another account." });
+      }
+    }
+
+    if (isChanged(location, user.location) && location.trim().length < 2) {
+      return res.status(400).json({ message: "Please enter a valid location." });
+    }
+
+    if (bloodType !== undefined && !["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].includes(bloodType)) {
+      return res.status(400).json({ message: "Please select a valid blood type." });
+    }
+
+    if (gender !== undefined && gender !== "" && !["Male", "Female", "Other"].includes(gender)) {
+      return res.status(400).json({ message: "Please select a valid gender." });
+    }
+
+    if (age !== undefined && age !== "" && age !== null) {
+      const ageNum = Number(age);
+      if (!Number.isFinite(ageNum) || ageNum < 16 || ageNum > 100) {
+        return res.status(400).json({ message: "Age must be a number between 16 and 100." });
+      }
+    }
+
+    if (nationalId !== undefined && nationalId.trim()) {
+      const idOwner = await User.findOne({ nationalId: nationalId.trim(), _id: { $ne: user._id } });
+      if (idOwner) {
+        return res.status(400).json({ message: "That Government ID is already registered to another account." });
+      }
+    }
+
     // Update fields
-    if (name) user.name = name.trim();
-    if (phone) user.phone = phone.trim();
-    if (location) user.location = location.trim();
-    if (bloodType) user.bloodType = bloodType;
-    if (nationalId) user.nationalId = nationalId.trim();
-    if (gender) user.gender = gender;
-    if (age !== undefined) user.age = Number(age);
+    if (name !== undefined) user.name = name.trim();
+    if (phone !== undefined) user.phone = phone.trim();
+    if (location !== undefined) user.location = location.trim();
+    if (bloodType !== undefined) user.bloodType = bloodType;
+    if (nationalId !== undefined) user.nationalId = nationalId.trim();
+    if (gender !== undefined && gender !== "") user.gender = gender;
+    if (age !== undefined && age !== "" && age !== null) user.age = Number(age);
     if (profileImage !== undefined) user.profileImage = profileImage;
     if (allowPublicLeaderboard !== undefined) user.allowPublicLeaderboard = Boolean(allowPublicLeaderboard);
 
     await user.save();
+
+    // A doctor's public card (the Doctor collection, shown on the Doctors page) carries its own
+    // copy of the name — keep it in sync so an edit here doesn't go stale on the public site.
+    if (user.role === "doctor" && name !== undefined) {
+      await Doctor.updateOne({ user: user._id }, { $set: { name: user.name } });
+    }
 
     res.json({
       message: "Profile updated successfully",

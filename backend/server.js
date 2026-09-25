@@ -17,7 +17,8 @@ import NotificationRouter from "./routes/notificationRoutes.js";
 import PartnerRouter from "./routes/partnerRoutes.js";
 import DoctorRouter from "./routes/doctorRoutes.js";
 import ConsultRouter from "./routes/consultRoutes.js";
-import { initWhatsApp } from "./services/whatsappService.js"; 
+import { initWhatsApp } from "./services/whatsappService.js";
+import { resolveExpiredRequests } from "./controllers/donorRequestController.js";
 
 // Always load the environment file next to this server file
 dotenv.config({ path: fileURLToPath(new URL("./.env", import.meta.url)) });
@@ -33,6 +34,16 @@ app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 connectDB();
+
+// A pending blood request auto-expires after 2 hours (see DonorRequest.pendingUntil), and an
+// expired request stops counting toward a donor's reserved status, so they show Available again.
+// This used to only run opportunistically inside a few request handlers — meaning a request
+// could sit expired-but-still-Pending for hours if nobody happened to load an affected page in
+// the meantime. Running it on a fixed timer makes expiry happen on schedule regardless of
+// traffic, so it doesn't depend on any particular user's browser staying open.
+const EXPIRY_CHECK_INTERVAL_MS = 2 * 60 * 1000; // every 2 minutes
+resolveExpiredRequests();
+setInterval(resolveExpiredRequests, EXPIRY_CHECK_INTERVAL_MS);
 
 // API Routes
 app.use("/api/users", Userrouter);

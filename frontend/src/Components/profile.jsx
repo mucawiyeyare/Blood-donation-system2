@@ -549,6 +549,37 @@ function Profile() {
                 <option value="O-">O-</option>
               </select>
             </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Age</label>
+              <input
+                type="number"
+                name="age"
+                min="16"
+                max="100"
+                value={isEditing ? editForm.age ?? "" : profile?.age ?? ""}
+                onChange={handleInputChange}
+                disabled={!isEditing}
+                placeholder="e.g. 28"
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold disabled:bg-slate-100"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-700 uppercase mb-1">Gender</label>
+              <select
+                name="gender"
+                value={isEditing ? editForm.gender || "" : profile?.gender || ""}
+                onChange={handleInputChange}
+                disabled={!isEditing}
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-semibold disabled:bg-slate-100"
+              >
+                <option value="">Not set</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
           </div>
 
           {/* 🏆 Hall of Heroes Leaderboard Visibility Setting (For Donors) */}
