@@ -7,13 +7,20 @@ import { sendDirectSMS, buildEmergencySMSText, identifySomaliCarrier } from "../
 import { createNotification } from "./notificationController.js";
 import { sendUrgentPushToUser } from "../services/pushNotificationService.js";
 
-// Helper: Auto-resolve expired requests older than 2 hours
+// Helper: Auto-resolve expired requests older than 2 hours.
+// This covers "Pending" (never responded to) AND "Accepted" (the donor said yes but never
+// actually arrived) — both show as "Pending (2h)" to the hospital/admin (see getDonors' computed
+// status), and accepting doesn't reset pendingUntil, so both are held to the same original
+// 2-hour window. Without "Accepted" here, a donor who accepts and then never shows up stayed
+// reserved forever, since nothing else ever moved that request out of "Accepted".
+// "Arrived" is deliberately left out: once someone has physically shown up, they're no longer on
+// a ticking clock — the hospital finishes the visit (Completed/Cancelled) at its own pace.
 export const resolveExpiredRequests = async () => {
   try {
     const now = new Date();
     const result = await DonorRequest.updateMany(
       {
-        status: "Pending",
+        status: { $in: ["Pending", "Accepted"] },
         pendingUntil: { $lt: now },
       },
       {
