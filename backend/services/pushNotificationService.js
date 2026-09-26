@@ -41,8 +41,8 @@ export const sendUrgentPushToUser = async (
     const payload = JSON.stringify({
       title,
       body,
-      icon: "/logo.png",
-      badge: "/logo.png",
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
       tag: `sobda-warning-${Date.now()}`,
       vibrate: [400, 200, 400, 200, 400],
       requireInteraction: true, // Remains on top until touched

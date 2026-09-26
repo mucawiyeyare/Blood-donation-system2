@@ -53,8 +53,12 @@ self.addEventListener("push", (event) => {
         data.body ||
         data.message ||
         "Waxaa loo baahan yahay dhiig-bixin degdeg ah si loo badbaadiyo nolol. Fadlan fur codsiga.",
-      icon: "/logo.png",
-      badge: "/logo.png",
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+      // The OS uses this to show "X minutes ago" on the notification — without it, a push that
+      // was delayed in delivery (poor connection, battery saver) shows the time it was rendered
+      // instead of when it was actually sent.
+      timestamp: data.data?.timestamp || data.timestamp || Date.now(),
       vibrate: [400, 200, 400, 200, 400],
       requireInteraction: true, // Remains on top until user acts on it
       renotify: true,
