@@ -375,6 +375,7 @@ function HospitalRequests() {
                     </div>
                     <p className="text-[11px] text-amber-700">
                       Requested: {new Date(request.requestDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {" · "}Auto-cancels if not accepted within 2 hours, and the donor becomes available again.
                     </p>
                   </div>
                 )}

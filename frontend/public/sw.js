@@ -82,6 +82,48 @@ self.addEventListener("push", (event) => {
   }
 });
 
+function urlBase64ToUint8Array(base64String) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+  return outputArray;
+}
+
+// The browser can rotate a push subscription's endpoint on its own — most often weeks later,
+// while the app is closed — and without handling this, the device just silently stops getting
+// alerts with nothing telling the donor or the hospital that anything is wrong. This re-subscribes
+// and hands the new endpoint to the server, matched to the old one it's replacing (see
+// resubscribePush on the backend for why no login is needed here).
+self.addEventListener("pushsubscriptionchange", (event) => {
+  event.waitUntil(
+    (async () => {
+      try {
+        const oldEndpoint = event.oldSubscription?.endpoint;
+        let newSubscription = event.newSubscription;
+        if (!newSubscription) {
+          const keyRes = await fetch("/api/notifications/vapid-key");
+          const { publicKey } = await keyRes.json();
+          newSubscription = await self.registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: urlBase64ToUint8Array(publicKey),
+          });
+        }
+        if (!oldEndpoint) return;
+        const { endpoint, keys } = newSubscription.toJSON();
+        await fetch("/api/notifications/resubscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ oldEndpoint, endpoint, keys }),
+        });
+      } catch (err) {
+        console.error("[SW] Failed to rotate push subscription:", err);
+      }
+    })()
+  );
+});
+
 // Handle notification click on mobile phone (over YouTube or lockscreen)
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();

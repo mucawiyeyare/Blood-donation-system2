@@ -277,6 +277,10 @@ function DonorRequests() {
               <div>
                 <p className="text-[11px] font-bold text-amber-900 uppercase">2-Hour Arrival Window</p>
                 <p className="text-sm">{formatCountdown(donorStatus.activeRequest.pendingUntil)}</p>
+                <p className="mt-1 text-xs text-amber-700">
+                  Every pending request automatically expires 2 hours after it's sent. If it expires, you'll
+                  return to Available and can be requested again.
+                </p>
               </div>
             </div>
           )}

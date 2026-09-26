@@ -204,6 +204,38 @@ export const savePushSubscription = async (req, res) => {
 };
 
 /**
+ * POST /api/notifications/resubscribe
+ * The browser can silently rotate a push subscription's endpoint at any time (most commonly
+ * weeks/months later, while the app is closed) — without handling that, the device would just
+ * stop receiving alerts with no error visible to the donor or the admin. The service worker's
+ * `pushsubscriptionchange` handler calls this to swap in the new endpoint/keys in place.
+ * Deliberately unauthenticated: a service worker has no access to the page's JWT (and one saved
+ * long ago may well have expired by the time this fires), so the old endpoint — a value only
+ * ever known to the device that held that subscription — is what proves this is the same device.
+ */
+export const resubscribePush = async (req, res) => {
+  try {
+    const { oldEndpoint, endpoint, keys } = req.body;
+    if (!oldEndpoint || !endpoint || !keys?.p256dh || !keys?.auth) {
+      return res.status(400).json({ success: false, message: "Invalid resubscribe data" });
+    }
+
+    const existing = await PushSubscription.findOne({ endpoint: oldEndpoint });
+    if (!existing) {
+      return res.status(404).json({ success: false, message: "No matching subscription to rotate" });
+    }
+
+    existing.endpoint = endpoint;
+    existing.keys = { p256dh: keys.p256dh, auth: keys.auth };
+    await existing.save();
+
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
  * GET /api/notifications/devices
  * List the current user's registered push-notification devices
  */

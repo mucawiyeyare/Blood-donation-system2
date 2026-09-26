@@ -7,6 +7,7 @@ import {
   deleteNotification,
   getVapidPublicKey,
   savePushSubscription,
+  resubscribePush,
   testPushNotification,
   getMyDevices,
   revokeDevice,
@@ -19,6 +20,10 @@ router.get("/vapid-key", getVapidPublicKey);
 
 // POST save push subscription
 router.post("/subscribe", protect, savePushSubscription);
+
+// POST rotate an existing push subscription (called by the service worker itself, with no user
+// signed in at the time — see resubscribePush for why this is intentionally unauthenticated)
+router.post("/resubscribe", resubscribePush);
 
 // POST test push notification (with delay)
 router.post("/test-push", protect, testPushNotification);
