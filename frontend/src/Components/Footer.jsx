@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Heart, Phone, Mail } from "lucide-react";
 import SomaliaFlag from "./SomaliaFlag.jsx";
 import SobdaLogo from "./SobdaLogo.jsx";
+import usePwaStandalone from "../hooks/usePwaStandalone.js";
 
 const FOOTER_LINKS = [
   { to: "/", label: "Home" },
@@ -15,8 +16,11 @@ const FOOTER_LINKS = [
 ];
 
 function Footer() {
+  // Extra bottom clearance for the app's own bottom tab bar (PublicBottomNavBar), which only
+  // shows once SOBDA is running as the installed app, not in an ordinary browser tab.
+  const isStandalone = usePwaStandalone();
   return (
-    <footer className="font-brand border-t border-line bg-white text-slate-600">
+    <footer className={`font-brand border-t border-line bg-white text-slate-600 ${isStandalone ? "pb-16 lg:pb-0" : ""}`}>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
         <div className="grid gap-8 lg:grid-cols-[auto_1fr_auto] lg:items-center">
           <SobdaLogo size="md" />

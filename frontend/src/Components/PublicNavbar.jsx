@@ -84,6 +84,7 @@ function PublicNavbar() {
 
           {/* Mobile menu button */}
           <div className="flex items-center gap-1 lg:hidden">
+          <InstallAppButton iconOnly />
           <ThemeToggle />
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -138,7 +139,6 @@ function PublicNavbar() {
                   </>
                 )}
               </div>
-              <InstallAppButton className="mt-3 w-full justify-center" />
             </div>
           </div>
         )}

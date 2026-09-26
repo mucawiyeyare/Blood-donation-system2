@@ -9,7 +9,7 @@ const isIOS = () => /iphone|ipad|ipod/i.test(window.navigator.userAgent);
 // "Install App": Chrome/Edge/Android fire beforeinstallprompt, which we capture and replay on
 // click. iOS never fires that event — Safari only supports Add to Home Screen via its Share
 // sheet — so there we show a one-line hint instead of a button that would silently do nothing.
-export default function InstallAppButton({ className = "" }) {
+export default function InstallAppButton({ className = "", iconOnly = false }) {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [installed, setInstalled] = useState(false);
   const [showIOSHint, setShowIOSHint] = useState(false);
@@ -54,10 +54,16 @@ export default function InstallAppButton({ className = "" }) {
       <button
         type="button"
         onClick={handleClick}
-        className={`inline-flex items-center gap-2 rounded-xl border border-navy/40 bg-white px-4 py-2.5 text-sm font-semibold text-navy transition-colors hover:border-navy hover:bg-soft ${className}`}
+        aria-label="Install App"
+        title="Install App"
+        className={
+          iconOnly
+            ? `flex h-10 w-10 items-center justify-center rounded-xl text-navy transition-colors hover:bg-sky-50 ${className}`
+            : `inline-flex items-center gap-2 rounded-xl border border-navy/40 bg-white px-4 py-2.5 text-sm font-semibold text-navy transition-colors hover:border-navy hover:bg-soft ${className}`
+        }
       >
         <Download className="h-4 w-4" />
-        Install App
+        {!iconOnly && "Install App"}
       </button>
 
       {showIOSHint && (
