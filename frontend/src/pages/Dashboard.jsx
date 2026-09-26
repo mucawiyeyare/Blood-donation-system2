@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Routes, Route, Outlet, Navigate, useNavigate } from "react-router-dom";
 import Sidebar from "../Components/Sidebar.jsx";
+import BottomNavBar from "../Components/BottomNavBar.jsx";
 import NotificationDropdown from "../Components/NotificationDropdown.jsx";
 import ThemeToggle from "../Components/ThemeToggle.jsx";
 import { LogOut, Menu, X, UserCheck, Shield, Droplet, Building2, Bell, BellOff, Stethoscope } from "lucide-react";
@@ -161,10 +162,12 @@ function Dashboard({ setUser }) {
         )}
 
         {/* Nested View */}
-        <main className="flex-1">
+        <main className="flex-1 pb-16 lg:pb-0">
           <Outlet />
         </main>
       </div>
+
+      <BottomNavBar />
     </div>
   );
 }

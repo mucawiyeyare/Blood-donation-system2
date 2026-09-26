@@ -71,7 +71,9 @@ export default function InstallPwaPrompt() {
   if (!visible || !deferredPrompt) return null;
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-[90] flex justify-center px-4 pb-4 sm:justify-end sm:px-6 sm:pb-6">
+    // pb-20 on mobile clears the dashboard's bottom tab bar, which sits at the very bottom on
+    // small screens; that bar is lg:hidden, so back to a normal pb-6 once it's out of the way.
+    <div className="fixed inset-x-0 bottom-0 z-[90] flex justify-center px-4 pb-20 sm:justify-end sm:px-6 sm:pb-6 lg:pb-6">
       <div className="w-full max-w-sm rounded-2xl border border-line bg-white p-4 shadow-[0_20px_50px_-15px_rgba(15,60,140,0.35)]">
         <div className="flex items-start gap-3">
           <div className="flex-shrink-0 rounded-xl border border-line bg-soft p-2">
